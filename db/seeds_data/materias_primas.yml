@@ -1,0 +1,474 @@
+# Matérias-primas. Fatores da aba Planilha2 de TABELA DE CONVERSOES IN NAT x PROCESSADOS.
+# kg in natura = kg processado x fator_multiplicar
+# embalagens a comprar = ROUND(kg in natura / kg_por_embalagem)
+# caixas para aprontar = ROUND(kg processado / kg_por_caixa_descascada)
+# null = ainda não informado (gera alerta na Conferência)
+- codigo: abobora
+  nome: Abóbora
+  fornecedor: Fornecedor I
+  fator_multiplicar: 1.8
+  kg_por_embalagem: 40
+  kg_por_caixa_descascada: 25
+  embalagem_compra: sc
+- codigo: abobrinha
+  nome: Abobrinha
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1.1
+  kg_por_embalagem: 19
+  kg_por_caixa_descascada: 25
+  embalagem_compra: cx
+- codigo: acelga
+  nome: Acelga
+  fornecedor: Fornecedor B
+  fator_multiplicar: 2
+  kg_por_embalagem: 15
+  kg_por_caixa_descascada: 10
+  embalagem_compra: cx
+  observacao: 'Tabela: pedir em kg para quantidades altas'
+- codigo: aipim
+  nome: Aipim
+  fornecedor: Fornecedor B
+  fator_multiplicar: 2
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 25
+  embalagem_compra: cx
+- codigo: alface
+  nome: Alface
+  fornecedor: null
+  fator_multiplicar: 1.45
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: 5
+  embalagem_compra: kg
+  observacao: Pedir em kg
+- codigo: baroa
+  nome: Batata baroa
+  fornecedor: Fornecedor E
+  fator_multiplicar: 1.4
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 25
+  embalagem_compra: cx
+- codigo: batata
+  nome: Batata inglesa
+  fornecedor: Fornecedor H
+  fator_multiplicar: 1.45
+  kg_por_embalagem: 25
+  kg_por_caixa_descascada: 30
+  embalagem_compra: sc
+  observacao: Tabela diz saco de 50 ou 25 kg; fórmula usa 25
+- codigo: batata_doce
+  nome: Batata-doce
+  fornecedor: Fornecedor F
+  fator_multiplicar: 1.45
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 25
+  embalagem_compra: cx
+- codigo: berinjela
+  nome: Berinjela
+  fornecedor: Fornecedor B
+  fator_multiplicar: 2
+  kg_por_embalagem: 10
+  kg_por_caixa_descascada: 14
+  embalagem_compra: cx
+- codigo: beterraba
+  nome: Beterraba
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1.8
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 25
+  embalagem_compra: cx
+- codigo: brocolis
+  nome: Brócolis
+  fornecedor: null
+  fator_multiplicar: 1.3
+  kg_por_embalagem: 6
+  kg_por_caixa_descascada: 14
+  embalagem_compra: cx
+- codigo: cenoura
+  nome: Cenoura
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1.35
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 25
+  embalagem_compra: cx
+- codigo: chuchu
+  nome: Chuchu
+  fornecedor: Fornecedor B
+  fator_multiplicar: 2
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 22
+  embalagem_compra: cx
+- codigo: couve
+  nome: Couve
+  fornecedor: null
+  fator_multiplicar: 1.35
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: 12
+  embalagem_compra: kg
+  observacao: Planilha1 diz 1,3; Planilha2 usa 1,35
+- codigo: couve_flor
+  nome: Couve-flor
+  fornecedor: Fornecedor B
+  fator_multiplicar: 2
+  kg_por_embalagem: 6
+  kg_por_caixa_descascada: 14
+  embalagem_compra: cx
+- codigo: inhame
+  nome: Inhame
+  fornecedor: Fornecedor B
+  fator_multiplicar: 2
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 25
+  embalagem_compra: cx
+- codigo: pepino
+  nome: Pepino
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1.1
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 25
+  embalagem_compra: cx
+- codigo: quiabo
+  nome: Quiabo
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1.1
+  kg_por_embalagem: 10
+  kg_por_caixa_descascada: 11
+  embalagem_compra: cx
+- codigo: repolho
+  nome: Repolho branco
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1.5
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 15
+  embalagem_compra: cx
+  observacao: 'Tabela: pedir em kg para quantidades altas'
+- codigo: repolho_roxo
+  nome: Repolho roxo
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1.5
+  kg_por_embalagem: 20
+  kg_por_caixa_descascada: 15
+  embalagem_compra: cx
+  observacao: Fatores copiados do repolho branco
+- codigo: vagem
+  nome: Vagem
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1.1
+  kg_por_embalagem: 10
+  kg_por_caixa_descascada: 18
+  embalagem_compra: cx
+- codigo: cebola
+  nome: Cebola
+  fornecedor: Fornecedor H
+  fator_multiplicar: null
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: sc
+- codigo: cebola_roxa
+  nome: Cebola roxa
+  fornecedor: Fornecedor H
+  fator_multiplicar: null
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: sc
+- codigo: jilo
+  nome: Jiló
+  fornecedor: Fornecedor B
+  fator_multiplicar: null
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: banana
+  nome: Banana (para cubinhos)
+  fornecedor: Fornecedor J
+  fator_multiplicar: null
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: banana_nanica
+  nome: Banana nanica
+  fornecedor: Fornecedor J
+  fator_multiplicar: null
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: laranja
+  nome: Laranja pera
+  fornecedor: Fornecedor H
+  fator_multiplicar: null
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: mistura
+  nome: Misturas (yakissoba, seleta)
+  fornecedor: null
+  fator_multiplicar: null
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+  observacao: Composição da mistura não está nas planilhas
+- codigo: tomate
+  nome: Tomate
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: maracuja
+  nome: Maracujá
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: goiaba
+  nome: Goiaba
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: abacate
+  nome: Abacate
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: pimenta_malagueta
+  nome: Pimenta malagueta
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: pimenta_biquinho
+  nome: Pimenta biquinho
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: pimentao_verde
+  nome: Pimentão verde
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: pimentao_amarelo
+  nome: Pimentão amarelo
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: pimentao_vermelho
+  nome: Pimentão vermelho
+  fornecedor: Fornecedor B
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: limao
+  nome: Limão
+  fornecedor: Fornecedor H
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: ameixa
+  nome: Ameixa
+  fornecedor: Fornecedor G
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: abacaxi
+  nome: Abacaxi
+  fornecedor: Fornecedor D
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: un
+- codigo: mamao
+  nome: Mamão
+  fornecedor: Fornecedor A
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: maca
+  nome: Maçã
+  fornecedor: Fornecedor A
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: melao
+  nome: Melão
+  fornecedor: Fornecedor A
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: manga
+  nome: Manga
+  fornecedor: Fornecedor A
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: uva_rubi
+  nome: Uva rubi
+  fornecedor: Fornecedor A
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: uva_vermelha
+  nome: Uva vermelha s/ semente
+  fornecedor: Fornecedor A
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: uva_verde
+  nome: Uva verde s/ semente
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: banana_prata
+  nome: Banana prata
+  fornecedor: Fornecedor J
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: banana_terra
+  nome: Banana da terra
+  fornecedor: Fornecedor J
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: ovos
+  nome: Ovos
+  fornecedor: Fornecedor C
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: cx
+- codigo: agriao
+  nome: Agrião
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: alecrim
+  nome: Alecrim
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: cebolinha
+  nome: Cebolinha
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: chicoria
+  nome: Chicória
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: coentro
+  nome: Coentro
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: espinafre
+  nome: Espinafre
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: hortela
+  nome: Hortelã
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: manjericao
+  nome: Manjericão
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: salsa
+  nome: Salsa
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: rucula
+  nome: Rúcula
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: alho_poro
+  nome: Alho-poró
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: gengibre
+  nome: Gengibre
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: alface_roxa
+  nome: Alface roxa
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: melancia
+  nome: Melancia
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: pera
+  nome: Pera
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg
+- codigo: pessego
+  nome: Pêssego
+  fornecedor: null
+  fator_multiplicar: 1
+  kg_por_embalagem: null
+  kg_por_caixa_descascada: null
+  embalagem_compra: kg

@@ -1,0 +1,25 @@
+# Clientes com pedido na semana de 12/10/2026. Escola Modelo aparece no balanço mensal, mas não tinha pedido nos arquivos.
+- codigo: hbp
+  nome: Hospital Bom Pastor
+  nome_curto: Bom Pastor
+  origem_pedido: 'Duas planilhas: processados (.ods) e in natura (.xls)'
+- codigo: hnorte
+  nome: Hospital Horizonte Norte
+  nome_curto: Horiz. Norte
+  origem_pedido: Processados (.xlsx) e cotação in natura do hospital (.xlsx). Na programação aparece como "Central"
+- codigo: hsul
+  nome: Hospital Horizonte Sul
+  nome_curto: Horiz. Sul
+  origem_pedido: Processados (.xlsx)
+- codigo: amoll
+  nome: Aurora · Mollinari
+  nome_curto: Aurora Mollinari
+  origem_pedido: 12/10 tirado da programação; 19/10 da autorização de fornecimento (PDF)
+- codigo: ahotel
+  nome: Aurora · Hotel
+  nome_curto: Aurora Hotel
+  origem_pedido: Print da tela do sistema da Aurora
+- codigo: afab
+  nome: Aurora · Fábrica
+  nome_curto: Aurora Fábrica
+  origem_pedido: Tabelas coladas como imagem

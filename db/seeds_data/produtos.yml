@@ -1,0 +1,524 @@
+# Produtos usados nos pedidos da semana de 12/10/2026. Processados = matéria-prima + corte.
+- codigo: abobora_cubos
+  nome: Abóbora em cubos
+  grupo: processado
+  materia_prima: abobora
+  unidade: kg
+  corte: cubos
+- codigo: abobora_cubinhos
+  nome: Abóbora em cubinhos
+  grupo: processado
+  materia_prima: abobora
+  unidade: kg
+  corte: cubinhos
+- codigo: abobora_lascas
+  nome: Abóbora em lascas (com casca)
+  grupo: processado
+  materia_prima: abobora
+  unidade: kg
+  corte: lascas
+- codigo: abobrinha_cubos
+  nome: Abobrinha em cubos
+  grupo: processado
+  materia_prima: abobrinha
+  unidade: kg
+  corte: cubos
+- codigo: acelga_picada
+  nome: Acelga picada
+  grupo: processado
+  materia_prima: acelga
+  unidade: kg
+  corte: picado
+- codigo: aipim_cubos
+  nome: Aipim em cubos
+  grupo: processado
+  materia_prima: aipim
+  unidade: kg
+  corte: cubos
+- codigo: aipim_cubinhos
+  nome: Aipim em cubinhos
+  grupo: processado
+  materia_prima: aipim
+  unidade: kg
+  corte: cubinhos
+- codigo: alface_picada
+  nome: Alface picada
+  grupo: processado
+  materia_prima: alface
+  unidade: kg
+  corte: picado
+- codigo: banana_cubinhos
+  nome: Banana em cubinhos
+  grupo: processado
+  materia_prima: banana
+  unidade: kg
+  corte: cubinhos
+- codigo: baroa_cubos
+  nome: Baroa em cubos
+  grupo: processado
+  materia_prima: baroa
+  unidade: kg
+  corte: cubos
+- codigo: baroa_cubinhos
+  nome: Baroa em cubinhos
+  grupo: processado
+  materia_prima: baroa
+  unidade: kg
+  corte: cubinhos
+- codigo: batata_cubos
+  nome: Batata em cubos
+  grupo: processado
+  materia_prima: batata
+  unidade: kg
+  corte: cubos
+- codigo: batata_cubinhos
+  nome: Batata em cubinhos
+  grupo: processado
+  materia_prima: batata
+  unidade: kg
+  corte: cubinhos
+- codigo: batata_inteira
+  nome: Batata inteira descascada
+  grupo: processado
+  materia_prima: batata
+  unidade: kg
+  corte: inteira_descascada
+- codigo: batata_doce_cubos
+  nome: Batata-doce em cubos
+  grupo: processado
+  materia_prima: batata_doce
+  unidade: kg
+  corte: cubos
+- codigo: batata_doce_cubinhos
+  nome: Batata-doce em cubinhos
+  grupo: processado
+  materia_prima: batata_doce
+  unidade: kg
+  corte: cubinhos
+- codigo: berinjela_cubos
+  nome: Berinjela em cubos
+  grupo: processado
+  materia_prima: berinjela
+  unidade: kg
+  corte: cubos
+- codigo: berinjela_cubinhos
+  nome: Berinjela em cubinhos
+  grupo: processado
+  materia_prima: berinjela
+  unidade: kg
+  corte: cubinhos
+- codigo: beterraba_ralada
+  nome: Beterraba ralada
+  grupo: processado
+  materia_prima: beterraba
+  unidade: kg
+  corte: ralado
+- codigo: beterraba_palitos
+  nome: Beterraba em palitos
+  grupo: processado
+  materia_prima: beterraba
+  unidade: kg
+  corte: palitos
+- codigo: beterraba_cubinhos
+  nome: Beterraba em cubinhos
+  grupo: processado
+  materia_prima: beterraba
+  unidade: kg
+  corte: cubinhos
+- codigo: brocolis
+  nome: Brócolis em floretes
+  grupo: processado
+  materia_prima: brocolis
+  unidade: kg
+  corte: floretes
+- codigo: cebola_cubinhos
+  nome: Cebola em cubinhos
+  grupo: processado
+  materia_prima: cebola
+  unidade: kg
+  corte: cubinhos
+- codigo: cebola_roxa_fatiada
+  nome: Cebola roxa fatiada
+  grupo: processado
+  materia_prima: cebola_roxa
+  unidade: kg
+  corte: fatiado
+- codigo: cenoura_cubos
+  nome: Cenoura em cubos
+  grupo: processado
+  materia_prima: cenoura
+  unidade: kg
+  corte: cubos
+- codigo: cenoura_cubinhos
+  nome: Cenoura em cubinhos
+  grupo: processado
+  materia_prima: cenoura
+  unidade: kg
+  corte: cubinhos
+- codigo: cenoura_ralada
+  nome: Cenoura ralada
+  grupo: processado
+  materia_prima: cenoura
+  unidade: kg
+  corte: ralado
+- codigo: cenoura_rodelas
+  nome: Cenoura em rodelas
+  grupo: processado
+  materia_prima: cenoura
+  unidade: kg
+  corte: rodelas
+- codigo: cenoura_palitos
+  nome: Cenoura em palitos
+  grupo: processado
+  materia_prima: cenoura
+  unidade: kg
+  corte: palitos
+- codigo: cenoura_inteira
+  nome: Cenoura inteira descascada
+  grupo: processado
+  materia_prima: cenoura
+  unidade: kg
+  corte: inteira_descascada
+- codigo: chuchu_cubos
+  nome: Chuchu em cubos
+  grupo: processado
+  materia_prima: chuchu
+  unidade: kg
+  corte: cubos
+- codigo: chuchu_cubinhos
+  nome: Chuchu em cubinhos
+  grupo: processado
+  materia_prima: chuchu
+  unidade: kg
+  corte: cubinhos
+- codigo: chuchu_palitos
+  nome: Chuchu em palitos
+  grupo: processado
+  materia_prima: chuchu
+  unidade: kg
+  corte: palitos
+- codigo: couve_picada
+  nome: Couve picada
+  grupo: processado
+  materia_prima: couve
+  unidade: kg
+  corte: picado
+- codigo: couve_flor
+  nome: Couve-flor em floretes
+  grupo: processado
+  materia_prima: couve_flor
+  unidade: kg
+  corte: floretes
+- codigo: inhame_cubos
+  nome: Inhame em cubos
+  grupo: processado
+  materia_prima: inhame
+  unidade: kg
+  corte: cubos
+- codigo: inhame_cubinhos
+  nome: Inhame em cubinhos
+  grupo: processado
+  materia_prima: inhame
+  unidade: kg
+  corte: cubinhos
+- codigo: jilo_cubos
+  nome: Jiló em cubos
+  grupo: processado
+  materia_prima: jilo
+  unidade: kg
+  corte: cubos
+- codigo: pepino_rodelas
+  nome: Pepino em rodelas
+  grupo: processado
+  materia_prima: pepino
+  unidade: kg
+  corte: rodelas
+- codigo: quiabo_cubos
+  nome: Quiabo em cubos
+  grupo: processado
+  materia_prima: quiabo
+  unidade: kg
+  corte: cubos
+- codigo: repolho_picado
+  nome: Repolho branco picado
+  grupo: processado
+  materia_prima: repolho
+  unidade: kg
+  corte: picado
+- codigo: repolho_roxo_picado
+  nome: Repolho roxo picado
+  grupo: processado
+  materia_prima: repolho_roxo
+  unidade: kg
+  corte: picado
+- codigo: vagem_cubinhos
+  nome: Vagem em cubinhos
+  grupo: processado
+  materia_prima: vagem
+  unidade: kg
+  corte: cubinhos
+- codigo: vagem_palitos
+  nome: Vagem em palitos
+  grupo: processado
+  materia_prima: vagem
+  unidade: kg
+  corte: palitos
+- codigo: yakissoba
+  nome: Mistura yakissoba
+  grupo: processado
+  materia_prima: mistura
+  unidade: kg
+  corte: mistura
+- codigo: seleta
+  nome: Seleta jardineira
+  grupo: processado
+  materia_prima: mistura
+  unidade: kg
+  corte: mistura
+- codigo: laranja_desc
+  nome: Laranja descascada
+  grupo: fruta
+  materia_prima: laranja
+  unidade: un
+  corte: descascada_un
+- codigo: banana_embalada
+  nome: Banana nanica embalada
+  grupo: fruta
+  materia_prima: banana_nanica
+  unidade: un
+  corte: embalada_un
+- codigo: in_agriao
+  nome: Agrião
+  grupo: in_natura
+  materia_prima: agriao
+  unidade: kg
+- codigo: in_alecrim
+  nome: Alecrim
+  grupo: in_natura
+  materia_prima: alecrim
+  unidade: kg
+- codigo: in_alface
+  nome: Alface crespa
+  grupo: in_natura
+  materia_prima: alface
+  unidade: kg
+- codigo: in_alface_roxa
+  nome: Alface roxa
+  grupo: in_natura
+  materia_prima: alface_roxa
+  unidade: kg
+- codigo: in_cebolinha
+  nome: Cebolinha
+  grupo: in_natura
+  materia_prima: cebolinha
+  unidade: kg
+- codigo: in_chicoria
+  nome: Chicória
+  grupo: in_natura
+  materia_prima: chicoria
+  unidade: kg
+- codigo: in_coentro
+  nome: Coentro
+  grupo: in_natura
+  materia_prima: coentro
+  unidade: kg
+- codigo: in_couve
+  nome: Couve
+  grupo: in_natura
+  materia_prima: couve
+  unidade: kg
+- codigo: in_espinafre
+  nome: Espinafre
+  grupo: in_natura
+  materia_prima: espinafre
+  unidade: kg
+- codigo: in_hortela
+  nome: Hortelã
+  grupo: in_natura
+  materia_prima: hortela
+  unidade: kg
+- codigo: in_manjericao
+  nome: Manjericão
+  grupo: in_natura
+  materia_prima: manjericao
+  unidade: kg
+- codigo: in_repolho
+  nome: Repolho verde
+  grupo: in_natura
+  materia_prima: repolho
+  unidade: kg
+- codigo: in_repolho_roxo
+  nome: Repolho roxo
+  grupo: in_natura
+  materia_prima: repolho_roxo
+  unidade: kg
+- codigo: in_salsa
+  nome: Salsa
+  grupo: in_natura
+  materia_prima: salsa
+  unidade: kg
+- codigo: in_pepino
+  nome: Pepino
+  grupo: in_natura
+  materia_prima: pepino
+  unidade: kg
+- codigo: in_pimentao_verde
+  nome: Pimentão verde
+  grupo: in_natura
+  materia_prima: pimentao_verde
+  unidade: kg
+- codigo: in_pimentao_amarelo
+  nome: Pimentão amarelo
+  grupo: in_natura
+  materia_prima: pimentao_amarelo
+  unidade: kg
+- codigo: in_pimentao_vermelho
+  nome: Pimentão vermelho
+  grupo: in_natura
+  materia_prima: pimentao_vermelho
+  unidade: kg
+- codigo: in_quiabo
+  nome: Quiabo
+  grupo: in_natura
+  materia_prima: quiabo
+  unidade: kg
+- codigo: in_vagem
+  nome: Vagem
+  grupo: in_natura
+  materia_prima: vagem
+  unidade: kg
+- codigo: in_mamao
+  nome: Mamão
+  grupo: in_natura
+  materia_prima: mamao
+  unidade: kg
+- codigo: in_abacaxi
+  nome: Abacaxi
+  grupo: in_natura
+  materia_prima: abacaxi
+  unidade: kg
+- codigo: in_alho_poro
+  nome: Alho-poró
+  grupo: in_natura
+  materia_prima: alho_poro
+  unidade: kg
+- codigo: in_ameixa
+  nome: Ameixa
+  grupo: in_natura
+  materia_prima: ameixa
+  unidade: kg
+- codigo: in_banana_terra
+  nome: Banana da terra
+  grupo: in_natura
+  materia_prima: banana_terra
+  unidade: kg
+- codigo: in_banana_prata
+  nome: Banana prata
+  grupo: in_natura
+  materia_prima: banana_prata
+  unidade: kg
+- codigo: in_cebola
+  nome: Cebola
+  grupo: in_natura
+  materia_prima: cebola
+  unidade: kg
+- codigo: in_goiaba
+  nome: Goiaba
+  grupo: in_natura
+  materia_prima: goiaba
+  unidade: kg
+- codigo: in_laranja
+  nome: Laranja pera
+  grupo: in_natura
+  materia_prima: laranja
+  unidade: kg
+- codigo: in_limao
+  nome: Limão
+  grupo: in_natura
+  materia_prima: limao
+  unidade: kg
+- codigo: in_maca
+  nome: Maçã
+  grupo: in_natura
+  materia_prima: maca
+  unidade: kg
+- codigo: in_manga
+  nome: Manga
+  grupo: in_natura
+  materia_prima: manga
+  unidade: kg
+- codigo: in_maracuja
+  nome: Maracujá
+  grupo: in_natura
+  materia_prima: maracuja
+  unidade: kg
+- codigo: in_melancia
+  nome: Melancia
+  grupo: in_natura
+  materia_prima: melancia
+  unidade: kg
+- codigo: in_melao
+  nome: Melão
+  grupo: in_natura
+  materia_prima: melao
+  unidade: kg
+- codigo: in_ovos
+  nome: Ovos
+  grupo: in_natura
+  materia_prima: ovos
+  unidade: kg
+- codigo: in_pera
+  nome: Pera
+  grupo: in_natura
+  materia_prima: pera
+  unidade: kg
+- codigo: in_pessego
+  nome: Pêssego
+  grupo: in_natura
+  materia_prima: pessego
+  unidade: kg
+- codigo: in_pimenta_malagueta
+  nome: Pimenta malagueta
+  grupo: in_natura
+  materia_prima: pimenta_malagueta
+  unidade: kg
+- codigo: in_pimenta_biquinho
+  nome: Pimenta biquinho
+  grupo: in_natura
+  materia_prima: pimenta_biquinho
+  unidade: kg
+- codigo: in_rucula
+  nome: Rúcula
+  grupo: in_natura
+  materia_prima: rucula
+  unidade: kg
+- codigo: in_tomate
+  nome: Tomate
+  grupo: in_natura
+  materia_prima: tomate
+  unidade: kg
+- codigo: in_uva_vermelha
+  nome: Uva vermelha s/ semente
+  grupo: in_natura
+  materia_prima: uva_vermelha
+  unidade: kg
+- codigo: in_uva_verde
+  nome: Uva verde s/ semente
+  grupo: in_natura
+  materia_prima: uva_verde
+  unidade: kg
+- codigo: in_uva_rubi
+  nome: Uva rubi
+  grupo: in_natura
+  materia_prima: uva_rubi
+  unidade: kg
+- codigo: in_gengibre
+  nome: Gengibre
+  grupo: in_natura
+  materia_prima: gengibre
+  unidade: kg
+- codigo: in_abacate
+  nome: Abacate
+  grupo: in_natura
+  materia_prima: abacate
+  unidade: kg

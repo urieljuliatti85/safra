@@ -1,0 +1,67 @@
+# Cortes. O produto processado = matéria-prima + corte. O setor e a antecedência vêm do corte.
+# antecedencia_dias: 0 = produz no dia da entrega, 1 = véspera. Hipótese tirada da comparação com as planilhas de 13 e 15/10; confirmar.
+- codigo: cubos
+  nome: Cubos
+  setor: manual
+  nome_setor: Cortes manuais
+  antecedencia_dias: 1
+- codigo: cubinhos
+  nome: Cubinhos 10x10 mm
+  setor: cubinho
+  nome_setor: Cubinhos 10×10 mm
+  antecedencia_dias: 1
+- codigo: ralado
+  nome: Ralado
+  setor: ralpic
+  nome_setor: Ralados, picados e rodelas
+  antecedencia_dias: 0
+- codigo: rodelas
+  nome: Rodelas
+  setor: ralpic
+  nome_setor: Ralados, picados e rodelas
+  antecedencia_dias: 0
+- codigo: picado
+  nome: Picado
+  setor: ralpic
+  nome_setor: Ralados, picados e rodelas
+  antecedencia_dias: 0
+- codigo: fatiado
+  nome: Fatiado
+  setor: ralpic
+  nome_setor: Ralados, picados e rodelas
+  antecedencia_dias: 0
+- codigo: palitos
+  nome: Palitos
+  setor: palito
+  nome_setor: Palitos
+  antecedencia_dias: 1
+- codigo: floretes
+  nome: Floretes
+  setor: manual
+  nome_setor: Cortes manuais
+  antecedencia_dias: 1
+- codigo: lascas
+  nome: Lascas com casca
+  setor: manual
+  nome_setor: Cortes manuais
+  antecedencia_dias: 1
+- codigo: inteira_descascada
+  nome: Inteira descascada
+  setor: descasc
+  nome_setor: Descascados inteiros
+  antecedencia_dias: 1
+- codigo: mistura
+  nome: Mistura
+  setor: manual
+  nome_setor: Cortes manuais
+  antecedencia_dias: 1
+- codigo: descascada_un
+  nome: Descascada (unidade)
+  setor: frutas
+  nome_setor: Frutas descascadas e embaladas
+  antecedencia_dias: 1
+- codigo: embalada_un
+  nome: Embalada (unidade)
+  setor: frutas
+  nome_setor: Frutas descascadas e embaladas
+  antecedencia_dias: 1

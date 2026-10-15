@@ -1,0 +1,241 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[8.1].define(version: 2026_10_15_110000) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
+  create_table "companies", force: :cascade do |t|
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "customer_aliases", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "customer_id", null: false
+    t.bigint "product_id", null: false
+    t.string "name_in_order", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_customer_aliases_on_company_id"
+    t.index ["customer_id", "name_in_order"], name: "index_customer_aliases_on_customer_id_and_name_in_order", unique: true
+    t.index ["customer_id"], name: "index_customer_aliases_on_customer_id"
+    t.index ["product_id"], name: "index_customer_aliases_on_product_id"
+  end
+
+  create_table "customers", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "code", null: false
+    t.string "name", null: false
+    t.string "short_name", null: false
+    t.string "order_source"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "code"], name: "index_customers_on_company_id_and_code", unique: true
+    t.index ["company_id"], name: "index_customers_on_company_id"
+  end
+
+  create_table "cuts", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "code", null: false
+    t.string "name", null: false
+    t.string "sector", null: false
+    t.string "sector_name", null: false
+    t.integer "lead_days", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "code"], name: "index_cuts_on_company_id_and_code", unique: true
+    t.index ["company_id"], name: "index_cuts_on_company_id"
+  end
+
+  create_table "order_lines", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "order_id", null: false
+    t.bigint "product_id", null: false
+    t.date "delivery_date", null: false
+    t.decimal "quantity", precision: 10, scale: 3, null: false
+    t.string "unit", null: false
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "delivery_date"], name: "index_order_lines_on_company_id_and_delivery_date"
+    t.index ["company_id"], name: "index_order_lines_on_company_id"
+    t.index ["order_id"], name: "index_order_lines_on_order_id"
+    t.index ["product_id"], name: "index_order_lines_on_product_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "customer_id", null: false
+    t.date "week_start", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_orders_on_company_id"
+    t.index ["customer_id", "week_start"], name: "index_orders_on_customer_id_and_week_start", unique: true
+    t.index ["customer_id"], name: "index_orders_on_customer_id"
+  end
+
+  create_table "production_plan_items", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "production_plan_id", null: false
+    t.bigint "product_id", null: false
+    t.decimal "quantity", precision: 10, scale: 3, null: false
+    t.string "unit", null: false
+    t.jsonb "breakdown", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_production_plan_items_on_company_id"
+    t.index ["product_id"], name: "index_production_plan_items_on_product_id"
+    t.index ["production_plan_id"], name: "index_production_plan_items_on_production_plan_id"
+  end
+
+  create_table "production_plans", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.date "date", null: false
+    t.integer "version", default: 1, null: false
+    t.datetime "sent_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "date", "version"], name: "index_production_plans_on_company_id_and_date_and_version", unique: true
+    t.index ["company_id"], name: "index_production_plans_on_company_id"
+  end
+
+  create_table "production_rules", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "product_id", null: false
+    t.integer "lead_days", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_production_rules_on_company_id"
+    t.index ["product_id"], name: "index_production_rules_on_product_id", unique: true
+  end
+
+  create_table "products", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "raw_material_id", null: false
+    t.bigint "cut_id"
+    t.string "code", null: false
+    t.string "name", null: false
+    t.string "product_group", null: false
+    t.string "unit", default: "kg", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "code"], name: "index_products_on_company_id_and_code", unique: true
+    t.index ["company_id"], name: "index_products_on_company_id"
+    t.index ["cut_id"], name: "index_products_on_cut_id"
+    t.index ["raw_material_id"], name: "index_products_on_raw_material_id"
+  end
+
+  create_table "purchase_days", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.date "date", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "date"], name: "index_purchase_days_on_company_id_and_date", unique: true
+    t.index ["company_id"], name: "index_purchase_days_on_company_id"
+  end
+
+  create_table "purchase_plan_items", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "purchase_plan_id", null: false
+    t.bigint "raw_material_id", null: false
+    t.decimal "kg", precision: 10, scale: 3, null: false
+    t.integer "packages"
+    t.jsonb "breakdown", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "unit", default: "kg", null: false
+    t.index ["company_id"], name: "index_purchase_plan_items_on_company_id"
+    t.index ["purchase_plan_id"], name: "index_purchase_plan_items_on_purchase_plan_id"
+    t.index ["raw_material_id"], name: "index_purchase_plan_items_on_raw_material_id"
+  end
+
+  create_table "purchase_plans", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.date "date", null: false
+    t.integer "version", default: 1, null: false
+    t.datetime "sent_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "date", "version"], name: "index_purchase_plans_on_company_id_and_date_and_version", unique: true
+    t.index ["company_id"], name: "index_purchase_plans_on_company_id"
+  end
+
+  create_table "raw_materials", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "supplier_id"
+    t.string "code", null: false
+    t.string "name", null: false
+    t.decimal "multiply_factor", precision: 10, scale: 3
+    t.decimal "kg_per_package", precision: 10, scale: 3
+    t.decimal "kg_per_peeled_box", precision: 10, scale: 3
+    t.string "purchase_package", default: "kg", null: false
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "code"], name: "index_raw_materials_on_company_id_and_code", unique: true
+    t.index ["company_id"], name: "index_raw_materials_on_company_id"
+    t.index ["supplier_id"], name: "index_raw_materials_on_supplier_id"
+  end
+
+  create_table "stock_counts", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "raw_material_id", null: false
+    t.date "date", null: false
+    t.decimal "kg", precision: 10, scale: 3, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_stock_counts_on_company_id"
+    t.index ["raw_material_id", "date"], name: "index_stock_counts_on_raw_material_id_and_date", unique: true
+    t.index ["raw_material_id"], name: "index_stock_counts_on_raw_material_id"
+  end
+
+  create_table "suppliers", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "name"], name: "index_suppliers_on_company_id_and_name", unique: true
+    t.index ["company_id"], name: "index_suppliers_on_company_id"
+  end
+
+  add_foreign_key "customer_aliases", "companies"
+  add_foreign_key "customer_aliases", "customers"
+  add_foreign_key "customer_aliases", "products"
+  add_foreign_key "customers", "companies"
+  add_foreign_key "cuts", "companies"
+  add_foreign_key "order_lines", "companies"
+  add_foreign_key "order_lines", "orders"
+  add_foreign_key "order_lines", "products"
+  add_foreign_key "orders", "companies"
+  add_foreign_key "orders", "customers"
+  add_foreign_key "production_plan_items", "companies"
+  add_foreign_key "production_plan_items", "production_plans"
+  add_foreign_key "production_plan_items", "products"
+  add_foreign_key "production_plans", "companies"
+  add_foreign_key "production_rules", "companies"
+  add_foreign_key "production_rules", "products"
+  add_foreign_key "products", "companies"
+  add_foreign_key "products", "cuts"
+  add_foreign_key "products", "raw_materials"
+  add_foreign_key "purchase_days", "companies"
+  add_foreign_key "purchase_plan_items", "companies"
+  add_foreign_key "purchase_plan_items", "purchase_plans"
+  add_foreign_key "purchase_plan_items", "raw_materials"
+  add_foreign_key "purchase_plans", "companies"
+  add_foreign_key "raw_materials", "companies"
+  add_foreign_key "raw_materials", "suppliers"
+  add_foreign_key "stock_counts", "companies"
+  add_foreign_key "stock_counts", "raw_materials"
+  add_foreign_key "suppliers", "companies"
+end

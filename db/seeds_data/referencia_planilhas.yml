@@ -1,0 +1,139 @@
+# O que foi feito à mão nas planilhas (02 - PLANILHA DE PRODUÇÃO e 03 - COMPRAS CEASA), em 13 e 15/10/2026.
+# Usar como fixture de teste: o sistema deve chegar a estes números ou a diferença deve ser explicada por uma regra.
+producao_planilha:
+  '2026-10-13':
+    quiabo_cubos: 2
+    brocolis: 17
+    inhame_cubos: 30
+    batata_doce_cubos: 10
+    batata_cubos: 50
+    abobora_cubos: 40
+    cenoura_rodelas: 1
+    cenoura_ralada: 3
+    repolho_picado: 6
+    repolho_roxo_picado: 6
+    alface_picada: 12
+    couve_picada: 1
+    vagem_cubinhos: 3
+    cenoura_palitos: 78
+    laranja_desc: 140
+    baroa_cubinhos: 13
+    aipim_cubinhos: 7
+    batata_doce_cubinhos: 7
+    chuchu_cubinhos: 13
+    batata_cubinhos: 32
+    cenoura_cubinhos: 23
+  '2026-10-15':
+    quiabo_cubos: 2
+    banana_cubinhos: 10
+    vagem_palitos: 11
+    baroa_cubos: 11
+    chuchu_cubos: 22
+    cenoura_cubos: 15
+    batata_cubos: 16
+    batata_doce_cubos: 26
+    aipim_cubos: 40
+    beterraba_ralada: 5
+    cenoura_ralada: 7
+    alface_picada: 12
+    couve_picada: 8
+    cebola_roxa_fatiada: 6
+    cenoura_palitos: 23
+    beterraba_palitos: 5
+    laranja_desc: 130
+    batata_doce_cubinhos: 7
+    abobora_cubinhos: 19
+    chuchu_cubinhos: 11
+    cenoura_cubinhos: 32
+    batata_cubinhos: 52
+compras_ceasa_planilha:
+  '2026-10-13':
+  - materia_prima: abobrinha
+    quantidade: 2 cx
+  - materia_prima: acelga
+    quantidade: 3 cx
+  - materia_prima: berinjela
+    quantidade: 5 cx
+  - materia_prima: beterraba
+    quantidade: 2 cx
+  - materia_prima: cenoura
+    quantidade: 20 cx
+  - materia_prima: inhame
+    quantidade: 10 cx
+  - materia_prima: maracuja
+    quantidade: 4 kg
+  - materia_prima: pepino
+    quantidade: 1 cx
+  - materia_prima: quiabo
+    quantidade: 6 cx
+  - materia_prima: repolho
+    quantidade: 3 cx
+  - materia_prima: repolho_roxo
+    quantidade: 1 cx
+  - materia_prima: tomate
+    quantidade: 2 cx
+  - materia_prima: vagem
+    quantidade: 8 cx
+  - materia_prima: baroa
+    quantidade: 3 cx
+  - materia_prima: laranja
+    quantidade: 5 cx
+  - materia_prima: abacaxi
+    quantidade: 5 un
+  - materia_prima: mamao
+    quantidade: 20 cx
+  - materia_prima: maca
+    quantidade: 4 cx
+  - materia_prima: manga
+    quantidade: 3 kg
+  - materia_prima: banana_prata
+    quantidade: 45 kg
+  - materia_prima: banana_terra
+    quantidade: 45 kg + 20 kg média
+  - materia_prima: ovos
+    quantidade: 7 cx
+  '2026-10-15':
+  - materia_prima: abobrinha
+    quantidade: 1 cx
+  - materia_prima: aipim
+    quantidade: 4 cx
+  - materia_prima: berinjela
+    quantidade: 2 cx
+  - materia_prima: beterraba
+    quantidade: 3 cx
+  - materia_prima: cenoura
+    quantidade: 15 cx
+  - materia_prima: jilo
+    quantidade: 3 cx
+  - materia_prima: maracuja
+    quantidade: 6 kg
+  - materia_prima: pepino
+    quantidade: 1 cx
+  - materia_prima: pimenta_malagueta
+    quantidade: 500 g
+  - materia_prima: pimenta_biquinho
+    quantidade: 500 g
+  - materia_prima: pimentao_verde
+    quantidade: 1 cx
+  - materia_prima: repolho_roxo
+    quantidade: 1 cx
+  - materia_prima: tomate
+    quantidade: 2 cx
+  - materia_prima: vagem
+    quantidade: 5 cx
+  - materia_prima: abobora
+    quantidade: 10 sc
+  - materia_prima: batata
+    quantidade: 25 sc
+  - materia_prima: cebola_roxa
+    quantidade: 1 sc
+  - materia_prima: laranja
+    quantidade: 10 cx
+  - materia_prima: mamao
+    quantidade: 15 cx
+  - materia_prima: maca
+    quantidade: 8 cx
+  - materia_prima: banana_prata
+    quantidade: 90 kg
+  - materia_prima: banana_terra
+    quantidade: 75 kg

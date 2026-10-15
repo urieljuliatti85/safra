@@ -1,0 +1,412 @@
+# Como cada cliente escreve cada produto -> produto interno. Base para reconhecer pedidos importados.
+- cliente: hbp
+  nome_no_pedido: Abobora Cubos
+  produto: abobora_cubos
+- cliente: hbp
+  nome_no_pedido: Abobora Cubos Pequenos
+  produto: abobora_cubinhos
+- cliente: hbp
+  nome_no_pedido: Batata Baroa Cubos Pequenos
+  produto: baroa_cubinhos
+- cliente: hbp
+  nome_no_pedido: Batata Baroa Cubos
+  produto: baroa_cubos
+- cliente: hbp
+  nome_no_pedido: Batata Inglesa Cubos Pequenos
+  produto: batata_cubinhos
+- cliente: hbp
+  nome_no_pedido: Batata Inglesa Cubos
+  produto: batata_cubos
+- cliente: hbp
+  nome_no_pedido: Batata Doce Cubos
+  produto: batata_doce_cubos
+- cliente: hbp
+  nome_no_pedido: Berinjela Cubos Medios
+  produto: berinjela_cubos
+- cliente: hbp
+  nome_no_pedido: Cenoura Cubos Pequenos
+  produto: cenoura_cubinhos
+- cliente: hbp
+  nome_no_pedido: Cenoura Cubos
+  produto: cenoura_cubos
+- cliente: hbp
+  nome_no_pedido: Cenoura Rodelas
+  produto: cenoura_rodelas
+- cliente: hbp
+  nome_no_pedido: Cenoura Palito
+  produto: cenoura_palitos
+- cliente: hbp
+  nome_no_pedido: Cenoura Limpa
+  produto: cenoura_inteira
+- cliente: hbp
+  nome_no_pedido: Chuchu Cubos Pequenos
+  produto: chuchu_cubinhos
+- cliente: hbp
+  nome_no_pedido: Chuchu Cubos
+  produto: chuchu_cubos
+- cliente: hbp
+  nome_no_pedido: Inhame Cubos
+  produto: inhame_cubos
+- cliente: hbp
+  nome_no_pedido: Mistura Yakissoba
+  produto: yakissoba
+- cliente: hbp
+  nome_no_pedido: Laranja Descascada Unidades
+  produto: laranja_desc
+- cliente: hbp
+  nome_no_pedido: AGRIÃO
+  produto: in_agriao
+- cliente: hbp
+  nome_no_pedido: ALECRIM
+  produto: in_alecrim
+- cliente: hbp
+  nome_no_pedido: ALFACE CRESPA
+  produto: in_alface
+- cliente: hbp
+  nome_no_pedido: CEBOLINHA
+  produto: in_cebolinha
+- cliente: hbp
+  nome_no_pedido: CHICÓRIA
+  produto: in_chicoria
+- cliente: hbp
+  nome_no_pedido: COENTRO
+  produto: in_coentro
+- cliente: hbp
+  nome_no_pedido: COUVE
+  produto: in_couve
+- cliente: hbp
+  nome_no_pedido: ESPINAFRE
+  produto: in_espinafre
+- cliente: hbp
+  nome_no_pedido: HORTELÃ
+  produto: in_hortela
+- cliente: hbp
+  nome_no_pedido: MANJERICÃO
+  produto: in_manjericao
+- cliente: hbp
+  nome_no_pedido: REPOLHO VERDE
+  produto: in_repolho
+- cliente: hbp
+  nome_no_pedido: REPOLHO ROXO
+  produto: in_repolho_roxo
+- cliente: hbp
+  nome_no_pedido: SALSA
+  produto: in_salsa
+- cliente: hbp
+  nome_no_pedido: PEPINO CAIPIRA
+  produto: in_pepino
+- cliente: hbp
+  nome_no_pedido: PIMENTÃO VERDE
+  produto: in_pimentao_verde
+- cliente: hbp
+  nome_no_pedido: QUIABO
+  produto: in_quiabo
+- cliente: hbp
+  nome_no_pedido: VAGEM MACARRÃO
+  produto: in_vagem
+- cliente: hbp
+  nome_no_pedido: MAMÃO
+  produto: in_mamao
+- cliente: hnorte
+  nome_no_pedido: ABÓBORA CUBOS
+  produto: abobora_cubos
+- cliente: hnorte
+  nome_no_pedido: ABÓBORA CUBINHOS
+  produto: abobora_cubinhos
+- cliente: hnorte
+  nome_no_pedido: ACELGA PICADA
+  produto: acelga_picada
+- cliente: hnorte
+  nome_no_pedido: AIPIM CUBOS
+  produto: aipim_cubos
+- cliente: hnorte
+  nome_no_pedido: AIPIM CUBINHOS
+  produto: aipim_cubinhos
+- cliente: hnorte
+  nome_no_pedido: ALFACE
+  produto: alface_picada
+- cliente: hnorte
+  nome_no_pedido: BATATA CUBOS
+  produto: batata_cubos
+- cliente: hnorte
+  nome_no_pedido: BATATA CUBINHOS
+  produto: batata_cubinhos
+- cliente: hnorte
+  nome_no_pedido: BATATA DOCE CUBINHOS
+  produto: batata_doce_cubinhos
+- cliente: hnorte
+  nome_no_pedido: BATATA BAROA CUBINHOS
+  produto: baroa_cubinhos
+- cliente: hnorte
+  nome_no_pedido: BERINJELA CUBINHOS
+  produto: berinjela_cubinhos
+- cliente: hnorte
+  nome_no_pedido: BETERRABA RALADA
+  produto: beterraba_ralada
+- cliente: hnorte
+  nome_no_pedido: BETERRABA PALITOS
+  produto: beterraba_palitos
+- cliente: hnorte
+  nome_no_pedido: BRÓCOLIS FLORET.
+  produto: brocolis
+- cliente: hnorte
+  nome_no_pedido: CENOURA CUBOS
+  produto: cenoura_cubos
+- cliente: hnorte
+  nome_no_pedido: CENOURA RALADA
+  produto: cenoura_ralada
+- cliente: hnorte
+  nome_no_pedido: CENOURA CUBINHOS
+  produto: cenoura_cubinhos
+- cliente: hnorte
+  nome_no_pedido: CENOURA PALITO
+  produto: cenoura_palitos
+- cliente: hnorte
+  nome_no_pedido: COUVE PICADA
+  produto: couve_picada
+- cliente: hnorte
+  nome_no_pedido: COUVE-FLOR FLORET.
+  produto: couve_flor
+- cliente: hnorte
+  nome_no_pedido: CHUCHU CUBINHOS
+  produto: chuchu_cubinhos
+- cliente: hnorte
+  nome_no_pedido: CHUCHU PALITO
+  produto: chuchu_palitos
+- cliente: hnorte
+  nome_no_pedido: INHAME CUBINHOS
+  produto: inhame_cubinhos
+- cliente: hnorte
+  nome_no_pedido: LARANJA DESCASCADA
+  produto: laranja_desc
+- cliente: hnorte
+  nome_no_pedido: PEPINO RODELAS
+  produto: pepino_rodelas
+- cliente: hnorte
+  nome_no_pedido: QUIABO CUBOS
+  produto: quiabo_cubos
+- cliente: hnorte
+  nome_no_pedido: REPOLHO Br. PICADO
+  produto: repolho_picado
+- cliente: hnorte
+  nome_no_pedido: REPOLHO ROXO PICADO
+  produto: repolho_roxo_picado
+- cliente: hnorte
+  nome_no_pedido: VAGEM CUBINHOS
+  produto: vagem_cubinhos
+- cliente: hnorte
+  nome_no_pedido: VAGEM PALITO
+  produto: vagem_palitos
+- cliente: hnorte
+  nome_no_pedido: ABACAXI
+  produto: in_abacaxi
+- cliente: hnorte
+  nome_no_pedido: ALECRIM
+  produto: in_alecrim
+- cliente: hnorte
+  nome_no_pedido: ALFACE ROXA
+  produto: in_alface_roxa
+- cliente: hnorte
+  nome_no_pedido: ALHO PORO
+  produto: in_alho_poro
+- cliente: hnorte
+  nome_no_pedido: AMEIXA
+  produto: in_ameixa
+- cliente: hnorte
+  nome_no_pedido: BANANA DA TERRA
+  produto: in_banana_terra
+- cliente: hnorte
+  nome_no_pedido: BANANA PRATA
+  produto: in_banana_prata
+- cliente: hnorte
+  nome_no_pedido: CEBOLA
+  produto: in_cebola
+- cliente: hnorte
+  nome_no_pedido: CEBOLINHA VERDE
+  produto: in_cebolinha
+- cliente: hnorte
+  nome_no_pedido: COENTRO
+  produto: in_coentro
+- cliente: hnorte
+  nome_no_pedido: GOIABA
+  produto: in_goiaba
+- cliente: hnorte
+  nome_no_pedido: HORTELA
+  produto: in_hortela
+- cliente: hnorte
+  nome_no_pedido: LARANJA PERA
+  produto: in_laranja
+- cliente: hnorte
+  nome_no_pedido: LIMAO
+  produto: in_limao
+- cliente: hnorte
+  nome_no_pedido: MACA
+  produto: in_maca
+- cliente: hnorte
+  nome_no_pedido: MAMAO
+  produto: in_mamao
+- cliente: hnorte
+  nome_no_pedido: MANGA
+  produto: in_manga
+- cliente: hnorte
+  nome_no_pedido: MARACUJA
+  produto: in_maracuja
+- cliente: hnorte
+  nome_no_pedido: MELANCIA
+  produto: in_melancia
+- cliente: hnorte
+  nome_no_pedido: MELAO
+  produto: in_melao
+- cliente: hnorte
+  nome_no_pedido: OVOS BRANCO
+  produto: in_ovos
+- cliente: hnorte
+  nome_no_pedido: PERA
+  produto: in_pera
+- cliente: hnorte
+  nome_no_pedido: PESSEGO
+  produto: in_pessego
+- cliente: hnorte
+  nome_no_pedido: PIMENTA MALAGUETA
+  produto: in_pimenta_malagueta
+- cliente: hnorte
+  nome_no_pedido: PIMENTA BIQUINHO
+  produto: in_pimenta_biquinho
+- cliente: hnorte
+  nome_no_pedido: PIMENTÃO AMARELO
+  produto: in_pimentao_amarelo
+- cliente: hnorte
+  nome_no_pedido: PIMENTAO VERDE
+  produto: in_pimentao_verde
+- cliente: hnorte
+  nome_no_pedido: PIMENTAO VERMELHO
+  produto: in_pimentao_vermelho
+- cliente: hnorte
+  nome_no_pedido: RUCULA
+  produto: in_rucula
+- cliente: hnorte
+  nome_no_pedido: SALSA
+  produto: in_salsa
+- cliente: hnorte
+  nome_no_pedido: TOMATE
+  produto: in_tomate
+- cliente: hnorte
+  nome_no_pedido: UVA VERMELHA S/SEMENTE
+  produto: in_uva_vermelha
+- cliente: hnorte
+  nome_no_pedido: UVA VERDE S/SEMENTE
+  produto: in_uva_verde
+- cliente: hnorte
+  nome_no_pedido: UVA RUBI
+  produto: in_uva_rubi
+- cliente: hnorte
+  nome_no_pedido: GENGIBRE
+  produto: in_gengibre
+- cliente: hnorte
+  nome_no_pedido: ABACATE
+  produto: in_abacate
+- cliente: hsul
+  nome_no_pedido: ABÓBORA CUBOS
+  produto: abobora_cubos
+- cliente: hsul
+  nome_no_pedido: ABOBRINHA CUBOS
+  produto: abobrinha_cubos
+- cliente: hsul
+  nome_no_pedido: BANANA CUBINHOS
+  produto: banana_cubinhos
+- cliente: hsul
+  nome_no_pedido: BATATA CUBOS
+  produto: batata_cubos
+- cliente: hsul
+  nome_no_pedido: BATATA CUBINHOS
+  produto: batata_cubinhos
+- cliente: hsul
+  nome_no_pedido: CENOURA CUBOS
+  produto: cenoura_cubos
+- cliente: hsul
+  nome_no_pedido: CENOURA CUBINHOS
+  produto: cenoura_cubinhos
+- cliente: hsul
+  nome_no_pedido: CENOURA PALITO
+  produto: cenoura_palitos
+- cliente: hsul
+  nome_no_pedido: COUVE-FLOR FLORET.
+  produto: couve_flor
+- cliente: hsul
+  nome_no_pedido: CHUCHU CUBOS
+  produto: chuchu_cubos
+- cliente: hsul
+  nome_no_pedido: CHUCHU CUBINHOS
+  produto: chuchu_cubinhos
+- cliente: hsul
+  nome_no_pedido: INHAME CUBOS
+  produto: inhame_cubos
+- cliente: hsul
+  nome_no_pedido: LARANJA DESCASCADA
+  produto: laranja_desc
+- cliente: hsul
+  nome_no_pedido: VAGEM CUBINHOS
+  produto: vagem_cubinhos
+- cliente: hsul
+  nome_no_pedido: VAGEM PALITO
+  produto: vagem_palitos
+- cliente: amoll
+  nome_no_pedido: BRÓCOLIS EM FLORETES
+  produto: brocolis
+- cliente: amoll
+  nome_no_pedido: ABÓBORA CUBOS
+  produto: abobora_cubos
+- cliente: amoll
+  nome_no_pedido: BATATA EM CUBINHOS
+  produto: batata_cubinhos
+- cliente: amoll
+  nome_no_pedido: BATATA CUBOS 20MM
+  produto: batata_cubos
+- cliente: amoll
+  nome_no_pedido: CENOURA EM CUBINHOS
+  produto: cenoura_cubinhos
+- cliente: amoll
+  nome_no_pedido: CENOURA EM RODELAS
+  produto: cenoura_rodelas
+- cliente: amoll
+  nome_no_pedido: VAGEM EM CUBINHOS
+  produto: vagem_cubinhos
+- cliente: amoll
+  nome_no_pedido: INHAME PROCESSADO KG
+  produto: inhame_cubos
+- cliente: amoll
+  nome_no_pedido: BETERRABA CUBO 10MM
+  produto: beterraba_cubinhos
+- cliente: amoll
+  nome_no_pedido: JILO PROCESSADO CUBO 20
+  produto: jilo_cubos
+- cliente: amoll
+  nome_no_pedido: SELETA JARDINEIRA
+  produto: seleta
+- cliente: ahotel
+  nome_no_pedido: BANANA NANICA EMBALADA UN
+  produto: banana_embalada
+- cliente: ahotel
+  nome_no_pedido: LARANJA PERA DESCASCADA - UN
+  produto: laranja_desc
+- cliente: afab
+  nome_no_pedido: BATATA INGLESA PROCESSADA · DESCASCADA
+  produto: batata_inteira
+- cliente: afab
+  nome_no_pedido: BATATA INGLESA PROCESSADA · CUBOS 10X10MM
+  produto: batata_cubinhos
+- cliente: afab
+  nome_no_pedido: CEBOLA BRANCA PROCESSADA · CUBOS 10X10MM
+  produto: cebola_cubinhos
+- cliente: afab
+  nome_no_pedido: CENOURA PROCESSADA · CUBOS 10X10MM
+  produto: cenoura_cubinhos
+- cliente: afab
+  nome_no_pedido: ABÓBORA PROCESSADA · COM CASCA E SEM SEMENTE
+  produto: abobora_lascas
+- cliente: afab
+  nome_no_pedido: CENOURA PROCESSADA · DESCASCADA
+  produto: cenoura_inteira
+- cliente: afab
+  nome_no_pedido: VAGEM PROCESSADA · RODELINHAS 10MM
+  produto: vagem_cubinhos
