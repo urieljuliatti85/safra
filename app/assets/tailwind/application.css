@@ -210,6 +210,17 @@
   .import-cell.is-changed .was { color: var(--color-change); }
   .import-cell.is-removed { color: var(--color-change); }
 
+  /* Pedido em imagem: a imagem fica à vista enquanto se digita */
+  .split { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
+  .split > * { min-width: 0; }
+  .image-pane-img { display: block; width: 100%; max-height: 55vh; object-fit: contain; background: #fff; }
+  @media (min-width: 1024px) {
+    .split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; }
+    .image-pane { position: sticky; top: 1rem; }
+    .image-pane-img { max-height: calc(100vh - 8rem); }
+  }
+  .push-right { margin-left: auto; }
+
   /* WhatsApp */
   .whatsapp { width: 100%; resize: vertical; border: 0; border-bottom: 1px solid var(--color-line); background: var(--color-leaf); padding: .75rem 1rem; font-size: var(--text-dense); line-height: 1.5; }
 

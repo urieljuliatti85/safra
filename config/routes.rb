@@ -7,7 +7,11 @@ Rails.application.routes.draw do
   patch "orders", to: "orders#update"
 
   resources :order_imports, only: %i[new create show] do
-    post :apply, on: :member
+    member do
+      post :apply
+      patch :grid
+      patch :settings
+    end
   end
 
   get "schedule", to: "schedules#show"

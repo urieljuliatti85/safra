@@ -40,7 +40,7 @@ bin/rails db:reset         # apaga o banco e recomeça do zero
 
 | Tela | O que faz |
 |---|---|
-| Pedidos | Grade por cliente e semana. Quantidade vazia ou 0 apaga a linha. |
+| Pedidos | Grade por cliente e semana. Quantidade vazia ou 0 apaga a linha. "Importar planilha" lê xlsx, xls, ods e csv e mostra o que muda antes de gravar; ODT ou imagem (pedido colado como print, como o da Aurora) abre a imagem ao lado da grade para digitar olhando. |
 | Programação | O que cada cliente pediu para um dia de entrega e quando cada item é produzido. |
 | Produção | Lista do dia por setor, aprontes, envio aos setores em versões e diferença depois do envio. |
 | Compras | Compra da CEASA por fornecedor, texto para WhatsApp e envio em versões. |

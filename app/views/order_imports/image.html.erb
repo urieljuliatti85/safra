@@ -1,0 +1,69 @@
+<% content_for :title, "Pedido em imagem · Safra" %>
+<% siblings = @import.siblings.to_a %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Pedido em imagem</h1>
+    <p class="page-sub">
+      <strong><%= @import.filename %></strong>
+      <% if @import.payload["hint"].present? %>· o documento diz "<%= @import.payload["hint"] %>"<% end %>.
+      Digite as quantidades olhando a imagem; a data que vale é a que está dentro dela.
+    </p>
+  </div>
+  <%= link_to "Outro arquivo", new_order_import_path(customer: @import.customer.code), class: "btn" %>
+</div>
+
+<% if siblings.size > 1 %>
+  <nav class="chips mb-4" aria-label="Imagens do documento">
+    <% siblings.each do |sibling| %>
+      <%= link_to order_import_path(sibling), class: "chip", "aria-current": (sibling == @import ? "true" : nil) do %>
+        <%= sibling.payload["position"] %>. <%= sibling.customer.short_name %><%= " ✓" if sibling.applied? %>
+      <% end %>
+    <% end %>
+  </nav>
+<% end %>
+
+<% if @errors.present? %>
+  <div class="flash flash-alert" role="alert">
+    <%= icon :alert %>
+    <div>
+      <p class="font-bold">Nada foi salvo. Corrija estas células:</p>
+      <ul class="list-disc ml-5"><% @errors.each do |error| %><li><%= error %></li><% end %></ul>
+    </div>
+  </div>
+<% end %>
+
+<%= form_with url: settings_order_import_path(@import), method: :patch, class: "panel mb-4 flex flex-wrap items-end gap-3 p-3", data: { turbo: false } do %>
+  <div>
+    <label for="customer" class="mb-1 block text-sm font-bold">Cliente</label>
+    <select id="customer" name="customer" class="field">
+      <% Customer.order(:name).each do |customer| %>
+        <option value="<%= customer.code %>" <%= "selected" if customer == @import.customer %>><%= customer.name %></option>
+      <% end %>
+    </select>
+  </div>
+  <div>
+    <label for="week" class="mb-1 block text-sm font-bold">Semana de</label>
+    <input id="week" type="date" name="week" value="<%= @import.week_start.iso8601 %>" class="field">
+  </div>
+  <%= button_tag "Atualizar", type: "submit", class: "btn" %>
+  <span class="push-right muted text-sm">Semana começa na segunda: <%= short_date(@import.week_start) %>.</span>
+<% end %>
+
+<div class="split">
+  <figure class="image-pane panel" aria-label="Imagem do pedido">
+    <%= link_to url_for(@import.image), target: "_blank", rel: "noopener", title: "Abrir a imagem em tamanho real" do %>
+      <%= image_tag url_for(@import.image), alt: "Pedido enviado pelo cliente (#{@import.payload['label']})", class: "image-pane-img" %>
+    <% end %>
+    <figcaption class="muted p-3 text-sm">Clique na imagem para abrir em tamanho real.</figcaption>
+  </figure>
+
+  <section aria-label="Grade do pedido de <%= @import.customer.name %>">
+    <p class="mb-2 font-bold"><%= @import.customer.name %> · semana de <%= short_date(@import.week_start) %></p>
+    <%= render "orders/grid", grid: @grid, form_url: grid_order_import_path(@import), add_url: order_import_path(@import), add_hidden: {} %>
+    <div class="mt-4">
+      <%= button_to settings_order_import_path(@import, status: (@import.applied? ? "pending" : "applied")), method: :patch, class: "btn" do %>
+        <%= icon :check %><%= @import.applied? ? "Reabrir esta imagem" : "Marcar esta imagem como digitada" %>
+      <% end %>
+    </div>
+  </section>
+</div>

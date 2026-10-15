@@ -1,7 +1,7 @@
 <% content_for :title, "Importar planilha · Safra" %>
 <div class="mb-5">
   <h1 class="page-title">Importar planilha de pedido</h1>
-  <p class="page-sub">Envie a grade que o cliente mandou (xlsx, xls, ods ou csv). Você confere o que muda antes de gravar no pedido.</p>
+  <p class="page-sub">Planilha (xlsx, xls, ods, csv): o sistema lê e você confere o que muda antes de gravar. ODT ou imagem (pedido colado como print): a imagem fica ao lado da grade para você digitar olhando.</p>
 </div>
 
 <%= form_with url: order_imports_path, multipart: true, class: "panel p-5 grid gap-4 max-w-xl", data: { turbo: false } do %>
@@ -14,12 +14,16 @@
     </select>
   </div>
   <div>
-    <label for="file" class="mb-1 block font-bold">Planilha</label>
-    <input id="file" type="file" name="file" accept=".xlsx,.xls,.ods,.csv" required class="field w-full">
-    <p class="muted mt-1 text-sm">Produtos nas linhas e os dias da semana nas colunas, com as datas no cabeçalho. Uma planilha por vez (processados e in natura vêm em arquivos separados).</p>
+    <label for="file" class="mb-1 block font-bold">Arquivo</label>
+    <input id="file" type="file" name="file" accept=".xlsx,.xls,.ods,.csv,.odt,.png,.jpg,.jpeg,.webp,.gif" required class="field w-full">
+    <p class="muted mt-1 text-sm">Planilha: produtos nas linhas e dias da semana nas colunas, com as datas no cabeçalho; uma por vez (processados e in natura vêm em arquivos separados). ODT: cada imagem do documento vira uma tela de digitação, com o cliente e o dia indicados pelo texto quando houver.</p>
+  </div>
+  <div>
+    <label for="date" class="mb-1 block font-bold">Data de entrega <span class="muted font-normal">(só para imagem avulsa, opcional)</span></label>
+    <input id="date" type="date" name="date" class="field">
   </div>
   <div class="flex flex-wrap items-center gap-3">
-    <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Ler planilha<% end %>
+    <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Enviar arquivo<% end %>
     <%= link_to "Cancelar", orders_path(customer: @customer.code), class: "btn" %>
   </div>
 <% end %>
