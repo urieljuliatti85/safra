@@ -35,8 +35,9 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
 
   test "lista as diferenças com as planilhas sem falhar" do
     report = @conferencia.report
-    File.write(Rails.root.join("tmp/conferencia_planilhas.txt"), report)
-    puts "\n#{report}\n\nResumo: #{@conferencia.summary}"
+    File.write(Rails.root.join("tmp/conferencia_planilhas.txt"), "#{report}\n\nResumo: #{@conferencia.summary}\n")
+    # Só imprime com VERBOSE_CONFERENCIA=1, para não poluir a saída do pre-commit e do CI.
+    puts "\n#{report}\n\nResumo: #{@conferencia.summary}" if ENV["VERBOSE_CONFERENCIA"]
     assert_not_empty @conferencia.production_rows
     assert_not_empty @conferencia.purchase_rows
   end
