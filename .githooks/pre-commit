@@ -1,0 +1,26 @@
+#!/bin/sh
+# Pre-commit: Rubocop nos arquivos Ruby do commit e a suíte de testes (Minitest).
+# Ativado por `git config core.hooksPath .githooks` (feito pelo bin/setup).
+# Para pular em caso de emergência: git commit --no-verify
+
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+
+ruby_files=$(printf '%s\n' "$staged" | grep -E '\.(rb|rake|ru)$|^(Gemfile|Rakefile)$')
+if [ -n "$ruby_files" ]; then
+  echo "pre-commit: Rubocop"
+  # shellcheck disable=SC2086
+  bin/rubocop --force-exclusion $ruby_files || {
+    echo "pre-commit: Rubocop falhou. Corrija (bin/rubocop -a) e tente de novo." >&2
+    exit 1
+  }
+fi
+
+if printf '%s\n' "$staged" | grep -qE '^(app|config|db|lib|test)/|^Gemfile(\.lock)?$'; then
+  echo "pre-commit: testes"
+  bin/rails test || {
+    echo "pre-commit: testes falharam. O Postgres está de pé? (docker start safra-pg)" >&2
+    exit 1
+  }
+fi
