@@ -68,5 +68,5 @@ end
 gem "acts_as_tenant", "~> 2.2"
 gem "pundit", "~> 2.5"
 
-gem "prawn", "~> 2.4"
+gem "prawn", "~> 2.5"
 gem "prawn-table", "~> 0.2.2"
