@@ -1,0 +1,56 @@
+<% content_for :title, "Produção · Safra" %>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+  <h1 class="text-xl font-bold">Produção do dia</h1>
+  <div class="flex items-center gap-3">
+    <%= day_nav(@date, :production_path) %>
+    <%= link_to "PDF", production_path(date: @date, format: :pdf), class: "rounded border bg-white px-3 py-1", target: "_blank", rel: "noopener" %>
+  </div>
+</div>
+<p class="mb-4 text-sm text-stone-600">
+  <% if @result.delivery_dates.any? %>Atende entregas de <%= @result.delivery_dates.map { |d| weekday_date(d) }.join(", ") %>.<% else %>Nenhuma entrega depende da produção deste dia.<% end %>
+  <% if @date.sunday? %> Domingo não tem produção.<% end %>
+</p>
+
+<%= render "shared/plan_status", plan: @latest_sent, changes: @changes, publish_path: publish_production_path(date: @date) %>
+
+<% Cut::SECTORS.each do |sector| %>
+  <% items = @by_sector[sector] %>
+  <% next if items.blank? %>
+  <section class="mb-5 rounded border bg-white">
+    <h2 class="px-3 py-2 font-semibold bg-green-50 text-green-900"><%= items.first.product.cut.sector_name %></h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead class="text-left text-stone-600"><tr><th class="px-3 py-1">Produto</th><th class="px-2 py-1 text-right">Qtd.</th><th class="px-2 py-1">Un.</th><th class="px-2 py-1">Quem pediu</th></tr></thead>
+        <tbody>
+          <% items.each do |item| %>
+            <tr class="border-t align-top">
+              <td class="px-3 py-1"><%= item.product.name %></td>
+              <td class="px-2 py-1 text-right font-semibold"><%= qty(item.quantity) %></td>
+              <td class="px-2 py-1"><%= item.unit %></td>
+              <td class="px-2 py-1 text-stone-600">
+                <%= item.breakdown.map { |b| "#{b.customer.short_name} #{qty(b.quantity)} (#{short_date(b.delivery_date)})" }.join(" · ") %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<% end %>
+<% if @result.items.empty? %>
+  <p class="rounded border bg-white p-6 text-center text-stone-500">Sem produção em <%= weekday_date(@date) %>.</p>
+<% end %>
+
+<% if @result.aprontes.any? %>
+  <section class="mb-5 rounded border bg-white">
+    <h2 class="px-3 py-2 font-semibold bg-amber-50 text-amber-900">Aprontes (caixas para descascar)</h2>
+    <table class="min-w-full text-sm">
+      <thead class="text-left text-stone-600"><tr><th class="px-3 py-1">Matéria-prima</th><th class="px-2 py-1 text-right">kg processado</th><th class="px-2 py-1 text-right">Caixas</th></tr></thead>
+      <tbody>
+        <% @result.aprontes.each do |apronte| %>
+          <tr class="border-t"><td class="px-3 py-1"><%= apronte.raw_material.name %></td><td class="px-2 py-1 text-right"><%= qty(apronte.kg) %></td><td class="px-2 py-1 text-right font-semibold"><%= apronte.boxes %></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+<% end %>

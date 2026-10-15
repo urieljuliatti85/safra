@@ -1,0 +1,17 @@
+<% content_for :title, "Conferência · Safra" %>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+  <h1 class="text-xl font-bold">Conferência</h1>
+  <%= link_to "Comparar com as planilhas", conference_sheets_path, class: "rounded border bg-white px-3 py-1" %>
+</div>
+<p class="mb-4 text-sm text-stone-600">Alertas sobre quantidades, unidades, fatores e datas. Alerta não bloqueia nada: aponta o que conferir.</p>
+<% if @alerts.empty? %>
+  <p class="rounded border border-green-300 bg-green-50 p-4 text-green-900">Nada a conferir.</p>
+<% end %>
+<ul class="space-y-2">
+  <% @alerts.each do |alert| %>
+    <li class="rounded border p-3 <%= alert.level == :warn ? 'bg-amber-50 border-amber-300' : 'bg-white' %>">
+      <span class="mr-2 rounded px-2 py-0.5 text-xs font-semibold <%= alert.level == :warn ? 'bg-amber-200 text-amber-900' : 'bg-stone-200 text-stone-700' %>"><%= alert.kind %></span>
+      <%= alert.message %>
+    </li>
+  <% end %>
+</ul>
