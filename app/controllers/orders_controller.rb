@@ -9,7 +9,7 @@ class OrdersController < ApplicationController
   def update
     result = OrderGridSaver.new(order: @order, quantities: params.fetch(:quantities, {}).to_unsafe_h).call
     if result.ok?
-      redirect_to orders_path(customer: @customer.code, week: @week_start), notice: "Pedido salvo.", alert: stale_plan_warning
+      redirect_to orders_path(customer: @customer.code, week: @week_start), notice: "Pedido salvo.", alert: StalePlans.warning(current_company)
     else
       @errors = result.errors
       @add_product = nil
@@ -36,16 +36,5 @@ class OrdersController < ApplicationController
     @rows = @rows.sort_by { |product, unit| [ Product::GROUPS.index(product.product_group), product.name, unit ] }
     @sections = @rows.group_by { |product, _| product.product_group }
     @available_products = Product.order(:name).includes(:raw_material)
-  end
-
-  # Depois de enviado, o plano não muda sozinho: avisa quais dias enviados ficaram diferentes.
-  def stale_plan_warning
-    dates = ProductionPlan.where.not(sent_at: nil).distinct.pluck(:date).sort.select do |date|
-      latest = ProductionPlan.where(date: date).where.not(sent_at: nil).order(:version).last
-      PlanDiff.production(latest, ProductionPlanner.new(company: current_company, date: date).call).any?
-    end
-    return nil if dates.empty?
-
-    "Atenção: a produção de #{dates.map { |d| Formatting.short_date(d) }.join(', ')} mudou desde a versão enviada aos setores."
   end
 end

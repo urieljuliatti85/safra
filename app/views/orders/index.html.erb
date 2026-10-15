@@ -4,7 +4,8 @@
     <h1 class="page-title">Pedidos de <%= @customer.name %></h1>
     <p class="page-sub"><strong>Origem do pedido</strong> · <%= @customer.order_source %>. Só o pedido é digitado: programação, produção e compras são calculadas.</p>
   </div>
-  <div class="flex items-center gap-2">
+  <div class="flex flex-wrap items-center gap-2">
+    <%= link_to new_order_import_path(customer: @customer.code), class: "btn" do %><%= icon :plus %>Importar planilha<% end %>
     <%= link_to icon(:chevron_left), orders_path(customer: @customer.code, week: @week_start - 7), class: "icon-btn", "aria-label": "Semana anterior" %>
     <strong class="num min-w-36 text-center">Semana de <%= short_date(@week_start) %></strong>
     <%= link_to icon(:chevron_right), orders_path(customer: @customer.code, week: @week_start + 7), class: "icon-btn", "aria-label": "Próxima semana" %>

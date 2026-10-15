@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_15_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_15_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -56,6 +56,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_110000) do
     t.datetime "updated_at", null: false
     t.index ["company_id", "code"], name: "index_cuts_on_company_id_and_code", unique: true
     t.index ["company_id"], name: "index_cuts_on_company_id"
+  end
+
+  create_table "order_imports", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "customer_id", null: false
+    t.string "filename", null: false
+    t.date "week_start", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "applied_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "created_at"], name: "index_order_imports_on_company_id_and_created_at"
+    t.index ["company_id"], name: "index_order_imports_on_company_id"
+    t.index ["customer_id"], name: "index_order_imports_on_customer_id"
   end
 
   create_table "order_lines", force: :cascade do |t|
@@ -214,6 +229,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_110000) do
   add_foreign_key "customer_aliases", "products"
   add_foreign_key "customers", "companies"
   add_foreign_key "cuts", "companies"
+  add_foreign_key "order_imports", "companies"
+  add_foreign_key "order_imports", "customers"
   add_foreign_key "order_lines", "companies"
   add_foreign_key "order_lines", "orders"
   add_foreign_key "order_lines", "products"

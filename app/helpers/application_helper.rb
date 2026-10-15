@@ -4,6 +4,10 @@ module ApplicationHelper
   def weekday_date(date) = Formatting.weekday_date(date)
   def need_text(need) = Formatting.need_text(need)
 
+  def plural(count, singular, plural_form)
+    "#{count} #{count == 1 ? singular : plural_form}"
+  end
+
   def nav_link(label, path, controller)
     current = controller_name == controller
     link_to label, path, class: "nav-link", "aria-current": (current ? "page" : nil), data: { reveal_target: ("current" if current) }.compact

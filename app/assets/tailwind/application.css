@@ -92,7 +92,7 @@
 
   /* Títulos e texto */
   .page-title { font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
-  .page-sub { color: var(--color-ink-soft); margin-top: .25rem; max-width: 68ch; }
+  .page-sub { color: var(--color-ink-soft); margin-top: .25rem; max-width: 68ch; overflow-wrap: anywhere; }
   .muted { color: var(--color-ink-soft); }
 
   /* Botões */
@@ -201,6 +201,14 @@
   .cell:focus-visible { outline: 3px solid var(--color-field-deep); outline-offset: 0; background: #fff; }
   .savebar { position: sticky; bottom: 0; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: 1rem; padding: .75rem 0; background: linear-gradient(0deg, var(--color-leaf) 75%, transparent); }
   .field { min-height: 2.5rem; padding: .375rem .75rem; border: 1px solid var(--color-ink-soft); border-radius: .5rem; background: #fff; }
+
+  /* Conferência de importação */
+  .import-cell { min-width: 4.5rem; padding: .375rem .25rem; font-variant-numeric: tabular-nums; }
+  .import-cell .was { display: block; font-size: var(--text-label); font-weight: 500; color: var(--color-ink-soft); }
+  .import-cell.is-new { font-weight: 800; color: var(--color-field-deep); }
+  .import-cell.is-changed { font-weight: 800; background: var(--color-change-wash); }
+  .import-cell.is-changed .was { color: var(--color-change); }
+  .import-cell.is-removed { color: var(--color-change); }
 
   /* WhatsApp */
   .whatsapp { width: 100%; resize: vertical; border: 0; border-bottom: 1px solid var(--color-line); background: var(--color-leaf); padding: .75rem 1rem; font-size: var(--text-dense); line-height: 1.5; }

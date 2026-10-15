@@ -6,6 +6,10 @@ Rails.application.routes.draw do
   get "orders", to: "orders#index"
   patch "orders", to: "orders#update"
 
+  resources :order_imports, only: %i[new create show] do
+    post :apply, on: :member
+  end
+
   get "schedule", to: "schedules#show"
   get "production", to: "productions#show"
   post "production/publish", to: "productions#publish", as: :publish_production

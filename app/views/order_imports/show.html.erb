@@ -1,0 +1,93 @@
+<% content_for :title, "Conferir importação · Safra" %>
+<% counts = @preview.counts %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Conferir planilha</h1>
+    <p class="page-sub">
+      <strong><%= @import.filename %></strong> · <%= @import.customer.name %> · semana de <%= short_date(@import.week_start) %>
+      <% if @import.payload["sheet"].present? %>· aba <%= @import.payload["sheet"] %><% end %>
+    </p>
+  </div>
+  <%= link_to "Outra planilha", new_order_import_path(customer: @import.customer.code), class: "btn" %>
+</div>
+
+<% if @import.applied? %>
+  <p class="flash flash-notice"><%= icon :check %><span>Aplicada em <%= l(@import.applied_at, format: "%d/%m às %H:%M") %>.</span></p>
+<% end %>
+<% blocking = @import.errors_list + Array(@errors) %>
+<% if blocking.any? %>
+  <div class="flash flash-alert" role="alert">
+    <%= icon :alert %>
+    <div>
+      <p class="font-bold">Corrija antes de aplicar:</p>
+      <ul class="list-disc ml-5"><% blocking.uniq.each do |error| %><li><%= error %></li><% end %></ul>
+    </div>
+  </div>
+<% end %>
+<% if @import.payload["customer_warning"].present? %>
+  <p class="flash flash-alert" role="alert"><%= icon :alert %><span><%= @import.payload["customer_warning"] %></span></p>
+<% end %>
+
+<p class="mb-3 text-sm muted num">
+  <%= plural(counts[:new], "célula nova", "células novas") %> · <%= plural(counts[:changed], "alterada", "alteradas") %> · <%= plural(counts[:removed], "removida", "removidas") %> ·
+  <strong class="<%= 'text-change' if counts[:unmatched].positive? %>"><%= plural(counts[:unmatched], "produto para escolher", "produtos para escolher") %></strong> ·
+  <%= plural(@import.payload["ignored_blank"].to_i, "linha sem quantidade ignorada", "linhas sem quantidade ignoradas") %>
+</p>
+
+<%= form_with url: apply_order_import_path(@import), method: :post, data: { turbo: false } do %>
+  <div class="sheet-wrap">
+    <table class="sheet">
+      <thead>
+        <tr>
+          <th class="sticky-col">Na planilha</th>
+          <th scope="col" class="text-left px-2">Produto no sistema</th>
+          <th scope="col">Un.</th>
+          <% @import.dates.each do |date| %>
+            <th scope="col" class="day"><span class="block"><%= Formatting::WEEKDAYS[date.wday] %></span><span class="num"><%= date.strftime("%d/%m") %></span></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @preview.lines.each do |line| %>
+          <tr>
+            <th scope="row" class="sticky-col font-medium">
+              <%= line.row["name"] %>
+              <% line.warnings.each do |warning| %><span class="block text-xs muted font-normal"><%= warning %></span><% end %>
+            </th>
+            <td class="px-2">
+              <select name="mappings[<%= line.index %>]" class="field w-56 text-sm" aria-label="Produto para <%= line.row['name'] %>" <%= "disabled" if @import.applied? %>>
+                <option value="" <%= "selected" unless line.product %>>Escolha o produto…</option>
+                <option value="ignore">Ignorar esta linha</option>
+                <% @products.each do |group, products| %>
+                  <optgroup label="<%= Product::GROUP_LABELS[group] %>">
+                    <% products.each do |product| %>
+                      <option value="<%= product.id %>" <%= "selected" if line.product == product %>><%= product.name %></option>
+                    <% end %>
+                  </optgroup>
+                <% end %>
+              </select>
+              <% if line.row["matched_by"] == "alias" %><span class="block text-xs muted">reconhecido</span><% elsif line.row["matched_by"] == "name" %><span class="block text-xs muted">pelo nome do produto</span><% end %>
+            </td>
+            <td class="unit"><%= line.unit || "-" %></td>
+            <% line.cells.each do |cell| %>
+              <td class="num text-center import-cell is-<%= cell.status %>">
+                <% if cell.status == :new %><span><%= qty(cell.new_quantity) %></span><span class="was">novo</span>
+                <% elsif cell.status == :changed %><span><%= qty(cell.new_quantity) %></span><span class="was">era <%= qty(cell.current) %></span>
+                <% elsif cell.status == :removed %><span>-</span><span class="was">apaga <%= qty(cell.current) %></span>
+                <% elsif cell.status == :same %><span><%= qty(cell.new_quantity) %></span>
+                <% else %><span class="muted">·</span>
+                <% end %>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <% unless @import.applied? %>
+    <div class="savebar">
+      <%= button_tag type: "submit", class: "btn btn-primary", disabled: @import.errors_list.any? do %><%= icon :check %>Importar no pedido<% end %>
+      <span class="muted text-sm">Nomes novos viram apelido do cliente: da próxima vez são reconhecidos sozinhos.</span>
+    </div>
+  <% end %>
+<% end %>
