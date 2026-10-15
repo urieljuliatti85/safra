@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_15_224800) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_15_233226) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -232,6 +232,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_224800) do
     t.index ["supplier_id"], name: "index_raw_materials_on_supplier_id"
   end
 
+  create_table "sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
   create_table "stock_counts", force: :cascade do |t|
     t.bigint "company_id", null: false
     t.bigint "raw_material_id", null: false
@@ -251,6 +260,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_224800) do
     t.datetime "updated_at", null: false
     t.index ["company_id", "name"], name: "index_suppliers_on_company_id_and_name", unique: true
     t.index ["company_id"], name: "index_suppliers_on_company_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "name", null: false
+    t.string "email_address", null: false
+    t.string "password_digest", null: false
+    t.string "role", default: "office", null: false
+    t.boolean "must_change_password", default: false, null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_users_on_company_id"
+    t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -283,7 +306,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_224800) do
   add_foreign_key "purchase_plans", "companies"
   add_foreign_key "raw_materials", "companies"
   add_foreign_key "raw_materials", "suppliers"
+  add_foreign_key "sessions", "users"
   add_foreign_key "stock_counts", "companies"
   add_foreign_key "stock_counts", "raw_materials"
   add_foreign_key "suppliers", "companies"
+  add_foreign_key "users", "companies"
 end

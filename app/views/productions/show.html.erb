@@ -16,7 +16,7 @@
 <div class="space-y-4">
   <%= render "shared/week", week: @week, open_date: @date, path: :production_path %>
   <%= render "shared/plan_status", plan: @latest_sent, changes: @changes, publish_path: publish_production_path(date: @date),
-                                                 draft_text: "Ainda não enviada aos setores", send_label: "Enviar aos setores" %>
+                                                 draft_text: "Ainda não enviada aos setores", send_label: "Enviar aos setores", can_publish: policy(:production).publish? %>
 
   <% changed_labels = @changes.map(&:label) %>
   <% Cut::SECTORS.each do |sector| %>

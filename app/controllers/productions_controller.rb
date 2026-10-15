@@ -1,4 +1,5 @@
 class ProductionsController < ApplicationController
+  authorize_resource :production
   before_action :load_plan
 
   def show

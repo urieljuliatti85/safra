@@ -1,4 +1,6 @@
 class SchedulesController < ApplicationController
+  authorize_resource :schedule
+
   def show
     @date = date_param(:date, Date.current)
     @groups = ScheduleBuilder.new(company: current_company, date: @date).call

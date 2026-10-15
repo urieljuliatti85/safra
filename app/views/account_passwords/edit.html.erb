@@ -1,0 +1,30 @@
+<% content_for :title, "Trocar senha · Safra" %>
+<div class="mx-auto max-w-sm pt-2">
+  <h1 class="page-title mb-1">Trocar senha</h1>
+  <p class="page-sub mb-5">
+    <% if current_user.must_change_password %>Sua senha é provisória. Escolha uma senha só sua para continuar.<% else %>Depois de trocar, os outros aparelhos em que você está logado são desconectados.<% end %>
+  </p>
+
+  <% if @error %>
+    <p class="flash flash-alert" role="alert"><%= icon :alert %><span><%= @error %></span></p>
+  <% end %>
+
+  <%= form_with url: account_password_path, method: :patch, class: "panel grid gap-4 p-5", data: { turbo: false } do |form| %>
+    <% unless current_user.must_change_password %>
+      <div>
+        <%= form.label :current_password, "Senha atual", class: "mb-1 block font-bold" %>
+        <%= form.password_field :current_password, required: true, autocomplete: "current-password", class: "field w-full" %>
+      </div>
+    <% end %>
+    <div>
+      <%= form.label :password, "Senha nova", class: "mb-1 block font-bold" %>
+      <%= form.password_field :password, required: true, autocomplete: "new-password", minlength: 8, maxlength: 72, class: "field w-full" %>
+      <p class="muted mt-1 text-sm">Pelo menos 8 caracteres.</p>
+    </div>
+    <div>
+      <%= form.label :password_confirmation, "Repita a senha nova", class: "mb-1 block font-bold" %>
+      <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", maxlength: 72, class: "field w-full" %>
+    </div>
+    <%= form.button type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar senha nova<% end %>
+  <% end %>
+</div>

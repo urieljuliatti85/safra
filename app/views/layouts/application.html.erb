@@ -28,14 +28,25 @@
   <body>
     <header class="shell-nav">
       <div class="shell-nav-inner">
-        <%= link_to root_path, class: "brand", "aria-label": "Safra, início" do %><%= brand_mark %>Safra<% end %>
-        <nav class="nav-links" aria-label="Principal" data-controller="reveal">
-          <%= nav_link "Pedidos", orders_path, "orders" %>
-          <%= nav_link "Programação", schedule_path, "schedules" %>
-          <%= nav_link "Produção", production_path, "productions" %>
-          <%= nav_link "Compras", purchases_path, "purchases" %>
-          <%= nav_link "Conferência", conference_path, "conferences" %>
-        </nav>
+        <%= link_to (authenticated? ? root_path : new_session_path), class: "brand", "aria-label": "Safra, início" do %><%= brand_mark %>Safra<% end %>
+        <% if authenticated? %>
+          <nav class="nav-links" aria-label="Principal">
+            <%= nav_link "Pedidos", orders_path, "orders" if policy(:order).index? %>
+            <%= nav_link "Programação", schedule_path, "schedules" if policy(:schedule).show? %>
+            <%= nav_link "Produção", production_path, "productions" if policy(:production).show? %>
+            <%= nav_link "Compras", purchases_path, "purchases" if policy(:purchase).show? %>
+            <%= nav_link "Conferência", conference_path, "conferences" if policy(:conference).show? %>
+            <%= nav_link "Usuários", users_path, "users" if policy(:user).index? %>
+          </nav>
+          <details class="user-menu">
+            <summary><span class="user-name"><%= current_user.name %></span><span class="sr-only">Menu da conta</span><%= icon :chevron_right, class: "icon user-chevron" %></summary>
+            <div class="user-menu-panel">
+              <p class="muted text-sm"><%= current_user.role_label %> · <%= current_company.name %></p>
+              <%= link_to "Trocar senha", edit_account_password_path, class: "user-menu-item" %>
+              <%= button_to "Sair", session_path, method: :delete, class: "user-menu-item", form: { class: "contents" } %>
+            </div>
+          </details>
+        <% end %>
       </div>
     </header>
     <main class="mx-auto max-w-7xl px-4 py-6">

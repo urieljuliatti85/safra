@@ -1,0 +1,39 @@
+<%# locals: user, new_record %>
+<%= form_with model: user, class: "panel grid gap-4 p-5 max-w-xl", data: { turbo: false } do |form| %>
+  <% if user.errors.any? %>
+    <div class="flash flash-alert" role="alert">
+      <%= icon :alert %>
+      <ul class="list-disc ml-5"><% user.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul>
+    </div>
+  <% end %>
+  <div>
+    <%= form.label :name, "Nome", class: "mb-1 block font-bold" %>
+    <%= form.text_field :name, required: true, class: "field w-full" %>
+  </div>
+  <% if new_record %>
+    <div>
+      <%= form.label :email_address, "E-mail", class: "mb-1 block font-bold" %>
+      <%= form.email_field :email_address, required: true, autocomplete: "off", class: "field w-full" %>
+    </div>
+  <% else %>
+    <p><span class="font-bold">E-mail:</span> <%= user.email_address %></p>
+  <% end %>
+  <% own = !new_record && user == current_user %>
+  <div>
+    <%= form.label :role, "Papel", class: "mb-1 block font-bold" %>
+    <%= form.select :role, User::ROLES.map { |r| [ User::ROLE_LABELS[r], r ] }, {}, disabled: own, class: "field w-full" %>
+    <p class="muted mt-1 text-sm">Administrador gerencia usuários e faz tudo. Escritório lança pedidos, importa, compra e envia aos setores. Produção só vê programação, produção e PDFs.</p>
+  </div>
+  <% unless new_record %>
+    <div class="flex items-center gap-2">
+      <%= form.check_box :active, disabled: own, class: "size-5" %>
+      <%= form.label :active, "Pode entrar no sistema", class: "font-bold" %>
+    </div>
+    <% if own %><p class="muted text-sm">Você não pode mudar o seu próprio papel nem se desativar.</p><% end %>
+  <% end %>
+  <div class="flex flex-wrap items-center gap-3">
+    <%= form.button type: "submit", class: "btn btn-primary" do %><%= icon :check %><%= new_record ? "Criar usuário" : "Salvar" %><% end %>
+    <%= link_to "Cancelar", users_path, class: "btn" %>
+  </div>
+  <% if new_record %><p class="muted text-sm">O sistema gera uma senha provisória e mostra uma vez, na próxima tela. A pessoa troca no primeiro acesso.</p><% end %>
+<% end %>

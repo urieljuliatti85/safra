@@ -21,7 +21,7 @@ bin/setup --skip-server
 bin/dev
 ```
 
-Abra <http://localhost:3000>. A primeira tela é a grade de pedidos; Programação, Produção, Compras e Conferência ficam no menu superior.
+Abra <http://localhost:3000> e entre com um dos usuários de desenvolvimento (veja "Acesso e papéis"). Quem é do escritório cai na grade de pedidos; Programação, Produção, Compras e Conferência ficam no menu superior.
 
 Nos próximos dias, só os passos 1 e 3 (o passo 1 é seguro repetir: se o container já estiver rodando, não muda nada).
 
@@ -48,7 +48,28 @@ bin/rails db:reset         # apaga o banco e recomeça do zero
 
 Programação, Produção e Compras têm PDF (botão "PDF" ou `/production.pdf?date=2026-10-13`).
 
-Não há login ainda: o app usa a única empresa cadastrada (Hortifruti Modelo).
+
+## Acesso e papéis
+
+O sistema exige login. Cada usuário pertence a uma empresa e só enxerga os dados dela (multiempresa com `acts_as_tenant`).
+
+| Papel | O que pode |
+|---|---|
+| Administrador | Tudo, mais gerenciar usuários (menu "Usuários"). |
+| Escritório | Pedidos, importação, programação, produção, compras, conferência e envio aos setores. |
+| Produção | Só vê Programação, Produção e os PDFs. Não altera nada e não vê o botão de enviar. |
+
+**Usuários de desenvolvimento** (criados por `bin/setup` ou `bin/rails db:seed`, só em desenvolvimento e teste), todos com a senha `safra-dev-123`:
+
+- `admin@safra.local` (Administrador)
+- `escritorio@safra.local` (Escritório)
+- `producao@safra.local` (Produção)
+
+Se o banco já existia antes do login, rode `bin/rails db:seed` para criá-los.
+
+**Em produção** não há usuário de exemplo. O primeiro administrador sai do seed, com `SAFRA_ADMIN_EMAIL` e `SAFRA_ADMIN_PASSWORD` definidos ao rodar `bin/rails db:seed`; a senha vale só até o primeiro acesso. Depois, o administrador cadastra os demais em **Usuários**.
+
+**Senha provisória.** Ao criar um usuário ou redefinir a senha, o sistema gera uma senha provisória e mostra **uma única vez**, na tela, para o administrador repassar. A pessoa é obrigada a trocar no primeiro acesso, e os acessos abertos dela caem. Não há recuperação por e-mail: quem esquecer a senha pede ao administrador uma nova. Desativar um usuário também encerra as sessões dele.
 
 ## Importar pedidos de planilhas
 
@@ -110,7 +131,8 @@ Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde ant
 
 ## Estrutura
 
-- `app/models`: modelos multiempresa (`acts_as_tenant` por `Company`).
+- `app/models`: modelos multiempresa (`acts_as_tenant` por `Company`), `User` e `Session`.
+- `app/policies`: autorização com Pundit, negada por padrão e liberada por papel (`allow :admin, :office, to: ...`).
 - `app/services`: `ProductionPlanner`, `PurchasePlanner`, `WeekOverview`, `PlanPublisher`, `PlanDiff`, `ConferenceChecker`, `OrderGridSaver` e, em `order_imports/`, a leitura de planilhas (`SheetReader`), o reconhecimento de nomes (`Matcher`), a prévia (`Preview`) e a gravação (`Applier`).
 - `app/pdfs`: PDFs com Prawn (fonte Bricolage Grotesque embutida).
 - `db/seeds_data`: dados reais da semana de 12/10/2026 em YAML.

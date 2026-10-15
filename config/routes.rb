@@ -1,7 +1,12 @@
 Rails.application.routes.draw do
+  resource :session, only: %i[new create destroy]
+  resource :account_password, only: %i[edit update], path: "conta/senha"
+  resources :users, only: %i[index new create edit update] do
+    post :reset_password, on: :member
+  end
   get "up" => "rails/health#show", as: :rails_health_check
 
-  root "orders#index"
+  root "home#show"
 
   get "orders", to: "orders#index"
   patch "orders", to: "orders#update"

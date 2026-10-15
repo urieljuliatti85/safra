@@ -1,6 +1,8 @@
 require "test_helper"
 
 class ScreensTest < ActionDispatch::IntegrationTest
+  setup { sign_in_as(user_for(:office)) }
+
   test "grade de pedidos mostra o cliente, as datas e os produtos" do
     get orders_path(customer: "hbp", week: "2026-10-12")
     assert_response :success

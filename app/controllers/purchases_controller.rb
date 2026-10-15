@@ -1,4 +1,5 @@
 class PurchasesController < ApplicationController
+  authorize_resource :purchase
   before_action :load_plan
 
   def show

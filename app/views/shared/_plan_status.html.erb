@@ -1,4 +1,4 @@
-<%# locals: plan (última versão enviada ou nil), changes, publish_path, draft_text, send_label %>
+<%# locals: plan (última versão enviada ou nil), changes, publish_path, draft_text, send_label, can_publish %>
 <section class="panel" aria-label="Estado do envio">
   <div class="status">
     <% if plan %>
@@ -8,11 +8,11 @@
       <span class="pill pill-draft">Rascunho</span>
       <span class="muted"><%= draft_text %></span>
     <% end %>
-    <% if plan.nil? || changes.any? %>
+    <% if can_publish && (plan.nil? || changes.any?) %>
       <%= button_to publish_path, method: :post, class: "btn btn-primary push", form: { class: "push" } do %>
         <%= icon :send %><%= plan ? "Enviar versão #{plan.version + 1}" : send_label %>
       <% end %>
-    <% else %>
+    <% elsif plan && changes.empty? %>
       <span class="push muted">Igual ao que foi enviado.</span>
     <% end %>
   </div>

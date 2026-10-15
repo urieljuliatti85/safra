@@ -1,4 +1,5 @@
 class OrderImportsController < ApplicationController
+  authorize_resource :order_import
   before_action :load_customers
   before_action :load_import, only: %i[show apply grid settings]
 

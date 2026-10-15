@@ -1,6 +1,7 @@
 ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
+require_relative "test_helpers/session_test_helper"
 
 module ActiveSupport
   class TestCase
@@ -17,6 +18,14 @@ module ActiveSupport
 
     def company
       @company ||= Company.find_by!(name: "Hortifruti Modelo")
+    end
+
+    # Usuários de cada papel criados pelo seed de teste (senha em DEMO_PASSWORD).
+    DEMO_PASSWORD = "safra-dev-123".freeze
+    DEMO_EMAILS = { admin: "admin@safra.local", office: "escritorio@safra.local", production: "producao@safra.local" }.freeze
+
+    def user_for(role)
+      User.find_by!(email_address: DEMO_EMAILS.fetch(role))
     end
   end
 end

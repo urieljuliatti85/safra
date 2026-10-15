@@ -1,6 +1,8 @@
 require "test_helper"
 
 class OrderImportsTest < ActionDispatch::IntegrationTest
+  setup { sign_in_as(user_for(:office)) }
+
   def upload(name, customer)
     post order_imports_path, params: { customer: customer, file: fixture_file_upload(name, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") }
   end

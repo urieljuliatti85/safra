@@ -1,6 +1,8 @@
 require "application_system_test_case"
 
 class OrdersTest < ApplicationSystemTestCase
+  setup { sign_in_through_form(:office) }
+
   test "digitar um pedido na grade e salvar" do
     visit orders_path(customer: "hnorte", week: "2026-10-12")
     assert_selector "h1", text: "Hospital Horizonte Norte"

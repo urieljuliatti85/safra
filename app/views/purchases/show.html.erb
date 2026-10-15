@@ -24,7 +24,7 @@
   <div class="space-y-4">
     <%= render "shared/week", week: @week, open_date: @date, path: :purchases_path %>
     <%= render "shared/plan_status", plan: @latest_sent, changes: @changes, publish_path: publish_purchase_path(date: @date),
-                                                 draft_text: "Ainda não enviada aos fornecedores", send_label: "Enviar aos fornecedores" %>
+                                                 draft_text: "Ainda não enviada aos fornecedores", send_label: "Enviar aos fornecedores", can_publish: policy(:purchase).publish? %>
 
     <% @suppliers.each do |supplier, needs| %>
       <% text = ([ "*#{supplier} · compra #{short_date(@date)}*" ] + needs.map { |n| "#{n.raw_material.name}: #{need_text(n)}" }).join("\n") %>

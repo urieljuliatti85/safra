@@ -1,0 +1,18 @@
+<% content_for :title, "Entrar · Safra" %>
+<div class="mx-auto max-w-sm pt-6">
+  <h1 class="page-title mb-1">Entrar no Safra</h1>
+  <p class="page-sub mb-5">Use o e-mail e a senha que o administrador criou para você.</p>
+
+  <%= form_with url: session_path, class: "panel grid gap-4 p-5", data: { turbo: false } do |form| %>
+    <div>
+      <%= form.label :email_address, "E-mail", class: "mb-1 block font-bold" %>
+      <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", value: params[:email_address], class: "field w-full" %>
+    </div>
+    <div>
+      <%= form.label :password, "Senha", class: "mb-1 block font-bold" %>
+      <%= form.password_field :password, required: true, autocomplete: "current-password", maxlength: 72, class: "field w-full" %>
+    </div>
+    <%= form.button type: "submit", class: "btn btn-primary" do %><%= icon :check %>Entrar<% end %>
+    <p class="muted text-sm">Esqueceu a senha? Peça ao administrador para gerar uma senha provisória.</p>
+  <% end %>
+</div>

@@ -1,0 +1,36 @@
+<% content_for :title, "Usuários · Safra" %>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Usuários</h1>
+    <p class="page-sub">Quem entra no sistema de <%= current_company.name %> e o que cada papel pode fazer.</p>
+  </div>
+  <%= link_to new_user_path, class: "btn btn-primary" do %><%= icon :plus %>Novo usuário<% end %>
+</div>
+
+<section class="panel">
+  <div class="overflow-x-auto">
+    <table class="ops-table" style="min-width: 40rem; table-layout: auto">
+      <thead><tr><th>Nome</th><th>Papel</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead>
+      <tbody>
+        <% @users.each do |user| %>
+          <tr class="<%= 'is-changed' unless user.active? %>">
+            <td class="name"><strong><%= user.name %></strong><br><span class="muted text-sm"><%= user.email_address %></span></td>
+            <td><%= user.role_label %></td>
+            <td>
+              <% if !user.active? %>Desativado
+              <% elsif user.must_change_password %>Senha provisória
+              <% else %>Ativo<% end %>
+            </td>
+            <td class="num"><%= @last_access[user.id] ? l(@last_access[user.id], format: "%d/%m %H:%M") : "nunca entrou" %></td>
+            <td class="whitespace-nowrap">
+              <%= link_to "Editar", edit_user_path(user), class: "btn" %>
+              <% if user != current_user && user.active? %>
+                <%= button_to "Redefinir senha", reset_password_user_path(user), method: :post, class: "btn", form: { class: "inline", data: { turbo_confirm: "Gerar uma senha provisória nova para #{user.name}? A senha atual deixa de valer e os acessos abertos caem." } } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

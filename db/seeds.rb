@@ -82,4 +82,22 @@ ActsAsTenant.with_tenant(company) do
   end
 end
 
+# Usuários. Em desenvolvimento e teste, um de cada papel com senha conhecida. Em produção, só o primeiro
+# administrador, a partir de SAFRA_ADMIN_EMAIL e SAFRA_ADMIN_PASSWORD (a senha vale até o primeiro acesso).
+demo_password = "safra-dev-123"
+if Rails.env.development? || Rails.env.test?
+  [ [ "Admin Safra", "admin@safra.local", "admin" ], [ "Escritório Safra", "escritorio@safra.local", "office" ],
+    [ "Produção Safra", "producao@safra.local", "production" ] ].each do |name, email, role|
+    user = User.find_or_initialize_by(email_address: email)
+    user.update!(company: company, name: name, role: role, password: demo_password, password_confirmation: demo_password, active: true, must_change_password: false)
+  end
+elsif ENV["SAFRA_ADMIN_EMAIL"].present? && ENV["SAFRA_ADMIN_PASSWORD"].present?
+  user = User.find_or_initialize_by(email_address: ENV["SAFRA_ADMIN_EMAIL"])
+  if user.new_record?
+    user.update!(company: company, name: "Administrador", role: "admin", password: ENV["SAFRA_ADMIN_PASSWORD"], must_change_password: true)
+  end
+elsif !User.admins.exists?
+  puts "Atenção: não há administrador. Defina SAFRA_ADMIN_EMAIL e SAFRA_ADMIN_PASSWORD e rode db:seed."
+end
+
 puts "Seeds carregados: #{Company.count} empresa, #{ActsAsTenant.with_tenant(company) { [ RawMaterial.count, Product.count, Customer.count, OrderLine.count ] }.join(' / ')} (matérias-primas / produtos / clientes / linhas de pedido)"
