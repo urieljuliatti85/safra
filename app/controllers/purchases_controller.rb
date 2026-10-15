@@ -24,6 +24,7 @@ class PurchasesController < ApplicationController
     @result = PurchasePlanner.new(company: current_company).call
     @needs = @result.purchases.fetch(@date, [])
     @suppliers = @needs.group_by { |n| n.raw_material.supplier&.name || "Sem fornecedor" }.sort_by { |name, _| [ name == "Sem fornecedor" ? 1 : 0, name ] }
+    @week = WeekOverview.new(company: current_company, date: @date).call if @date
     @latest_sent = PurchasePlan.where(date: @date).where.not(sent_at: nil).order(:version).last
     @changes = @latest_sent ? PlanDiff.purchase(@latest_sent, @needs) : []
   end

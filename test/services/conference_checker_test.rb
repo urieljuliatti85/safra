@@ -6,6 +6,7 @@ class ConferenceCheckerTest < ActiveSupport::TestCase
     messages = alerts.map(&:message)
     assert(messages.any? { |m| m.include?("Cebola") && m.include?("sem fator") })
     assert(messages.any? { |m| m.include?("Pedido diz 1 un; a programação usa 100") })
+    assert_equal 1, messages.count { |m| m.include?("Horiz. Sul: Batata em cubinhos") }
     assert(alerts.any? { |a| a.kind == "Unidade" })
     assert alerts.first.level == :warn
   end

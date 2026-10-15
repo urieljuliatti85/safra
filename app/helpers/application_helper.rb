@@ -4,13 +4,18 @@ module ApplicationHelper
   def weekday_date(date) = Formatting.weekday_date(date)
   def need_text(need) = Formatting.need_text(need)
 
+  def nav_link(label, path, controller)
+    current = controller_name == controller
+    link_to label, path, class: "nav-link", "aria-current": (current ? "page" : nil), data: { reveal_target: ("current" if current) }.compact
+  end
+
   # Navegação de um dia para o anterior/seguinte, mantendo a página.
   def day_nav(date, path_helper)
     tag.div(class: "flex items-center gap-2") do
       safe_join([
-        link_to("‹", send(path_helper, date: date - 1), class: "px-3 py-1 rounded border bg-white", "aria-label": "Dia anterior"),
-        tag.strong(weekday_date(date) + "/#{date.year}"),
-        link_to("›", send(path_helper, date: date + 1), class: "px-3 py-1 rounded border bg-white", "aria-label": "Próximo dia")
+        link_to(icon(:chevron_left), send(path_helper, date: date - 1), class: "icon-btn", "aria-label": "Dia anterior"),
+        tag.strong("#{weekday_date(date)}/#{date.year}", class: "num min-w-32 text-center"),
+        link_to(icon(:chevron_right), send(path_helper, date: date + 1), class: "icon-btn", "aria-label": "Próximo dia")
       ])
     end
   end

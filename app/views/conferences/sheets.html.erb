@@ -1,29 +1,33 @@
 <% content_for :title, "Comparar com planilhas · Safra" %>
-<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-xl font-bold">Sistema × planilhas (13 e 15/10/2026)</h1>
-  <%= link_to "‹ Conferência", conference_path, class: "rounded border bg-white px-3 py-1" %>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Sistema × planilhas</h1>
+    <p class="page-sub">Dias 13 e 15/10/2026. Cada diferença é uma regra ainda não cadastrada ou um ajuste feito à mão (veja docs/duvidas.md).</p>
+  </div>
+  <%= link_to conference_path, class: "btn" do %><%= icon :chevron_left %>Conferência<% end %>
 </div>
-<p class="mb-4 text-sm text-stone-600">Cada diferença é uma regra ainda não cadastrada ou um ajuste feito à mão (veja docs/duvidas.md).</p>
-
-<% { "Produção" => @comparison.production_rows, "Compras CEASA" => @comparison.purchase_rows }.each do |title, rows| %>
-  <% rows.group_by(&:date).each do |date, day_rows| %>
-    <section class="mb-5 rounded border bg-white">
-      <h2 class="px-3 py-2 font-semibold bg-stone-100"><%= title %> · <%= short_date(date) %> <span class="font-normal text-stone-600">(<%= day_rows.count { |r| r.status == "ok" } %> de <%= day_rows.size %> iguais)</span></h2>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="text-left text-stone-600"><tr><th class="px-3 py-1">Item</th><th class="px-2 py-1 text-right">Planilha</th><th class="px-2 py-1 text-right">Sistema</th><th class="px-2 py-1">Situação</th></tr></thead>
+<div class="space-y-4">
+  <% { "Produção" => @comparison.production_rows, "Compras CEASA" => @comparison.purchase_rows }.each do |title, rows| %>
+    <% rows.group_by(&:date).each do |date, day_rows| %>
+      <section class="panel">
+        <div class="panel-head">
+          <h2><%= title %> · <%= short_date(date) %></h2>
+          <span class="meta num"><%= day_rows.count { |r| r.status == "ok" } %> de <%= day_rows.size %> iguais</span>
+        </div>
+        <table class="ops-table">
+          <thead><tr><th>Item</th><th class="col-num">Planilha</th><th class="col-num">Sistema</th><th>Situação</th></tr></thead>
           <tbody>
             <% day_rows.sort_by { |r| [ r.status == "ok" ? 1 : 0, (r.try(:product) || r.raw_material).to_s ] }.each do |row| %>
-              <tr class="border-t <%= 'bg-green-50' if row.status == 'ok' %>">
-                <td class="px-3 py-1"><%= row.try(:product) || row.raw_material %></td>
-                <td class="px-2 py-1 text-right"><%= row.try(:planilha_text) || (row.planilha ? qty(row.planilha) : "-") %></td>
-                <td class="px-2 py-1 text-right"><%= row.sistema ? "#{qty(row.sistema)} #{row.try(:unit)}" : "-" %></td>
-                <td class="px-2 py-1"><%= row.status %></td>
+              <tr class="<%= 'is-changed' unless row.status == 'ok' %>">
+                <td class="name"><%= row.try(:product) || row.raw_material %></td>
+                <td class="num-col"><%= row.try(:planilha_text) || (row.planilha ? qty(row.planilha) : "-") %></td>
+                <td class="num-col"><%= row.sistema ? "#{qty(row.sistema)} #{row.try(:unit)}" : "-" %></td>
+                <td class="who"><%= row.status %></td>
               </tr>
             <% end %>
           </tbody>
         </table>
-      </div>
-    </section>
+      </section>
+    <% end %>
   <% end %>
-<% end %>
+</div>

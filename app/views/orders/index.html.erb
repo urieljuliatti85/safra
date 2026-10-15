@@ -1,85 +1,91 @@
 <% content_for :title, "Pedidos · Safra" %>
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-  <h1 class="text-xl font-bold">Pedidos de <%= @customer.name %></h1>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Pedidos de <%= @customer.name %></h1>
+    <p class="page-sub"><strong>Origem do pedido</strong> · <%= @customer.order_source %>. Só o pedido é digitado: programação, produção e compras são calculadas.</p>
+  </div>
   <div class="flex items-center gap-2">
-    <%= link_to "‹", orders_path(customer: @customer.code, week: @week_start - 7), class: "px-3 py-1 rounded border bg-white", "aria-label": "Semana anterior" %>
-    <strong>Semana de <%= short_date(@week_start) %></strong>
-    <%= link_to "›", orders_path(customer: @customer.code, week: @week_start + 7), class: "px-3 py-1 rounded border bg-white", "aria-label": "Próxima semana" %>
+    <%= link_to icon(:chevron_left), orders_path(customer: @customer.code, week: @week_start - 7), class: "icon-btn", "aria-label": "Semana anterior" %>
+    <strong class="num min-w-36 text-center">Semana de <%= short_date(@week_start) %></strong>
+    <%= link_to icon(:chevron_right), orders_path(customer: @customer.code, week: @week_start + 7), class: "icon-btn", "aria-label": "Próxima semana" %>
   </div>
 </div>
 
-<nav class="flex flex-wrap gap-2 mb-4" aria-label="Clientes">
+<nav class="chips mb-4" aria-label="Clientes">
   <% @customers.each do |customer| %>
-    <%= link_to customer.short_name, orders_path(customer: customer.code, week: @week_start),
-          class: "px-3 py-1 rounded-full border #{customer == @customer ? 'bg-green-700 text-white border-green-700' : 'bg-white'}" %>
+    <%= link_to customer.short_name, orders_path(customer: customer.code, week: @week_start), class: "chip", "aria-current": (customer == @customer ? "true" : nil) %>
   <% end %>
 </nav>
-<p class="text-sm text-stone-600 mb-3">Origem: <%= @customer.order_source %>. Só o pedido é digitado: programação, produção e compras são calculadas.</p>
 
 <% if @errors.present? %>
-  <div class="mb-4 rounded bg-red-50 border border-red-300 px-3 py-2 text-red-900" role="alert">
-    <p class="font-semibold">Nada foi salvo. Corrija estas células:</p>
-    <ul class="list-disc ml-5"><% @errors.each do |error| %><li><%= error %></li><% end %></ul>
+  <div class="flash flash-alert" role="alert">
+    <%= icon :alert %>
+    <div>
+      <p class="font-bold">Nada foi salvo. Corrija estas células:</p>
+      <ul class="list-disc ml-5"><% @errors.each do |error| %><li><%= error %></li><% end %></ul>
+    </div>
   </div>
 <% end %>
 
 <%= form_with url: orders_path(customer: @customer.code, week: @week_start), method: :patch, data: { turbo: false } do %>
-  <div class="overflow-x-auto rounded border bg-white">
-    <table class="min-w-full text-sm">
-      <thead class="bg-stone-100 text-left">
+  <div class="sheet-wrap">
+    <table class="sheet">
+      <thead>
         <tr>
-          <th class="px-3 py-2 sticky left-0 bg-stone-100">Produto</th>
-          <th class="px-2 py-2">Un.</th>
+          <th class="sticky-col">Produto</th>
+          <th scope="col">Un.</th>
           <% @dates.each do |date| %>
-            <th class="px-2 py-2 text-center <%= 'text-red-700' if date.sunday? %>"><%= weekday_date(date) %></th>
+            <% classes = [ ("is-today" if date == Date.current), ("is-sunday" if date.sunday?) ].compact.join(" ") %>
+            <th scope="col" class="day <%= classes %>"><span class="block"><%= Formatting::WEEKDAYS[date.wday] %></span><span class="num"><%= date.strftime("%d/%m") %></span></th>
           <% end %>
-          <th class="px-2 py-2 text-right">Total</th>
+          <th scope="col" class="text-right pr-3">Total</th>
         </tr>
       </thead>
       <% Product::GROUPS.each do |group| %>
         <% rows = @sections[group] %>
         <% next if rows.blank? %>
         <tbody>
-          <tr><th colspan="<%= @dates.size + 3 %>" class="px-3 py-1 bg-green-50 text-left text-green-900"><%= Product::GROUP_LABELS[group] %></th></tr>
+          <tr><th colspan="<%= @dates.size + 3 %>" class="group" scope="colgroup"><%= Product::GROUP_LABELS[group] %></th></tr>
           <% rows.each do |product, unit| %>
             <% lines = @cells[[product.id, unit]] || [] %>
             <% by_date = lines.group_by(&:delivery_date).transform_values { |ls| ls.sum(&:quantity) } %>
-            <tr class="border-t">
-              <td class="px-3 py-1 sticky left-0 bg-white">
+            <tr>
+              <th scope="row" class="sticky-col font-medium">
                 <%= product.name %>
                 <% note = lines.map(&:note).compact.first %>
-                <% if note %><span class="text-amber-700" title="<%= note %>">⚠</span><% end %>
-              </td>
-              <td class="px-2 py-1 text-stone-500"><%= unit %></td>
+                <% if note %><span class="tag-change" title="<%= note %>">obs.</span><% end %>
+              </th>
+              <td class="unit"><%= unit %></td>
               <% @dates.each do |date| %>
-                <td class="px-1 py-1">
-                  <input type="text" inputmode="decimal" name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]"
-                         value="<%= qty(by_date[date]) if by_date[date] %>" aria-label="<%= product.name %> em <%= weekday_date(date) %>"
-                         class="w-16 rounded border border-stone-300 px-1 py-1 text-right <%= 'bg-red-50' if date.sunday? %>">
+                <td class="<%= 'is-sunday' if date.sunday? %>">
+                  <input type="text" inputmode="decimal" autocomplete="off" class="cell" placeholder="·"
+                         name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]"
+                         value="<%= qty(by_date[date]) if by_date[date] %>"
+                         aria-label="<%= product.name %> em <%= weekday_date(date) %>">
                 </td>
               <% end %>
-              <td class="px-2 py-1 text-right font-medium"><%= qty(by_date.values.sum) %></td>
+              <td class="total num"><%= qty(by_date.values.sum) %></td>
             </tr>
           <% end %>
         </tbody>
       <% end %>
       <% if @rows.empty? %>
-        <tbody><tr><td colspan="<%= @dates.size + 3 %>" class="px-3 py-6 text-center text-stone-500">Nenhum produto nesta semana. Adicione uma linha abaixo.</td></tr></tbody>
+        <tbody><tr><td colspan="<%= @dates.size + 3 %>" class="p-8 text-center muted">Nenhum produto nesta semana. Adicione uma linha abaixo.</td></tr></tbody>
       <% end %>
     </table>
   </div>
-  <div class="mt-4 flex flex-wrap items-center gap-3">
-    <%= submit_tag "Salvar pedido", class: "rounded bg-green-700 px-4 py-2 font-semibold text-white hover:bg-green-800" %>
-    <span class="text-sm text-stone-600">Quantidade vazia ou 0 apaga a linha. Use vírgula para decimais.</span>
+  <div class="savebar">
+    <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar pedido<% end %>
+    <span class="muted text-sm">Quantidade vazia ou 0 apaga a linha. Use vírgula para decimais.</span>
   </div>
 <% end %>
 
-<%= form_with url: orders_path, method: :get, class: "mt-6 flex flex-wrap items-end gap-2", data: { turbo: false } do %>
+<%= form_with url: orders_path, method: :get, class: "mt-8 flex flex-wrap items-end gap-3", data: { turbo: false } do %>
   <%= hidden_field_tag :customer, @customer.code %>
   <%= hidden_field_tag :week, @week_start %>
   <div>
-    <label for="add" class="block text-sm font-medium">Adicionar produto</label>
-    <select id="add" name="add" class="rounded border border-stone-300 px-2 py-2">
+    <label for="add" class="mb-1 block text-sm font-bold">Adicionar produto</label>
+    <select id="add" name="add" class="field">
       <% @available_products.group_by(&:product_group).each do |group, products| %>
         <optgroup label="<%= Product::GROUP_LABELS[group] %>">
           <% products.each do |product| %><option value="<%= product.id %>"><%= product.name %> (<%= product.unit %>)</option><% end %>
@@ -87,6 +93,6 @@
       <% end %>
     </select>
   </div>
-  <%= submit_tag "Adicionar linha", name: nil, class: "rounded border bg-white px-3 py-2" %>
-  <p class="basis-full text-sm text-stone-600">A linha nova aparece vazia. Preencha as quantidades e salve; sem quantidade, ela some.</p>
+  <%= button_tag type: "submit", class: "btn" do %><%= icon :plus %>Adicionar linha<% end %>
+  <p class="basis-full muted text-sm">A linha nova aparece vazia. Preencha as quantidades e salve; sem quantidade, ela some.</p>
 <% end %>

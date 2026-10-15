@@ -3,6 +3,7 @@
   <head>
     <title><%= content_for(:title) || "Safra" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#2e7d32">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Safra">
     <meta name="mobile-web-app-capable" content="yes">
@@ -14,30 +15,32 @@
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
     <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
 
-    <link rel="icon" href="/icon.png" type="image/png">
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="/icon.png" type="image/png">
     <link rel="apple-touch-icon" href="/icon.png">
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <link rel="preload" href="<%= asset_path("bricolage-grotesque-latin.woff2") %>" as="font" type="font/woff2" crossorigin>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="bg-stone-50 text-stone-900">
-    <header class="bg-green-800 text-white">
-      <div class="mx-auto max-w-7xl px-4 flex items-center gap-6 overflow-x-auto">
-        <%= link_to "Safra", root_path, class: "font-bold text-lg py-3 shrink-0" %>
-        <nav class="flex gap-1 text-sm whitespace-nowrap" aria-label="Principal">
-          <% [["Pedidos", orders_path, "orders"], ["Programação", schedule_path, "schedules"], ["Produção", production_path, "productions"],
-              ["Compras", purchases_path, "purchases"], ["Conferência", conference_path, "conferences"]].each do |label, path, controller| %>
-            <%= link_to label, path, class: "px-3 py-3 hover:bg-green-700 #{'bg-green-900 font-semibold' if controller_name == controller}" %>
-          <% end %>
+  <body>
+    <header class="shell-nav">
+      <div class="shell-nav-inner">
+        <%= link_to root_path, class: "brand", "aria-label": "Safra, início" do %><%= brand_mark %>Safra<% end %>
+        <nav class="nav-links" aria-label="Principal" data-controller="reveal">
+          <%= nav_link "Pedidos", orders_path, "orders" %>
+          <%= nav_link "Programação", schedule_path, "schedules" %>
+          <%= nav_link "Produção", production_path, "productions" %>
+          <%= nav_link "Compras", purchases_path, "purchases" %>
+          <%= nav_link "Conferência", conference_path, "conferences" %>
         </nav>
       </div>
     </header>
-    <main class="mx-auto max-w-7xl px-4 py-5">
-      <% if notice %><p class="mb-4 rounded bg-green-100 border border-green-300 px-3 py-2 text-green-900" role="status"><%= notice %></p><% end %>
-      <% if alert %><p class="mb-4 rounded bg-amber-100 border border-amber-300 px-3 py-2 text-amber-900" role="alert"><%= alert %></p><% end %>
+    <main class="mx-auto max-w-7xl px-4 py-6">
+      <% if notice %><p class="flash flash-notice" role="status"><%= icon :check %><span><%= notice %></span></p><% end %>
+      <% if alert %><p class="flash flash-alert" role="alert"><%= icon :alert %><span><%= alert %></span></p><% end %>
       <%= yield %>
     </main>
   </body>

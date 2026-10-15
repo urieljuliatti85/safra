@@ -5,7 +5,7 @@ class ScreensTest < ActionDispatch::IntegrationTest
     get orders_path(customer: "hbp", week: "2026-10-12")
     assert_response :success
     assert_select "h1", /Hospital Bom Pastor/
-    assert_select "th", /Ter 13\/10/
+    assert_select "th", /13\/10/
     assert_select "input[aria-label^='Cenoura em cubinhos']"
   end
 

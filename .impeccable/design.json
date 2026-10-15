@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-15T21:41:58+00:00",
+  "title": "Design System: Safra",
+  "extensions": {
+    "colorMeta": {
+      "field": {
+        "role": "primary",
+        "displayName": "Verde de Lavoura",
+        "canonical": "#2e7d32",
+        "tonalRamp": [
+          "#153816",
+          "#225d25",
+          "#308234",
+          "#3ea843",
+          "#6ac86f",
+          "#a2dda5",
+          "#c7eac9",
+          "#ecf8ed"
+        ]
+      },
+      "field-deep": {
+        "role": "primary",
+        "displayName": "Verde Fundo",
+        "canonical": "#1e5a24",
+        "tonalRamp": [
+          "#133917",
+          "#206026",
+          "#2d8636",
+          "#39ac45",
+          "#66cc70",
+          "#9fdfa6",
+          "#c6ecc9",
+          "#ecf9ed"
+        ]
+      },
+      "sprout": {
+        "role": "secondary",
+        "displayName": "Broto",
+        "canonical": "#8bc34a",
+        "tonalRamp": [
+          "#283913",
+          "#426020",
+          "#5d862c",
+          "#77ac39",
+          "#9dcc66",
+          "#c2df9f",
+          "#daecc6",
+          "#f3f9ec"
+        ]
+      },
+      "sprout-mid": {
+        "role": "secondary",
+        "displayName": "Broto Médio",
+        "canonical": "#5aa84b",
+        "tonalRamp": [
+          "#1c3518",
+          "#2f5827",
+          "#427b37",
+          "#559f47",
+          "#7fc072",
+          "#afd8a7",
+          "#cfe7ca",
+          "#eff7ed"
+        ]
+      },
+      "sprout-pale": {
+        "role": "secondary",
+        "displayName": "Broto Pálido",
+        "canonical": "#cfe3bf",
+        "tonalRamp": [
+          "#253517",
+          "#3d5927",
+          "#557c36",
+          "#6ea046",
+          "#95c171",
+          "#bcd8a6",
+          "#d7e8ca",
+          "#f2f7ed"
+        ]
+      },
+      "field-wash": {
+        "role": "secondary",
+        "displayName": "Lavagem de Lavoura",
+        "canonical": "#e7f1e2",
+        "tonalRamp": [
+          "#223419",
+          "#38562a",
+          "#4f783a",
+          "#659b4b",
+          "#8dbd75",
+          "#b8d5a9",
+          "#d4e6cb",
+          "#f1f7ee"
+        ]
+      },
+      "leaf": {
+        "role": "neutral",
+        "displayName": "Folha",
+        "canonical": "#f4f7f0",
+        "tonalRamp": [
+          "#28321b",
+          "#43532c",
+          "#5d743e",
+          "#789650",
+          "#9db87a",
+          "#c2d3ac",
+          "#dae4cd",
+          "#f3f6ee"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Branco",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#404040",
+          "#595959",
+          "#737373",
+          "#999999",
+          "#bfbfbf",
+          "#d9d9d9",
+          "#f2f2f2"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "#14231a",
+        "tonalRamp": [
+          "#1c3124",
+          "#2e513c",
+          "#417254",
+          "#53926c",
+          "#7db593",
+          "#aed1bc",
+          "#cee3d7",
+          "#eff6f2"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Tinta Suave",
+        "canonical": "#4a5d50",
+        "tonalRamp": [
+          "#222b25",
+          "#38473d",
+          "#4f6356",
+          "#66806e",
+          "#8da595",
+          "#b8c7bd",
+          "#d4ddd7",
+          "#f1f4f2"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Linha",
+        "canonical": "#cbd7c4",
+        "tonalRamp": [
+          "#242e1f",
+          "#3d4c34",
+          "#556a48",
+          "#6d895d",
+          "#94ad85",
+          "#bccbb3",
+          "#d7e0d1",
+          "#f2f5f0"
+        ]
+      },
+      "line-soft": {
+        "role": "neutral",
+        "displayName": "Linha Suave",
+        "canonical": "#e3eadd",
+        "tonalRamp": [
+          "#262f1d",
+          "#3f4f31",
+          "#586e44",
+          "#718e58",
+          "#97b181",
+          "#beceb0",
+          "#d8e2d0",
+          "#f2f5ef"
+        ]
+      },
+      "sun": {
+        "role": "tertiary",
+        "displayName": "Sol (só hoje)",
+        "canonical": "#f2b705",
+        "tonalRamp": [
+          "#4b3902",
+          "#7d5e03",
+          "#af8404",
+          "#e1aa05",
+          "#fbca37",
+          "#fcde82",
+          "#fdebb4",
+          "#fef8e6"
+        ]
+      },
+      "change": {
+        "role": "tertiary",
+        "displayName": "Mudou (só mudança/erro)",
+        "canonical": "#b3261e",
+        "tonalRamp": [
+          "#420e0b",
+          "#6d1712",
+          "#99201a",
+          "#c52a21",
+          "#e25850",
+          "#ed9792",
+          "#f4c0bd",
+          "#fbeae9"
+        ]
+      },
+      "change-wash": {
+        "role": "tertiary",
+        "displayName": "Lavagem de Mudança",
+        "canonical": "#fdecea",
+        "tonalRamp": [
+          "#460d07",
+          "#74160b",
+          "#a31f10",
+          "#d22814",
+          "#ed5645",
+          "#f4968b",
+          "#f8c0b9",
+          "#fdeae8"
+        ]
+      },
+      "soil": {
+        "role": "tertiary",
+        "displayName": "Terra (só compra CEASA)",
+        "canonical": "#8a6a3c",
+        "tonalRamp": [
+          "#352917",
+          "#594427",
+          "#7c6036",
+          "#a07b46",
+          "#c1a071",
+          "#d8c4a6",
+          "#e8dbca",
+          "#f7f3ed"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "page-title": {
+        "displayName": "Page Title",
+        "purpose": "Um por tela."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Quantidade em cada linha de setor."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Título de painel."
+      },
+      "dense": {
+        "displayName": "Dense",
+        "purpose": "Células densas."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Metadado, dia, pílula."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Cabeçalho de coluna e etiqueta \"mudou\"."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "bar-grow",
+        "value": ".5s cubic-bezier(.16,1,.3,1)",
+        "purpose": "Barras da faixa crescem da esquerda; desligado com prefers-reduced-motion."
+      },
+      {
+        "name": "state-color",
+        "value": ".15s",
+        "purpose": "Troca de fundo e borda em botões."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile",
+        "value": "639px (max-width)"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Ação secundária ou de navegação.",
+      "html": "<button class=\"ds-btn\">PDF</button>",
+      "css": ".ds-x{font-family:'Bricolage Grotesque','Bricolage Fallback',ui-sans-serif,system-ui,sans-serif;color:#14231a}.ds-btn{display:inline-flex;align-items:center;min-height:2.5rem;padding:.5rem 1rem;border-radius:.5rem;font:700 1rem 'Bricolage Grotesque','Bricolage Fallback',ui-sans-serif,system-ui,sans-serif;border:1px solid #cbd7c4;background:#fff;color:#14231a;cursor:pointer;transition:background-color .15s,border-color .15s}.ds-btn:hover{background:#e7f1e2;border-color:#2e7d32}.ds-btn:focus-visible{outline:3px solid #1e5a24;outline-offset:2px}"
+    },
+    {
+      "name": "Botão primário",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "A ação que avança (enviar aos setores, salvar).",
+      "html": "<button class=\"ds-btn-primary\">Enviar aos setores</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;min-height:2.5rem;padding:.5rem 1rem;border-radius:.5rem;font:700 1rem 'Bricolage Grotesque','Bricolage Fallback',ui-sans-serif,system-ui,sans-serif;border:1px solid #2e7d32;background:#2e7d32;color:#fff;cursor:pointer;transition:background-color .15s}.ds-btn-primary:hover{background:#1e5a24;border-color:#1e5a24}.ds-btn-primary:focus-visible{outline:3px solid #1e5a24;outline-offset:2px}"
+    },
+    {
+      "name": "Aba de navegação",
+      "kind": "nav",
+      "description": "Aba de texto com sublinhado verde na página atual.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-tab\" href=\"#\">Pedidos</a><a class=\"ds-tab\" aria-current=\"page\" href=\"#\">Produção</a><a class=\"ds-tab\" href=\"#\">Compras</a></nav>",
+      "css": ".ds-nav{display:flex;gap:1.5rem;background:#fff;border-bottom:1px solid #cbd7c4;padding:0 1rem;font-family:'Bricolage Grotesque','Bricolage Fallback',ui-sans-serif,system-ui,sans-serif}.ds-tab{padding:.75rem .125rem;color:#4a5d50;font-weight:600;border-bottom:3px solid transparent;margin-bottom:-1px;text-decoration:none}.ds-tab:hover{color:#14231a}.ds-tab[aria-current=page]{color:#14231a;border-bottom-color:#2e7d32}.ds-tab:focus-visible{outline:3px solid #1e5a24;outline-offset:2px}"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Seleção de cliente na grade de pedidos.",
+      "html": "<span class=\"ds-chip\">Bom Pastor</span> <span class=\"ds-chip\" aria-current=\"true\">Horizonte</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;min-height:2.5rem;padding:.25rem 1rem;border-radius:999px;border:1px solid #cbd7c4;background:#fff;font:600 1rem 'Bricolage Grotesque','Bricolage Fallback',ui-sans-serif,system-ui,sans-serif;color:#14231a}.ds-chip:hover{border-color:#2e7d32}.ds-chip[aria-current=true]{background:#2e7d32;border-color:#2e7d32;color:#fff}"
+    },
+    {
+      "name": "Painel de setor",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Painel branco com cabeça em lavagem verde e tabela operacional.",
+      "html": "<section class=\"ds-panel\"><div class=\"ds-head\"><h2>Cubinhos</h2><span>produz hoje · 2 itens</span></div><table class=\"ds-t\"><thead><tr><th>Produto</th><th class=\"q\">Qtd.</th><th class=\"u\">Un.</th></tr></thead><tbody><tr><td>Cenoura cubinhos</td><td class=\"q\">12,5</td><td class=\"u\">kg</td></tr><tr class=\"ch\"><td>Batata cubinhos<b>mudou</b></td><td class=\"q\">8</td><td class=\"u\">kg</td></tr></tbody></table></section>",
+      "css": ".ds-panel{background:#fff;border:1px solid #cbd7c4;border-radius:.75rem;overflow:hidden;font-family:'Bricolage Grotesque','Bricolage Fallback',ui-sans-serif,system-ui,sans-serif;color:#14231a}.ds-head{display:flex;justify-content:space-between;align-items:baseline;padding:.75rem 1rem;background:#e7f1e2;color:#1e5a24}.ds-head h2{font-size:1.125rem;font-weight:800;margin:0}.ds-head span{font-size:.875rem;color:#4a5d50}.ds-t{width:100%;border-collapse:collapse;table-layout:fixed}.ds-t th{text-align:left;font-size:.75rem;font-weight:700;color:#4a5d50;text-transform:uppercase;letter-spacing:.06em;padding:.5rem 1rem;border-bottom:1px solid #cbd7c4}.ds-t td{padding:.625rem 1rem;border-top:1px solid #e3eadd}.ds-t .q{width:6.5rem;text-align:right;font-variant-numeric:tabular-nums}.ds-t td.q{font-size:1.25rem;font-weight:800}.ds-t .u{width:3.5rem;color:#4a5d50}.ds-t tr.ch td{background:#fdecea}.ds-t b{margin-left:.5rem;font-size:.75rem;font-weight:800;color:#b3261e;border:1px solid #b3261e;border-radius:.25rem;padding:0 .375rem}"
+    },
+    {
+      "name": "Selo de status",
+      "kind": "chip",
+      "refersTo": "pill-sent",
+      "description": "Enviada (sólido) ou rascunho (contorno).",
+      "html": "<span class=\"ds-pill ds-sent\">v2 enviada</span> <span class=\"ds-pill ds-draft\">rascunho</span>",
+      "css": ".ds-pill{display:inline-flex;padding:.125rem .75rem;border-radius:999px;font:700 .875rem 'Bricolage Grotesque','Bricolage Fallback',ui-sans-serif,system-ui,sans-serif}.ds-sent{background:#2e7d32;color:#fff}.ds-draft{background:#fff;color:#14231a;border:1px solid #4a5d50}"
+    },
+    {
+      "name": "Caixa de mudança",
+      "kind": "custom",
+      "refersTo": "change-box",
+      "description": "Lista o que mudou depois do envio; vermelho reservado.",
+      "html": "<div class=\"ds-change\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg><div>Pedido alterado depois do envio<ul><li>Batata cubinhos: 6 para 8 kg</li></ul></div></div>",
+      "css": ".ds-change{display:flex;gap:.75rem;padding:.75rem 1rem;background:#fdecea;color:#6f1710;border-top:1px solid #f1c6c1;font-family:'Bricolage Grotesque','Bricolage Fallback',ui-sans-serif,system-ui,sans-serif}.ds-change svg{color:#b3261e;margin-top:.125rem;flex:none}"
+    },
+    {
+      "name": "Faixa da semana",
+      "kind": "custom",
+      "description": "Assinatura: dias em colunas, uma raia por setor com barras em três níveis de verde, raia contínua de compra em terra, hoje em sol.",
+      "html": "<div class=\"ds-week\"><div class=\"ds-d\"></div><div class=\"ds-d ds-today\"><a>Qua 14</a></div><div class=\"ds-d ds-open\"><a>Qui 15</a></div><div class=\"ds-d\"><a>Sex 16</a></div><div class=\"ds-l\">Cubinhos</div><div class=\"ds-c\"><span class=\"ds-bar b1\">2</span></div><div class=\"ds-c ds-oc\"><span class=\"ds-bar b2\">4</span></div><div class=\"ds-c\"><span class=\"ds-bar b3\">7</span></div><div class=\"ds-l\">Compra CEASA</div><div class=\"ds-c\"><span class=\"ds-buy f\"></span></div><div class=\"ds-c ds-oc\"><span class=\"ds-buy\"></span></div><div class=\"ds-c\"><span class=\"ds-buy l\"></span></div></div>",
+      "css": ".ds-week{display:grid;grid-template-columns:7rem repeat(3,4rem);background:#fff;border:1px solid #cbd7c4;border-radius:.75rem;padding:.75rem;font-family:'Bricolage Grotesque','Bricolage Fallback',ui-sans-serif,system-ui,sans-serif;color:#14231a}.ds-d{text-align:center;font-size:.875rem;font-weight:700;color:#4a5d50;padding:.125rem .25rem .375rem}.ds-d a{display:block;border-radius:.375rem;padding:.125rem 0}.ds-today a{background:#f2b705;color:#14231a}.ds-open a{background:#2e7d32;color:#fff}.ds-l{font-size:.875rem;font-weight:700;border-top:1px solid #e3eadd;min-height:2.5rem;display:flex;align-items:center}.ds-c{min-height:2.5rem;border-top:1px solid #e3eadd;display:flex;align-items:center;padding:0 .1875rem}.ds-oc{background:#e7f1e2}.ds-bar{display:grid;place-items:center;width:100%;height:1.5rem;border-radius:.75rem;font-size:.875rem;font-weight:800;font-variant-numeric:tabular-nums;background:#8bc34a;color:#14231a}.b2{background:#5aa84b}.b3{background:#2e7d32;color:#fff}.ds-buy{display:block;width:calc(100% + .375rem);margin-inline:-.1875rem;height:.625rem;background:#8a6a3c}.ds-buy.f{border-radius:.3125rem 0 0 .3125rem;width:calc(100% + .1875rem);margin-left:0}.ds-buy.l{border-radius:0 .3125rem .3125rem 0;width:calc(100% + .1875rem);margin-right:0}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Calendário de safra",
+    "overview": "Safra é uma ferramenta de operação: quem a abre está na bancada ou na câmara fria, com luz forte e refletida, área úmida, às vezes com a mão ocupada. O sistema nasce dessa cena, não de um gosto por temas escuros. Por isso é claro, de tinta escura sobre fundo de folha, e o PDF impresso é cidadão de primeira classe: as mesmas cores, a mesma fonte e a mesma coluna de quantidades valem na tela e no papel A4.\n\nA metáfora é o calendário do plantio: uma semana em colunas, um canteiro por setor, barras que crescem onde há trabalho. Os verdes são de lavoura e fazem todo o trabalho de estrutura. Duas cores de sinal têm dono único e quase nunca aparecem: o amarelo-sol só diz \"hoje\", o vermelho só diz \"mudou depois do envio\". Modo Operate: densidade confortável, nada decorativo, a quantidade é sempre o que se lê primeiro.\n\nNão há modo escuro, e isso é decisão de uso, não omissão. Não há ilustração nem foto; a identidade vem da cor, da fonte única e da faixa da semana.",
+    "keyCharacteristics": [
+      "Fundo de folha (#f4f7f0) com painéis brancos e bordas verde-acinzentadas finas; profundidade só por tom e borda.",
+      "Uma família tipográfica (Bricolage Grotesque), cinco papéis de tamanho, quantidades tabulares e alinhadas à direita.",
+      "Verde como estrutura; sol e vermelho como sinais de uso único; terra só para a cobertura da compra.",
+      "A faixa da semana é a assinatura: oito dias, uma raia por setor, uma raia contínua de compra.",
+      "Impresso e tela são o mesmo sistema."
+    ],
+    "rules": [
+      {
+        "name": "The Dono Único Rule",
+        "body": "Sol é \"hoje\", vermelho é \"mudou\", terra é \"compra\". Nenhuma dessas cores serve de enfeite nem de ênfase genérica; a raridade é o que as faz ser lidas.",
+        "section": "colors"
+      },
+      {
+        "name": "The Papel Impresso Rule",
+        "body": "Toda cor de tela que importa no PDF existe também em BasePdf com o mesmo hex. Cor nova entra nos dois lugares ou em nenhum.",
+        "section": "colors"
+      },
+      {
+        "name": "The Coluna da Quantidade Rule",
+        "body": "Quantidade é tabular, alinhada à direita, em coluna de largura fixa (6,5rem), igual em todos os setores.",
+        "section": "typography"
+      },
+      {
+        "name": "The Cinco Papéis Rule",
+        "body": "Só os cinco tamanhos nomeados (rótulo, pequeno, denso, seção, dado) mais o título de página e a marca. Tamanho novo exige papel novo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mesma Fonte no Papel Rule",
+        "body": "O PDF embute duas instâncias estáticas da mesma variável (regular wght 420 opsz 14; negrito wght 800 opsz 24), derivadas da fonte OFL.",
+        "section": "typography"
+      },
+      {
+        "name": "The Plano Rule",
+        "body": "Superfícies não têm sombra; separe por tom e linha de 1px.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** manter a base clara: fundo Folha (#f4f7f0), painéis brancos, tinta #14231a. O uso real é luz forte e papel.",
+      "**Do** reservar sol para \"hoje\", vermelho para \"mudou depois do envio\" e terra para a cobertura da compra.",
+      "**Do** alinhar toda quantidade à direita, tabular, na coluna fixa de 6,5rem, em 1.25rem 800.",
+      "**Do** separar superfícies por tom e borda de 1px em Linha; foco visível com anel de 3px em Verde Fundo.",
+      "**Do** manter alvos de toque de pelo menos 2.5rem e transformar tabelas em listas abaixo de 640px.",
+      "**Do** espelhar no PDF qualquer cor ou peso novo que importe na bancada.",
+      "**Do** desenhar ícones novos em traço único de 1,75px com `currentColor`, no `IconHelper`."
+    ],
+    "donts": [
+      "**Don't** usar sol, vermelho ou terra como acento decorativo, nem verde como sinal de erro.",
+      "**Don't** adicionar sombras: a profundidade é tonal.",
+      "**Don't** introduzir uma segunda família tipográfica nem tamanhos fora dos cinco papéis.",
+      "**Don't** colocar texto branco sobre Broto ou Broto Médio: as barras de nível 1 e 2 levam tinta.",
+      "**Don't** depender só de cor para estado: acompanhe com texto (pílula \"enviada\", etiqueta \"mudou\"), hachura (domingo) ou rótulo acessível.",
+      "**Don't** usar biblioteca de ícones nem emoji como ícone."
+    ]
+  }
+}

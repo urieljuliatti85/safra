@@ -5,7 +5,7 @@ class ProductionsController < ApplicationController
     respond_to do |format|
       format.html
       format.pdf do
-        send_data ProductionPdf.new(result: @result, version: @latest_sent).render,
+        send_data ProductionPdf.new(result: @result, version: @latest_sent, changes: @changes).render,
                   filename: "producao-#{@date.iso8601}.pdf", type: "application/pdf", disposition: "inline"
       end
     end
@@ -24,5 +24,6 @@ class ProductionsController < ApplicationController
     @latest_sent = ProductionPlan.where(date: @date).where.not(sent_at: nil).order(:version).last
     @changes = @latest_sent ? PlanDiff.production(@latest_sent, @result) : []
     @by_sector = @result.items.group_by { |item| item.product.sector }
+    @week = WeekOverview.new(company: current_company, date: @date).call
   end
 end

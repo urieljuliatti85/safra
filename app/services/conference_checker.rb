@@ -20,10 +20,12 @@ class ConferenceChecker
 
   private
 
+  # Uma linha por cliente, produto e observação, com todas as datas afetadas.
   def line_note_alerts(lines)
-    lines.select { |l| l.note.present? }.map do |l|
-      Alert.new(:warn, "Pedido", "#{l.order.customer.short_name}: #{l.product.name} em #{Formatting.short_date(l.delivery_date)}. #{l.note}.")
-    end.uniq
+    lines.select { |l| l.note.present? }.group_by { |l| [ l.order.customer, l.product, l.note ] }.map do |(customer, product, note), group|
+      dates = group.map(&:delivery_date).uniq.sort.map { |d| Formatting.short_date(d) }.join(", ")
+      Alert.new(:warn, "Pedido", "#{customer.short_name}: #{product.name} (#{dates}). #{note}.")
+    end
   end
 
   def missing_factor_alerts(lines)

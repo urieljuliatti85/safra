@@ -39,3 +39,8 @@
 
 # Dados de clientes (planilhas originais e pedidos)
 /referencia/
+
+# Impeccable: capturas e esboços de revisão são locais
+/.impeccable/mocks/
+/.impeccable/review/
+/.impeccable/build/

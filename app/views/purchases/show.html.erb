@@ -1,60 +1,66 @@
 <% content_for :title, "Compras · Safra" %>
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-  <h1 class="text-xl font-bold">Compras CEASA</h1>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Compras CEASA</h1>
+    <% if @date %>
+      <% next_date = @purchase_dates.find { |d| d > @date } %>
+      <p class="page-sub">Abastece a produção de <%= weekday_date(@date) %> até <%= next_date ? weekday_date(next_date - 1) : "o fim da semana" %>. O estoque da câmara fria é abatido antes.</p>
+    <% end %>
+  </div>
   <% if @date %>
-    <%= link_to "PDF", purchases_path(date: @date, format: :pdf), class: "rounded border bg-white px-3 py-1", target: "_blank", rel: "noopener" %>
+    <%= link_to purchases_path(date: @date, format: :pdf), class: "btn", target: "_blank", rel: "noopener" do %><%= icon :printer %>PDF<% end %>
   <% end %>
 </div>
-<nav class="flex flex-wrap gap-2 mb-4" aria-label="Dias de compra">
+
+<nav class="chips mb-4" aria-label="Dias de compra">
   <% @purchase_dates.each do |date| %>
-    <%= link_to weekday_date(date), purchases_path(date: date),
-          class: "px-3 py-1 rounded-full border #{date == @date ? 'bg-green-700 text-white border-green-700' : 'bg-white'}" %>
+    <%= link_to weekday_date(date), purchases_path(date: date), class: "chip num", "aria-current": (date == @date ? "true" : nil) %>
   <% end %>
 </nav>
 
 <% if @date.nil? %>
-  <p class="rounded border bg-white p-6 text-center text-stone-500">Nenhum dia de compra cadastrado.</p>
+  <p class="panel p-8 text-center muted">Nenhum dia de compra cadastrado.</p>
 <% else %>
-  <% next_date = @purchase_dates.find { |d| d > @date } %>
-  <p class="mb-4 text-sm text-stone-600">
-    Abastece a produção de <%= weekday_date(@date) %> até <%= next_date ? weekday_date(next_date - 1) : "o fim da semana" %>. O estoque da câmara fria é abatido antes.
-  </p>
-  <%= render "shared/plan_status", plan: @latest_sent, changes: @changes, publish_path: publish_purchase_path(date: @date) %>
+  <div class="space-y-4">
+    <%= render "shared/week", week: @week, open_date: @date, path: :purchases_path %>
+    <%= render "shared/plan_status", plan: @latest_sent, changes: @changes, publish_path: publish_purchase_path(date: @date),
+                                                 draft_text: "Ainda não enviada aos fornecedores", send_label: "Enviar aos fornecedores" %>
 
-  <% @suppliers.each do |supplier, needs| %>
-    <% text = ([ "*#{supplier} · compra #{short_date(@date)}*" ] + needs.map { |n| "#{n.raw_material.name}: #{need_text(n)}" }).join("\n") %>
-    <section class="mb-5 rounded border bg-white" data-controller="copy">
-      <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-green-50">
-        <h2 class="font-semibold text-green-900"><%= supplier %></h2>
-        <button type="button" data-copy-target="button" data-action="copy#copy" class="rounded border bg-white px-3 py-1 text-sm">Copiar para o WhatsApp</button>
-      </div>
-      <textarea data-copy-target="source" readonly rows="<%= needs.size + 1 %>" aria-label="Texto do pedido para <%= supplier %>"
-                class="w-full border-0 border-b bg-stone-50 px-3 py-2 font-mono text-sm"><%= text %></textarea>
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="text-left text-stone-600"><tr><th class="px-3 py-1">Matéria-prima</th><th class="px-2 py-1 text-right">Necessidade</th><th class="px-2 py-1 text-right">Estoque</th><th class="px-2 py-1 text-right">Comprar</th><th class="px-2 py-1">Observação</th></tr></thead>
+    <% @suppliers.each do |supplier, needs| %>
+      <% text = ([ "*#{supplier} · compra #{short_date(@date)}*" ] + needs.map { |n| "#{n.raw_material.name}: #{need_text(n)}" }).join("\n") %>
+      <section class="panel" data-controller="copy">
+        <div class="panel-head">
+          <h2><%= supplier %></h2>
+          <button type="button" class="btn btn-primary" data-copy-target="button" data-action="copy#copy"><%= icon :copy %><span data-copy-target="label">Copiar para o WhatsApp</span></button>
+        </div>
+        <details class="border-b border-line-soft">
+          <summary class="px-4 py-2 text-sm font-semibold muted">Ver o texto que será copiado</summary>
+          <textarea data-copy-target="source" readonly rows="<%= needs.size + 1 %>" class="whatsapp" aria-label="Texto do pedido para <%= supplier %>"><%= text %></textarea>
+        </details>
+        <table class="ops-table">
+          <thead><tr><th>Matéria-prima</th><th class="col-num only-desktop">Necessidade</th><th class="col-num only-desktop">Estoque</th><th class="col-qty">Comprar</th><th class="only-desktop">Observação</th></tr></thead>
           <tbody>
             <% needs.each do |need| %>
-              <tr class="border-t align-top">
-                <td class="px-3 py-1">
-                  <details><summary class="cursor-pointer"><%= need.raw_material.name %></summary>
-                    <ul class="mt-1 text-xs text-stone-600">
+              <tr>
+                <td class="name">
+                  <details>
+                    <summary><%= need.raw_material.name %></summary>
+                    <ul class="mt-1 muted text-sm">
                       <% need.breakdown.each do |b| %><li><%= b.customer.short_name %>: <%= b.product.name %> <%= qty(b.quantity) %> <%= b.unit %> (entrega <%= short_date(b.delivery_date) %>, produção <%= short_date(b.production_date) %>)</li><% end %>
                     </ul>
                   </details>
                 </td>
-                <td class="px-2 py-1 text-right"><%= qty(need.kg) %> <%= need.unit %></td>
-                <td class="px-2 py-1 text-right"><%= need.stock_kg.positive? ? "#{qty(need.stock_kg)} kg" : "-" %></td>
-                <td class="px-2 py-1 text-right font-semibold"><%= need_text(need) %></td>
-                <td class="px-2 py-1 text-amber-800">
-                  <% if need.missing_factor %>sem fator ou unidade diferente de kg<% elsif need.packages.nil? && need.unit == "kg" %>sem kg por embalagem<% end %>
-                </td>
+                <td class="num-col only-desktop"><%= qty(need.kg) %> <%= need.unit %></td>
+                <td class="num-col only-desktop"><%= need.stock_kg.positive? ? "#{qty(need.stock_kg)} kg" : "-" %></td>
+                <td class="qty"><%= need_text(need) %></td>
+                <td class="note only-desktop"><% if need.missing_factor %>sem fator ou unidade diferente de kg<% elsif need.packages.nil? && need.unit == "kg" %>sem kg por embalagem<% end %></td>
+                <td class="who only-mobile">necessidade <%= qty(need.kg) %> <%= need.unit %><%= " · estoque #{qty(need.stock_kg)} kg" if need.stock_kg.positive? %><% if need.missing_factor %> · sem fator ou unidade diferente de kg<% elsif need.packages.nil? && need.unit == "kg" %> · sem kg por embalagem<% end %></td>
               </tr>
             <% end %>
           </tbody>
         </table>
-      </div>
-    </section>
-  <% end %>
-  <% if @needs.empty? %><p class="rounded border bg-white p-6 text-center text-stone-500">Nada a comprar neste dia.</p><% end %>
+      </section>
+    <% end %>
+    <% if @needs.empty? %><p class="panel p-8 text-center muted">Nada a comprar neste dia.</p><% end %>
+  </div>
 <% end %>

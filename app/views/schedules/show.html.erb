@@ -1,31 +1,37 @@
 <% content_for :title, "Programação · Safra" %>
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-  <h1 class="text-xl font-bold">Programação de entregas</h1>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Programação de entregas</h1>
+    <p class="page-sub">O que cada cliente pediu para o dia e quando cada item é produzido.</p>
+  </div>
   <div class="flex items-center gap-3">
     <%= day_nav(@date, :schedule_path) %>
-    <%= link_to "PDF", schedule_path(date: @date, format: :pdf), class: "rounded border bg-white px-3 py-1", target: "_blank", rel: "noopener" %>
+    <%= link_to schedule_path(date: @date, format: :pdf), class: "btn", target: "_blank", rel: "noopener" do %><%= icon :printer %>PDF<% end %>
   </div>
 </div>
-<% if @groups.empty? %>
-  <p class="rounded border bg-white p-6 text-center text-stone-500">Nenhuma entrega em <%= weekday_date(@date) %>.</p>
-<% end %>
-<% @groups.each do |group| %>
-  <section class="mb-5 rounded border bg-white">
-    <h2 class="px-3 py-2 font-semibold bg-stone-100"><%= group.customer.name %></h2>
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm">
-        <thead class="text-left text-stone-600"><tr><th class="px-3 py-1">Produto</th><th class="px-2 py-1 text-right">Qtd.</th><th class="px-2 py-1">Un.</th><th class="px-2 py-1">Produzir em</th></tr></thead>
+<div class="space-y-4">
+  <% if @groups.empty? %>
+    <p class="panel p-8 text-center muted">Nenhuma entrega em <%= weekday_date(@date) %>.</p>
+  <% end %>
+  <% @groups.each do |group| %>
+    <section class="panel">
+      <div class="panel-head"><h2><%= group.customer.name %></h2><span class="meta num"><%= group.entries.size %> itens</span></div>
+      <table class="ops-table">
+        <thead><tr><th>Produto</th><th class="col-qty">Qtd.</th><th class="col-unit">Un.</th><th>Produzir em</th></tr></thead>
         <tbody>
           <% group.entries.each do |entry| %>
-            <tr class="border-t">
-              <td class="px-3 py-1"><%= entry.product.name %><% if entry.note %> <span class="text-amber-700" title="<%= entry.note %>">⚠</span><% end %></td>
-              <td class="px-2 py-1 text-right"><%= qty(entry.quantity) %></td>
-              <td class="px-2 py-1"><%= entry.unit %></td>
-              <td class="px-2 py-1"><%= entry.production_date ? weekday_date(entry.production_date) : "compra (in natura)" %></td>
+            <tr>
+              <td class="name">
+                <%= entry.product.name %>
+                <% if entry.note %><span class="tag-change" title="<%= entry.note %>">obs.</span><% end %>
+              </td>
+              <td class="qty" data-unit="<%= entry.unit %>"><%= qty(entry.quantity) %></td>
+              <td class="unit"><%= entry.unit %></td>
+              <td class="who"><%= entry.production_date ? weekday_date(entry.production_date) : "compra (in natura)" %></td>
             </tr>
           <% end %>
         </tbody>
       </table>
-    </div>
-  </section>
-<% end %>
+    </section>
+  <% end %>
+</div>

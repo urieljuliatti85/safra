@@ -1,0 +1,42 @@
+<%# locals: week (WeekOverview::Result), open_date, path (:production_path ou :purchases_path) %>
+<section class="week" aria-label="Semana">
+  <div class="week-scroll" data-controller="reveal">
+  <div class="week-grid" role="table" aria-label="Setores por dia da semana">
+    <div role="row" style="display: contents">
+      <div role="columnheader"></div>
+      <% week.dates.each do |date| %>
+        <% classes = [ ("is-today" if date == Date.current), ("is-open" if date == open_date), ("is-sunday" if date.sunday?) ].compact.join(" ") %>
+        <div class="week-day <%= classes %>" role="columnheader" <%= 'data-reveal-target=current'.html_safe if date == open_date %>>
+          <%= link_to public_send(path, date: date), "aria-current": (date == open_date ? "date" : nil) do %>
+            <span class="block"><%= Formatting::WEEKDAYS[date.wday] %></span><span class="num"><%= date.strftime("%d") %></span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    <% week.lanes.each do |lane| %>
+      <div role="row" style="display: contents">
+        <div class="week-lane-label" role="rowheader"><%= lane.label %></div>
+        <% lane.cells.each do |cell| %>
+          <div class="week-cell <%= 'is-open' if cell.date == open_date %>" role="cell">
+            <% if cell.count.positive? %>
+              <% if lane.kind == :purchase %>
+                <%= link_to "", purchases_path(date: cell.date), class: "bar bar-buy #{'is-first' if cell.first} #{'is-last' if cell.last}",
+                      "aria-label": "Compra CEASA, #{weekday_date(cell.date)}#{', dia da compra' if cell.first}" %>
+              <% else %>
+                <% level = cell.count >= 6 ? 3 : (cell.count >= 3 ? 2 : 1) %>
+                <%= link_to cell.count, production_path(date: cell.date), class: "bar num", data: { level: level },
+                      "aria-label": "#{lane.label}, #{weekday_date(cell.date)}: #{cell.count} #{cell.count == 1 ? 'item' : 'itens'}" %>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+  </div>
+  <p class="week-legend">
+    <span><i class="swatch" style="background: var(--color-sprout)"></i><i class="swatch" style="background: #5aa84b"></i><i class="swatch" style="background: var(--color-field)"></i>itens no dia: 1 a 2, 3 a 5, 6 ou mais</span>
+    <span><i class="swatch" style="background: var(--color-soil)"></i>dias que a compra da CEASA cobre</span>
+    <span><i class="swatch" style="background: var(--color-sun)"></i>hoje</span>
+  </p>
+</section>

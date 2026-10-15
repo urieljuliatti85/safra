@@ -1,20 +1,30 @@
-<%# locals: plan (última versão enviada ou nil), changes, publish_path, label %>
-<section class="mb-5 rounded border bg-white p-3">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <p class="text-sm"><strong><%= version_label(plan) %></strong></p>
-    <% if plan.nil? || changes.any? %>
-      <%= button_to (plan ? "Enviar nova versão (v#{plan.version + 1})" : "Enviar aos setores"), publish_path, method: :post,
-            class: "rounded bg-green-700 px-3 py-2 font-semibold text-white hover:bg-green-800" %>
+<%# locals: plan (última versão enviada ou nil), changes, publish_path, draft_text, send_label %>
+<section class="panel" aria-label="Estado do envio">
+  <div class="status">
+    <% if plan %>
+      <span class="pill pill-sent"><%= icon :check %>v<%= plan.version %> enviada</span>
+      <span class="muted num"><%= l(plan.sent_at, format: "%d/%m às %H:%M") %></span>
     <% else %>
-      <span class="text-sm text-green-800">Igual ao que foi enviado.</span>
+      <span class="pill pill-draft">Rascunho</span>
+      <span class="muted"><%= draft_text %></span>
+    <% end %>
+    <% if plan.nil? || changes.any? %>
+      <%= button_to publish_path, method: :post, class: "btn btn-primary push", form: { class: "push" } do %>
+        <%= icon :send %><%= plan ? "Enviar versão #{plan.version + 1}" : send_label %>
+      <% end %>
+    <% else %>
+      <span class="push muted">Igual ao que foi enviado.</span>
     <% end %>
   </div>
   <% if changes.any? %>
-    <div class="mt-3 rounded bg-amber-50 border border-amber-300 p-3" role="alert">
-      <p class="font-semibold text-amber-900">Mudou depois do envio (<%= changes.size %> <%= changes.size == 1 ? "item" : "itens" %>):</p>
-      <ul class="mt-1 list-disc ml-5 text-sm">
-        <% changes.each do |change| %><li><strong><%= change.label %></strong>: <%= change_text(change) %></li><% end %>
-      </ul>
+    <div class="change-box" role="alert">
+      <%= icon :alert %>
+      <div>
+        <p class="font-bold">Mudou depois do envio (<%= changes.size %> <%= changes.size == 1 ? "item" : "itens" %>)</p>
+        <ul>
+          <% changes.each do |change| %><li><strong><%= change.label %></strong>: <%= change_text(change) %></li><% end %>
+        </ul>
+      </div>
     </div>
   <% end %>
 </section>
