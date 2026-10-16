@@ -74,7 +74,7 @@ class AuditLogTest < ActionDispatch::IntegrationTest
   test "só o administrador abre o histórico" do
     sign_in_as(user_for(:office))
     get audit_logs_path
-    assert_redirected_to orders_path
+    assert_redirected_to dashboard_path
     sign_in_as(user_for(:production))
     get audit_logs_path
     assert_redirected_to production_path

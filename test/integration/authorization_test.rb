@@ -1,7 +1,7 @@
 require "test_helper"
 
 class AuthorizationTest < ActionDispatch::IntegrationTest
-  FULL = [ "/orders", "/schedule", "/production", "/purchases", "/conference", "/conference/sheets", "/order_imports/new", "/regras", "/estoque" ].freeze
+  FULL = [ "/painel", "/orders", "/schedule", "/production", "/purchases", "/conference", "/conference/sheets", "/order_imports/new", "/regras", "/estoque" ].freeze
 
   test "admin e escritório abrem todas as telas de trabalho" do
     %i[admin office].each do |role|
@@ -19,7 +19,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_response :success
     sign_in_as(user_for(:office))
     get users_path
-    assert_redirected_to orders_path
+    assert_redirected_to dashboard_path
     follow_redirect!
     assert_match "Você não tem acesso a essa tela", response.body
   end
@@ -44,7 +44,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
 
   test "produção é barrada em pedidos, compras, conferência, importação e usuários" do
     sign_in_as(user_for(:production))
-    [ "/orders", "/purchases", "/purchases.pdf?date=2026-10-13", "/conference", "/conference/sheets", "/order_imports/new", "/regras", "/users", "/historico" ].each do |path|
+    [ "/orders", "/purchases", "/purchases.pdf?date=2026-10-13", "/conference", "/conference/sheets", "/order_imports/new", "/regras", "/painel", "/users", "/historico" ].each do |path|
       get path
       assert_redirected_to production_path, path
     end

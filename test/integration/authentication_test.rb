@@ -23,7 +23,7 @@ class AuthenticationTest < ActionDispatch::IntegrationTest
   test "cada papel cai na sua tela inicial" do
     log_in(:office)
     follow_redirect!
-    assert_redirected_to orders_path
+    assert_redirected_to dashboard_path
     delete session_path
     log_in(:production)
     follow_redirect!
@@ -74,7 +74,7 @@ class AuthenticationTest < ActionDispatch::IntegrationTest
     assert_match "confirmação não é igual", response.body
 
     patch account_password_path, params: { password: "senha-nova-123", password_confirmation: "senha-nova-123" }
-    assert_redirected_to orders_path
+    assert_redirected_to dashboard_path
     assert_not user.reload.must_change_password
     get orders_path
     assert_response :success
@@ -88,7 +88,7 @@ class AuthenticationTest < ActionDispatch::IntegrationTest
     assert_match "senha atual não confere", response.body
 
     patch account_password_path, params: { current_password: DEMO_PASSWORD, password: "senha-nova-123", password_confirmation: "senha-nova-123" }
-    assert_redirected_to orders_path
+    assert_redirected_to dashboard_path
     assert_not Session.exists?(other_session.id)
     user_for(:office).update!(password: DEMO_PASSWORD) # devolve a senha para os outros testes
   end

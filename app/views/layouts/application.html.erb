@@ -31,6 +31,7 @@
         <%= link_to (authenticated? ? root_path : new_session_path), class: "brand", "aria-label": "Safra, início" do %><%= brand_mark %>Safra<% end %>
         <% if authenticated? %>
           <nav class="nav-links" aria-label="Principal">
+            <%= nav_link "Painel", dashboard_path, "dashboards" if policy(:dashboard).show? %>
             <%= nav_link "Pedidos", orders_path, "orders" if policy(:order).index? %>
             <%= nav_link "Programação", schedule_path, "schedules" if policy(:schedule).show? %>
             <%= nav_link "Produção", production_path, "productions" if policy(:production).show? %>

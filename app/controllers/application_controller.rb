@@ -52,7 +52,7 @@ class ApplicationController < ActionController::Base
 
   # Tela de abertura de cada papel: produção cai direto na lista do dia.
   def home_path_for(user)
-    user.production? ? production_path : orders_path
+    user.production? ? production_path : dashboard_path
   end
   helper_method :home_path_for
 

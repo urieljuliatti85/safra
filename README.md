@@ -21,7 +21,7 @@ bin/setup --skip-server
 bin/dev
 ```
 
-Abra <http://localhost:3000> e entre com um dos usuários de desenvolvimento (veja "Acesso e papéis"). Quem é do escritório cai na grade de pedidos; Programação, Produção, Compras e Conferência ficam no menu superior.
+Abra <http://localhost:3000> e entre com um dos usuários de desenvolvimento (veja "Acesso e papéis"). Quem é do escritório cai no Painel; Pedidos, Programação, Produção, Compras e Conferência ficam no menu superior.
 
 Nos próximos dias, só os passos 1 e 3 (o passo 1 é seguro repetir: se o container já estiver rodando, não muda nada).
 
@@ -40,6 +40,7 @@ bin/rails db:reset         # apaga o banco e recomeça do zero (precisa de nenhu
 
 | Tela | O que faz |
 |---|---|
+| Painel | Página inicial do escritório e do administrador: as quatro etapas do dia (Pedidos, Programação, Produção, Compras) com o estado de cada uma em palavras, o que falta, o que mudou depois do envio, e a faixa da semana. Só lê o que as outras telas já calculam; cada etapa leva à sua tela. A Produção continua caindo na própria tela. |
 | Pedidos | Grade por cliente e semana. Quantidade vazia ou 0 apaga a linha. "Importar planilha" lê xlsx, xls, ods e csv e mostra o que muda antes de gravar; ODT ou imagem (pedido colado como print, como o da Aurora) abre a imagem ao lado da grade para digitar olhando. |
 | Programação | O que cada cliente pediu para um dia de entrega e quando cada item é produzido. |
 | Produção | Lista do dia por setor, aprontes, envio aos setores em versões e diferença depois do envio. |
@@ -59,7 +60,7 @@ O sistema exige login. Cada usuário pertence a uma empresa e só enxerga os dad
 | Papel | O que pode |
 |---|---|
 | Administrador | Tudo, mais gerenciar usuários e ver o histórico (no menu da conta, ao lado do nome). |
-| Escritório | Pedidos, importação, programação, produção, compras, conferência, estoque (com a compra ao lado), regras, cadastros e envio aos setores. |
+| Escritório | Painel, pedidos, importação, programação, produção, compras, conferência, estoque (com a compra ao lado), regras, cadastros e envio aos setores. |
 | Produção | Vê Programação, Produção e os PDFs, e conta a câmara fria em Estoque (sem ver colunas nem avisos de compra). Não altera mais nada e não vê o botão de enviar. |
 
 **Usuários de desenvolvimento** (criados por `bin/setup` ou `bin/rails db:seed`, só em desenvolvimento e teste), todos com a senha `safra-dev-123`:

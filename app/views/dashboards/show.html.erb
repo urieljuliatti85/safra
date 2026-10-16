@@ -1,0 +1,41 @@
+<% content_for :title, "Painel · Safra" %>
+<% summary = @summary %>
+<div class="mb-5">
+  <h1 class="page-title">Painel</h1>
+  <p class="page-sub">Hoje, <%= weekday_date(summary.date) %>. O pedido vira programação, produção e compra: veja onde o trabalho está e o que falta.</p>
+</div>
+
+<% changed = summary.stale_production.map { |d| "produção de #{short_date(d)}" } + summary.stale_purchase.map { |d| "compra de #{short_date(d)}" } %>
+<% if changed.any? || summary.alerts.positive? %>
+  <div class="flash <%= changed.any? ? 'flash-alert' : 'flash-notice' %>" role="status">
+    <%= icon(changed.any? ? :alert : :info) %>
+    <div>
+      <% if changed.any? %><p><strong>Mudou depois do envio:</strong> <%= changed.to_sentence %>. Abra a etapa para ver a diferença e reenviar.</p><% end %>
+      <% if summary.alerts.positive? %><p><%= link_to plural(summary.alerts, "alerta", "alertas") + " para conferir", conference_path, class: "underline font-bold" %> nos pedidos.</p><% end %>
+    </div>
+  </div>
+<% end %>
+
+<ol class="flow" aria-label="Etapas do trabalho">
+  <% summary.stages.each_with_index do |stage, index| %>
+    <li class="flow-step" data-state="<%= stage.state %>">
+      <span class="flow-node" aria-hidden="true"><%= index + 1 %></span>
+      <section class="panel" aria-labelledby="stage-<%= stage.key %>">
+        <div class="panel-head"><h2 id="stage-<%= stage.key %>"><%= stage.title %></h2></div>
+        <div class="flow-body">
+          <p class="flow-status"><span class="sr-only">Etapa <%= index + 1 %>: </span><%= stage.status %></p>
+          <% if stage.facts.any? %>
+            <ul class="flow-facts"><% stage.facts.each do |fact| %><li><%= fact %></li><% end %></ul>
+          <% end %>
+          <div class="flow-actions">
+            <%= link_to stage.action_label, stage.action_path, class: "btn #{'btn-primary' if %i[pending changed].include?(stage.state)}" %>
+            <% if stage.secondary %><%= link_to stage.secondary[:label], stage.secondary[:path], class: "btn" %><% end %>
+          </div>
+        </div>
+      </section>
+    </li>
+  <% end %>
+</ol>
+
+<h2 class="mb-2 mt-8 text-lg font-bold">Semana</h2>
+<%= render "shared/week", week: summary.week, open_date: summary.date, path: :production_path %>

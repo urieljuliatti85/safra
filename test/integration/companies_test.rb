@@ -35,7 +35,7 @@ class CompaniesTest < ActionDispatch::IntegrationTest
     boss = User.create!(company: other, name: "Chefe", email_address: "chefe@outra.local", role: "admin", password: "senha-boa-123")
     sign_in_as(boss)
     get companies_path
-    assert_redirected_to orders_path
+    assert_redirected_to dashboard_path
     assert_no_difference -> { Company.count } do
       post companies_path, params: { name: "Invasora", admin_name: "X", admin_email: "x@x.local", catalog_from: "standard" }
     end
@@ -124,7 +124,7 @@ class CompaniesTest < ActionDispatch::IntegrationTest
     get audit_logs_path
     assert_no_match(/Admin Safra/, response.body)
     get companies_path
-    assert_redirected_to orders_path
+    assert_redirected_to dashboard_path
   end
 
   # --- suspender ---
