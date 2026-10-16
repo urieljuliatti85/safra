@@ -1,0 +1,248 @@
+<%# Cópia do index.erb do rswag-ui (swagger-ui 5.9.4) em português do Brasil: lang, título, sem fonte externa e tradução da interface. %>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>API do Safra</title>
+  <link rel="stylesheet" type="text/css" href="./swagger-ui.css" >
+  <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />
+  <style>
+    html
+    {
+      box-sizing: border-box;
+      overflow: -moz-scrollbars-vertical;
+      overflow-y: scroll;
+    }
+    *,
+    *:before,
+    *:after
+    {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin:0;
+      background: #fafafa;
+    }
+    /* Textos que o Swagger UI desenha por CSS (::after), fora do alcance do tradutor em JavaScript */
+    .swagger-ui .parameter__name.required:after { content: "obrigatório"; }
+  </style>
+</head>
+
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0">
+  <defs>
+    <symbol viewBox="0 0 20 20" id="unlocked">
+          <path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V6h2v-.801C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8z"></path>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="locked">
+      <path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8zM12 8H8V5.199C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="close">
+      <path d="M14.348 14.849c-.469.469-1.229.469-1.697 0L10 11.819l-2.651 3.029c-.469.469-1.229.469-1.697 0-.469-.469-.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-.469-.469-.469-1.228 0-1.697.469-.469 1.228-.469 1.697 0L10 8.183l2.651-3.031c.469-.469 1.228-.469 1.697 0 .469.469.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c.469.469.469 1.229 0 1.698z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="large-arrow">
+      <path d="M13.25 10L6.109 2.58c-.268-.27-.268-.707 0-.979.268-.27.701-.27.969 0l7.83 7.908c.268.271.268.709 0 .979l-7.83 7.908c-.268.271-.701.27-.969 0-.268-.269-.268-.707 0-.979L13.25 10z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 20 20" id="large-arrow-down">
+      <path d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"/>
+    </symbol>
+
+
+    <symbol viewBox="0 0 24 24" id="jump-to">
+      <path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/>
+    </symbol>
+
+    <symbol viewBox="0 0 24 24" id="expand">
+      <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
+    </symbol>
+
+  </defs>
+</svg>
+
+<div id="swagger-ui"></div>
+
+<!-- Workaround for https://github.com/swagger-api/swagger-editor/issues/1371 -->
+<script>
+  if (window.navigator.userAgent.indexOf("Edge") > -1) {
+    console.log("Removing native Edge fetch in favor of swagger-ui's polyfill")
+    window.fetch = undefined;
+  }
+</script>
+
+<script src="./swagger-ui-bundle.js"> </script>
+<script src="./swagger-ui-standalone-preset.js"> </script>
+<script>
+  window.onload = function () {
+    var configObject = JSON.parse('<%= config_object.to_json %>');
+    var oauthConfigObject = JSON.parse('<%= oauth_config_object.to_json %>');
+
+    // Apply mandatory parameters
+    configObject.dom_id = "#swagger-ui";
+    configObject.presets = [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset];
+    configObject.layout = "StandaloneLayout";
+
+    // If oauth2RedirectUrl isn't specified, use the built-in default
+    if (!configObject.hasOwnProperty("oauth2RedirectUrl"))
+      configObject.oauth2RedirectUrl = window.location.href.replace("index.html", "oauth2-redirect.html");
+
+    // Build a system
+    const ui = SwaggerUIBundle(configObject);
+
+    // Apply OAuth config
+    ui.initOAuth(oauthConfigObject);
+  }
+</script>
+
+<%# Tradução da interface do Swagger UI (não há pacote de idiomas oficial): troca os textos exatos pelo equivalente em português. %>
+<script>
+  (function () {
+    var DICT = {
+  "Authorize": "Autorizar",
+  "Available authorizations": "Autorizações disponíveis",
+  "Authorized": "Autorizado",
+  "Logout": "Sair",
+  "Close": "Fechar",
+  "Value:": "Valor:",
+  "Try it out": "Testar",
+  "Cancel": "Cancelar",
+  "Execute": "Executar",
+  "Clear": "Limpar",
+  "Reset": "Restaurar",
+  "Parameters": "Parâmetros",
+  "Name": "Nome",
+  "Description": "Descrição",
+  "No parameters": "Sem parâmetros",
+  "Request body": "Corpo da requisição",
+  "Responses": "Respostas",
+  "Response body": "Corpo da resposta",
+  "Response headers": "Cabeçalhos da resposta",
+  "Request headers": "Cabeçalhos da requisição",
+  "Code": "Código",
+  "Details": "Detalhes",
+  "Links": "Links",
+  "No links": "Sem links",
+  "Media type": "Tipo de mídia",
+  "Controls Accept header.": "Controla o cabeçalho Accept.",
+  "Example Value": "Exemplo",
+  "Example value": "Exemplo",
+  "Schema": "Esquema",
+  "Schemas": "Esquemas",
+  "Server response": "Resposta do servidor",
+  "Request URL": "URL da requisição",
+  "Servers": "Servidores",
+  "Copy to clipboard": "Copiar",
+  "Download": "Baixar",
+  "Loading...": "Carregando...",
+  "required": "obrigatório",
+  "Required": "Obrigatório",
+  "Please correct the following validation errors and try again.": "Corrija os erros de validação abaixo e tente de novo.",
+  "Required field is not provided": "Campo obrigatório não informado",
+  "Required property is not provided": "Propriedade obrigatória não informada",
+  "Parameter should be a number": "O parâmetro deve ser um número",
+  "Value must be a valid JSON": "O valor deve ser um JSON válido",
+  "Authorization header is required": "O cabeçalho Authorization é obrigatório",
+  "Expand all": "Expandir tudo",
+  "Collapse all": "Recolher tudo",
+  "Show": "Mostrar",
+  "Hide": "Ocultar",
+  "Filter by tag": "Filtrar por tag",
+  "Select a definition": "Selecione uma definição",
+  "Parameter content type": "Tipo de conteúdo do parâmetro",
+  "Response content type": "Tipo de conteúdo da resposta",
+  "Send empty value": "Enviar valor vazio",
+  "Add item": "Adicionar item",
+  "Add string item": "Adicionar texto",
+  "Available values": "Valores disponíveis",
+  "Default value": "Valor padrão",
+  "Possible values": "Valores possíveis",
+  "Example": "Exemplo",
+  "Examples": "Exemplos",
+  "No operations defined in spec!": "Nenhuma operação definida no OpenAPI!",
+  "Request duration": "Duração da requisição",
+  "Download file": "Baixar arquivo",
+  "Expand operation": "Expandir operação",
+  "Collapse operation": "Recolher operação",
+  "Terms of service": "Termos de serviço",
+  "Find more info here": "Mais informações aqui",
+  "Please enter a valid value": "Informe um valor válido",
+  "Curl": "Curl",
+  "Client error": "Erro do cliente",
+  "Server error": "Erro do servidor",
+  "Undocumented": "Não documentado",
+  "Error": "Erro",
+  "Successful response": "Resposta de sucesso",
+  "Replace with": "Substituir por",
+  "Choose a file": "Escolher arquivo",
+  "Select": "Selecionar",
+  "No content": "Sem conteúdo",
+  "Unauthorized": "Não autorizado",
+  "Authorization required": "Autorização necessária",
+  "Scopes:": "Escopos:",
+  "Computed": "Calculado",
+  "Collapse": "Recolher",
+  "Expand": "Expandir",
+  "Copy": "Copiar",
+  "Copied": "Copiado",
+  "Title": "Título",
+  "Format": "Formato",
+  "Enum": "Valores permitidos",
+  "Pattern": "Padrão",
+  "Maximum": "Máximo",
+  "Minimum": "Mínimo",
+  "Nullable": "Aceita nulo",
+  "Read only": "Somente leitura",
+  "Write only": "Somente escrita"
+};
+    var SKIP = "pre, code, textarea, input, .microlight, .model-box, .opblock-summary-path, .opblock-summary-description, .renderedMarkdown, .info, .opblock-description-wrapper";
+    var ATTRS = ["placeholder", "title", "aria-label"];
+    var scheduled = false;
+
+    function translateNode(node) {
+      var key = node.nodeValue.trim();
+      if (!key || !Object.prototype.hasOwnProperty.call(DICT, key)) return;
+      if (node.parentElement && node.parentElement.closest(SKIP)) return;
+      node.nodeValue = node.nodeValue.replace(key, DICT[key]);
+    }
+
+    function translateAll(root) {
+      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      var nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(translateNode);
+      root.querySelectorAll("[placeholder], [title], [aria-label]").forEach(function (element) {
+        ATTRS.forEach(function (attribute) {
+          var value = element.getAttribute(attribute);
+          if (value && Object.prototype.hasOwnProperty.call(DICT, value)) element.setAttribute(attribute, DICT[value]);
+        });
+      });
+    }
+
+    function schedule(root) {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(function () {
+        scheduled = false;
+        observer.disconnect();
+        translateAll(root);
+        observer.observe(root, { childList: true, subtree: true, characterData: true });
+      });
+    }
+
+    var observer = new MutationObserver(function () { schedule(document.getElementById("swagger-ui")); });
+    document.addEventListener("DOMContentLoaded", function () {
+      var root = document.getElementById("swagger-ui");
+      observer.observe(root, { childList: true, subtree: true, characterData: true });
+      schedule(root);
+    });
+  })();
+</script>
+</body>
+
+</html>

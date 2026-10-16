@@ -89,7 +89,11 @@ class ApiTokensTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "API do Safra", response.body
     assert_match "/api/v1/orders", response.body
-    get "/api-docs"
-    assert_includes [ 200, 301, 302 ], response.status
+    get "/api-docs/index.html"
+    assert_response :success
+    assert_select "html[lang=pt-BR]"
+    assert_select "title", "API do Safra"
+    assert_match "Autorizar", response.body
+    assert_no_match "fonts.googleapis.com", response.body
   end
 end
