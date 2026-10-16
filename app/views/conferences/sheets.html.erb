@@ -123,5 +123,25 @@
         <% end %>
       <% end %>
     </div>
+
+    <% if @imports.any? %>
+      <section class="panel mt-4" id="historico">
+        <div class="panel-head">
+          <h2>Histórico de importações</h2>
+          <span class="meta">Cada envio fica guardado; a comparação usa o mais recente de cada dia</span>
+        </div>
+        <ul class="cmp-imports">
+          <% @imports.each do |import| %>
+            <li>
+              <p><%= link_to sheet_import_text(import), sheet_import_path(import), class: "font-bold underline" %>
+                <span class="muted text-sm"><%= import.filenames.join(", ") %></span></p>
+              <p class="muted text-sm">
+                <%= safe_join(import.sorted_versions.map { |version| "#{sheet_title(version.reference_sheet)} v#{version.version}: #{version_summary(version)}" }, " · ") %>
+              </p>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    <% end %>
   <% end %>
 <% end %>

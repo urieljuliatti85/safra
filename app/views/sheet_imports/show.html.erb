@@ -1,0 +1,63 @@
+<% content_for :title, "Envio de planilhas · Safra" %>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Envio de planilhas</h1>
+    <p class="page-sub">
+      <strong><%= sheet_import_text(@import) %></strong> · semana de <%= comparison_week_text(@import.week_start) %>
+      <br><%= @import.filenames.join(", ") %>
+    </p>
+  </div>
+  <%= link_to conference_sheets_path(week: @import.week_start.iso8601, anchor: "historico"), class: "btn" do %><%= icon :chevron_left %>Sistema × planilhas<% end %>
+</div>
+
+<% if @versions.empty? %>
+  <section class="panel p-5"><p>As abas deste envio foram apagadas.</p></section>
+<% end %>
+
+<div class="space-y-4">
+  <% @versions.each do |version| %>
+    <% sheet = version.reference_sheet %>
+    <% changes = version.changes_from_previous %>
+    <% latest = sheet.versions.maximum(:version) == version.version %>
+    <section class="panel" id="versao-<%= version.id %>">
+      <div class="panel-head">
+        <h2><%= sheet_title(sheet) %> · versão <%= version.version %></h2>
+        <span class="meta">aba <%= version.tab_name %><%= latest ? " · é a que vale na comparação" : " · substituída depois" %></span>
+      </div>
+      <% if version.version == 1 %>
+        <p class="p-4 muted">Primeira importação deste dia.</p>
+      <% elsif changes.empty? %>
+        <p class="cmp-all-equal"><%= icon :check %>Sem mudanças em relação à versão <%= version.previous.version %>.</p>
+      <% else %>
+        <table class="ops-table cmp-table">
+          <thead><tr><th>Item</th><th class="col-num">Versão <%= version.previous.version %></th><th class="col-num">Versão <%= version.version %></th></tr></thead>
+          <tbody>
+            <% changes.each do |change| %>
+              <tr class="is-changed">
+                <td class="name">
+                  <%= change.label %>
+                  <span class="muted text-sm">(<%= [ SheetComparison::SECTION_LABELS.fetch(change.section, change.section), change.group_label, change.delivery_date && "entrega #{weekday_date(change.delivery_date)}" ].compact.join(" · ") %>)</span>
+                </td>
+                <td class="num-col" data-label="Antes"><%= change.before || "não tinha" %></td>
+                <td class="num-col" data-label="Depois"><%= change.after || "saiu" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% end %>
+      <details class="cmp-extra">
+        <summary>Todas as linhas desta versão (<%= version.parsed_lines.size %>)</summary>
+        <table class="ops-table cmp-table">
+          <tbody>
+            <% version.parsed_lines.each do |line| %>
+              <tr>
+                <td class="name"><%= line.label %> <span class="muted text-sm">(<%= [ SheetComparison::SECTION_LABELS.fetch(line.section, line.section), line.group_label, line.delivery_date && "entrega #{weekday_date(line.delivery_date)}" ].compact.join(" · ") %>)</span></td>
+                <td class="num-col"><%= line.text %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </details>
+    </section>
+  <% end %>
+</div>

@@ -71,6 +71,45 @@ class ReferenceSheetsTest < ActiveSupport::TestCase
     assert_equal 1, ReferenceSheet.where(kind: "production", date: "2026-10-13").count
   end
 
+  test "cada envio fica no histórico e importar de novo cria a versão seguinte sem apagar a anterior" do
+    import("planilha_producao.ods", "compras_ceasa.ods")
+    import("planilha_producao.ods")
+
+    imports = SheetImport.newest_first.to_a
+    assert_equal [ [ "planilha_producao.ods" ], %w[planilha_producao.ods compras_ceasa.ods] ], imports.map(&:filenames)
+    assert_equal user_for(:office), imports.first.user
+    assert_equal WEEK, imports.first.week_start
+
+    sheet = ReferenceSheet.find_by!(kind: "production", date: "2026-10-13")
+    assert_equal [ 1, 2 ], sheet.versions.map(&:version)
+    assert_equal [ imports.last, imports.first ], sheet.versions.map(&:sheet_import)
+    first, second = sheet.versions
+    assert_equal first.lines, second.lines
+    assert_equal sheet.lines.size, second.parsed_lines.size
+    assert_empty second.changes_from_previous
+    assert_equal [ 1 ], ReferenceSheet.find_by!(kind: "purchase", date: "2026-10-13").versions.map(&:version)
+  end
+
+  test "a versão mostra o que entrou, saiu e mudou em relação à anterior" do
+    import("programacao.ods")
+    sheet = ReferenceSheet.find_by!(kind: "schedule", date: "2026-10-13")
+    lines = sheet.versions.last.lines
+    cenoura = lines.index { |line| line["group_label"] == "BOM PASTOR" && line["label"] == "CENOURA EM PALITOS" } || flunk("sem cenoura")
+    changed = lines.map(&:dup)
+    removed = changed.delete_at(lines.size - 1)
+    changed[cenoura] = changed[cenoura].merge("quantity_text" => "9", "quantity" => "9.0")
+    changed << { "section" => "programacao", "label" => "ALHO PICADO", "quantity_text" => "1", "quantity" => "1.0", "group_label" => "BOM PASTOR",
+                 "delivery_date" => "2026-10-13" }
+    version = sheet.versions.create!(version: 2, lines: changed)
+
+    changes = version.changes_from_previous.index_by(&:label)
+    assert_equal 3, changes.size
+    assert_equal [ :changed, "9" ], [ changes["CENOURA EM PALITOS"].kind, changes["CENOURA EM PALITOS"].after ]
+    assert_equal [ :added, nil, "1" ], [ changes["ALHO PICADO"].kind, changes["ALHO PICADO"].before, changes["ALHO PICADO"].after ]
+    assert_equal :removed, changes[removed["label"]].kind
+    assert_equal Date.new(2026, 10, 13), changes["ALHO PICADO"].delivery_date
+  end
+
   test "toda diferença que entra no placar tem um motivo" do
     comparison = SheetComparison.new(company)
     differences = comparison.rows.select { |r| r.scored? && !r.ok? }

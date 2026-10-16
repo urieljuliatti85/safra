@@ -17,6 +17,7 @@ pt-BR:
       production_plan: { one: envio da produção, other: envios da produção }
       purchase_plan: { one: envio da compra, other: envios da compra }
       reference_sheet: { one: planilha importada, other: planilhas importadas }
+      sheet_import: { one: envio de planilhas, other: envios de planilhas }
       sheet_alias: { one: nome de planilha, other: nomes de planilha }
       comparison_note: { one: nota da comparação, other: notas da comparação }
     attributes:
@@ -109,6 +110,10 @@ pt-BR:
         date: Dia
         filename: Arquivo
         tab_name: Aba
+      sheet_import:
+        week_start: Semana
+        filenames: Arquivos
+        user: Enviado por
       sheet_alias:
         label: Nome na planilha
         target: Tipo

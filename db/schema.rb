@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_070000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_080000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -307,6 +307,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_070000) do
     t.index ["reference_sheet_id"], name: "index_reference_sheet_lines_on_reference_sheet_id"
   end
 
+  create_table "reference_sheet_versions", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "reference_sheet_id", null: false
+    t.bigint "sheet_import_id"
+    t.integer "version", null: false
+    t.string "filename"
+    t.string "tab_name"
+    t.bigint "imported_by_id"
+    t.jsonb "lines", default: [], null: false
+    t.datetime "created_at", null: false
+    t.index ["company_id"], name: "index_reference_sheet_versions_on_company_id"
+    t.index ["imported_by_id"], name: "index_reference_sheet_versions_on_imported_by_id"
+    t.index ["reference_sheet_id", "version"], name: "idx_on_reference_sheet_id_version_f801518e6c", unique: true
+    t.index ["reference_sheet_id"], name: "index_reference_sheet_versions_on_reference_sheet_id"
+    t.index ["sheet_import_id"], name: "index_reference_sheet_versions_on_sheet_import_id"
+  end
+
   create_table "reference_sheets", force: :cascade do |t|
     t.bigint "company_id", null: false
     t.string "kind", null: false
@@ -346,6 +363,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_070000) do
     t.index ["customer_id"], name: "index_sheet_aliases_on_customer_id"
     t.index ["product_id"], name: "index_sheet_aliases_on_product_id"
     t.index ["raw_material_id"], name: "index_sheet_aliases_on_raw_material_id"
+  end
+
+  create_table "sheet_imports", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "user_id"
+    t.date "week_start", null: false
+    t.jsonb "filenames", default: [], null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "week_start"], name: "index_sheet_imports_on_company_id_and_week_start"
+    t.index ["company_id"], name: "index_sheet_imports_on_company_id"
+    t.index ["user_id"], name: "index_sheet_imports_on_user_id"
   end
 
   create_table "stock_counts", force: :cascade do |t|
@@ -420,6 +449,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_070000) do
   add_foreign_key "raw_materials", "companies"
   add_foreign_key "raw_materials", "suppliers"
   add_foreign_key "reference_sheet_lines", "reference_sheets", on_delete: :cascade
+  add_foreign_key "reference_sheet_versions", "companies"
+  add_foreign_key "reference_sheet_versions", "reference_sheets", on_delete: :cascade
+  add_foreign_key "reference_sheet_versions", "sheet_imports", on_delete: :nullify
+  add_foreign_key "reference_sheet_versions", "users", column: "imported_by_id"
   add_foreign_key "reference_sheets", "companies"
   add_foreign_key "reference_sheets", "users", column: "imported_by_id"
   add_foreign_key "sessions", "users"
@@ -427,6 +460,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_070000) do
   add_foreign_key "sheet_aliases", "customers"
   add_foreign_key "sheet_aliases", "products"
   add_foreign_key "sheet_aliases", "raw_materials"
+  add_foreign_key "sheet_imports", "companies"
+  add_foreign_key "sheet_imports", "users"
   add_foreign_key "stock_counts", "companies"
   add_foreign_key "stock_counts", "raw_materials"
   add_foreign_key "suppliers", "companies"

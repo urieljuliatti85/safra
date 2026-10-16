@@ -33,6 +33,33 @@ class ReferenceSheetsIntegrationTest < ActionDispatch::IntegrationTest
     assert_select "tr.cmp-section th", "Descascador"
   end
 
+  test "o histórico mostra cada envio e o que mudou em cada aba" do
+    upload("planilha_producao.ods")
+    upload("planilha_producao.ods")
+    follow_redirect!
+    assert_select "#historico li", 2
+    assert_select "#historico li", /Produção · Ter 13\/10 v2: sem mudanças/
+    assert_select "#historico li", /Produção · Ter 13\/10 v1: primeira importação/
+
+    sheet_import, sheet = ActsAsTenant.with_tenant(company) do
+      sheet = ReferenceSheet.find_by!(kind: "production", date: "2026-10-13")
+      lines = sheet.versions.last.lines.map { |line| line["label"] == "CENOURA RALADA" ? line.merge("quantity_text" => "4", "quantity" => "4.0") : line }
+      sheet_import = SheetImport.create!(user: user_for(:office), week_start: Date.new(2026, 10, 12), filenames: [ "planilha_producao.ods" ])
+      sheet.versions.create!(version: 3, sheet_import: sheet_import, tab_name: "TERÇA 13-10-26", lines: lines)
+      [ sheet_import, sheet ]
+    end
+    get sheet_import_path(sheet_import)
+    assert_response :success
+    assert_select "h2", /Produção · Ter 13\/10 · versão 3/
+    assert_select "tr.is-changed", 1
+    assert_select "tr.is-changed td.name", /CENOURA RALADA/
+    assert_select "tr.is-changed td.num-col", "3 kg"
+    assert_select "tr.is-changed td.num-col", "4 kg"
+
+    get sheet_import_path(ActsAsTenant.with_tenant(company) { sheet.versions.first.sheet_import })
+    assert_select ".panel-head .meta", /substituída depois/
+  end
+
   test "ligar o nome da planilha a um produto vale daqui para frente" do
     upload("planilha_producao.ods")
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "repolho_roxo_picado") }

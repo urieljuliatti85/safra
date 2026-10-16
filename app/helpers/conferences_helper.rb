@@ -28,4 +28,19 @@ module ConferencesHelper
   def unmatched_where(item)
     item.lines.map { |sheet, line| "#{SheetComparison::SECTION_LABELS.fetch(line.section).downcase} #{short_date(sheet.date)}" }.uniq.to_sentence
   end
+
+  # "Programação · Ter 13/10" de uma aba importada.
+  def sheet_title(sheet) = "#{SheetComparison::KINDS.fetch(sheet.kind.to_sym)} · #{weekday_date(sheet.date)}"
+
+  # Resumo de uma versão no histórico: "primeira importação", "sem mudanças" ou "3 mudanças".
+  def version_summary(version)
+    return "primeira importação, #{plural(version.lines.size, 'linha', 'linhas')}" if version.version == 1
+
+    changes = version.changes_from_previous.size
+    changes.zero? ? "sem mudanças" : plural(changes, "mudança", "mudanças")
+  end
+
+  def sheet_import_text(import)
+    [ l(import.created_at, format: "%d/%m às %H:%M"), import.user&.name ].compact.join(" · ")
+  end
 end

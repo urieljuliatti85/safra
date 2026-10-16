@@ -1,5 +1,5 @@
 # Uma aba das planilhas feitas à mão (02 - produção ou 03 - compras CEASA) de um dia, guardada para comparar
-# com o que o Safra calcula. Importar de novo o mesmo dia troca as linhas.
+# com o que o Safra calcula. Importar de novo o mesmo dia troca as linhas e guarda a importação anterior como versão.
 class ReferenceSheet < ApplicationRecord
   acts_as_tenant :company
   include Auditable
@@ -13,6 +13,7 @@ class ReferenceSheet < ApplicationRecord
 
   belongs_to :imported_by, class_name: "User", optional: true
   has_many :lines, -> { order(:position) }, class_name: "ReferenceSheetLine", dependent: :delete_all, inverse_of: :reference_sheet
+  has_many :versions, -> { order(:version) }, class_name: "ReferenceSheetVersion", dependent: :delete_all, inverse_of: :reference_sheet
 
   validates :kind, inclusion: { in: KINDS }
   validates :date, presence: true, uniqueness: { scope: %i[company_id kind] }
