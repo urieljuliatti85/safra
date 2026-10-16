@@ -184,10 +184,19 @@
   @media (max-width: 639px) { .flow { grid-template-columns: minmax(0, 1fr); } }
   .tag-change { display: inline-block; margin-left: .5rem; font-size: var(--text-label); font-weight: 800; color: var(--color-change); border: 1px solid var(--color-change); border-radius: .25rem; padding: 0 .375rem; }
   /* Sistema × planilhas: placar da semana, motivos e tabela lado a lado */
-  .cmp-score-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 1rem; }
+  .cmp-score-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; padding: 1rem; }
   .cmp-score-label { font-size: var(--text-label); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-ink-soft); }
   .cmp-score-value { font-size: 2rem; font-weight: 800; line-height: 1.1; color: var(--color-ink); }
   .cmp-score-value span { font-size: var(--text-small); font-weight: 600; color: var(--color-ink-soft); }
+  .cmp-score-empty { color: var(--color-ink-soft); }
+  .cmp-score-empty span { margin-left: .5rem; }
+  .cmp-note { margin-top: .375rem; }
+  .cmp-note summary { cursor: pointer; display: inline-block; font-weight: 700; color: var(--color-accent); text-decoration: underline; text-underline-offset: .2em; }
+  .cmp-note-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: start; margin-top: .5rem; }
+  .cmp-note-form textarea { width: 100%; resize: vertical; }
+  .cmp-note-remove { font-size: var(--text-dense); color: var(--color-ink-soft); }
+  .cmp-note-by { color: var(--color-ink-soft); }
+  .cmp-note-stale { margin-top: .25rem; color: var(--color-soil); }
   .cmp-reasons { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .25rem 1.5rem; padding: .75rem 1rem 1rem; border-top: 1px solid var(--color-line-soft); }
   .cmp-reasons li { display: flex; justify-content: space-between; gap: 1rem; padding: .25rem 0; font-size: var(--text-dense); border-bottom: 1px dashed var(--color-line-soft); }
   .cmp-reasons li.is-open { color: var(--color-change); }
@@ -199,10 +208,12 @@
   .cmp-table tr.is-ok td { color: var(--color-ink-soft); }
   .cmp-table tr.cmp-section th { padding-top: .875rem; color: var(--color-accent); border-bottom: 0; }
   .cmp-extra { border-top: 1px solid var(--color-line); }
+  .cmp-all-equal { display: flex; align-items: center; gap: .5rem; padding: .875rem 1rem; color: var(--color-accent); font-weight: 600; }
   .cmp-extra summary { cursor: pointer; padding: .75rem 1rem; font-size: var(--text-dense); font-weight: 700; color: var(--color-ink-soft); }
   .cmp-extra summary:hover { color: var(--color-ink); }
   @media (max-width: 639px) {
-    .cmp-score-grid { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
+    .cmp-score-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+    .cmp-note-form { grid-template-columns: minmax(0, 1fr); }
     .cmp-score-value { font-size: 1.5rem; }
     .cmp-unmatched-form { grid-template-columns: minmax(0, 1fr); }
     .cmp-table tr { grid-auto-flow: dense; }

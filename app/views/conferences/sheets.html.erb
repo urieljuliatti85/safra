@@ -2,10 +2,11 @@
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="page-title">Sistema × planilhas</h1>
-    <p class="page-sub">Os números das planilhas feitas à mão ao lado do que o Safra calcula, com o motivo provável de cada diferença.</p>
+    <p class="page-sub">Os números das planilhas feitas à mão ao lado do que o Safra tem e calcula, com o motivo provável de cada diferença.</p>
   </div>
   <div class="flex flex-wrap gap-2">
     <%= link_to new_reference_sheets_path(week: @week&.iso8601), class: "btn btn-primary" do %><%= icon :check %>Importar planilhas<% end %>
+    <% if @comparison&.sheets&.any? %><%= link_to "PDF da semana", conference_sheets_path(week: @week.iso8601, format: :pdf), class: "btn", target: "_blank", rel: "noopener" %><% end %>
     <%= link_to conference_path, class: "btn" do %><%= icon :chevron_left %>Conferência<% end %>
   </div>
 </div>
@@ -13,7 +14,7 @@
 <% if @week.nil? %>
   <section class="panel p-5">
     <p class="font-bold">Nenhuma planilha importada ainda.</p>
-    <p class="muted mt-1">Envie a 02 - Planilha de produção e a 03 - Compras CEASA da semana para comparar.</p>
+    <p class="muted mt-1">Envie a 01 - Programação, a 02 - Planilha de produção e a 03 - Compras CEASA da semana para comparar.</p>
   </section>
 <% else %>
   <% comparison = @comparison %>
@@ -31,14 +32,16 @@
     <% differences = comparison.reasons.sum { |_, n| n } %>
     <section class="panel mb-4 cmp-score" aria-label="Placar da semana">
       <div class="cmp-score-grid">
-        <div>
-          <p class="cmp-score-label">Produção</p>
-          <p class="cmp-score-value num"><%= scores[:production][0] %> <span>de <%= scores[:production][1] %> iguais</span></p>
-        </div>
-        <div>
-          <p class="cmp-score-label">Compras</p>
-          <p class="cmp-score-value num"><%= scores[:purchase][0] %> <span>de <%= scores[:purchase][1] %> iguais</span></p>
-        </div>
+        <% SheetComparison::KINDS.each do |kind, title| %>
+          <div>
+            <p class="cmp-score-label"><%= title %></p>
+            <% if scores[kind][1].zero? %>
+              <p class="cmp-score-value cmp-score-empty">-<span>sem planilha</span></p>
+            <% else %>
+              <p class="cmp-score-value num"><%= scores[kind][0] %> <span>de <%= scores[kind][1] %> iguais</span></p>
+            <% end %>
+          </div>
+        <% end %>
         <div>
           <p class="cmp-score-label">Diferenças com motivo</p>
           <p class="cmp-score-value num"><%= comparison.explained_count %> <span>de <%= differences %></span></p>
@@ -69,8 +72,8 @@
                 <% field_id = "alias-#{item.target}-#{item.label.parameterize}" %>
                 <label for="<%= field_id %>"><strong><%= item.label %></strong> <span class="muted text-sm">(<%= unmatched_where(item) %>)</span></label>
                 <select id="<%= field_id %>" name="record_id" class="field" required>
-                  <option value=""><%= item.target == "product" ? "Escolha o produto" : "Escolha a matéria-prima" %></option>
-                  <% (item.target == "product" ? @products : @raw_materials).each do |record| %>
+                  <option value=""><%= SheetAlias::TARGET_PROMPTS.fetch(item.target).delete_suffix(".") %></option>
+                  <% @choices.fetch(item.target).each do |record| %>
                     <option value="<%= record.id %>"><%= record.name %></option>
                   <% end %>
                   <option value="ignore">Não comparar este item</option>
@@ -84,28 +87,35 @@
     <% end %>
 
     <div class="space-y-4">
-      <% { production: [ "Produção", comparison.production_rows ], purchase: [ "Compras CEASA", comparison.purchase_rows ] }.each do |kind, (title, rows)| %>
-        <% rows.group_by(&:date).sort.each do |date, day_rows| %>
-          <% main, extra = day_rows.partition { |row| row.status != :only_system } %>
-          <section class="panel">
+      <% SheetComparison::KINDS.each do |kind, title| %>
+        <% comparison.rows_for(kind).group_by(&:date).sort.each do |date, day_rows| %>
+          <% equal = day_rows.select(&:ok?) %>
+          <% extra = day_rows.select { |row| row.status == :only_system && row.reason == :not_in_sheet } %>
+          <% open = day_rows - equal - extra %>
+          <section class="panel" id="dia-<%= kind %>-<%= date.iso8601 %>">
             <div class="panel-head">
               <h2><%= title %> · <%= weekday_date(date) %></h2>
-              <span class="meta num"><%= main.count(&:ok?) %> de <%= main.count(&:scored?) %> iguais</span>
+              <span class="meta num"><%= equal.size %> de <%= day_rows.count(&:scored?) %> iguais</span>
             </div>
-            <table class="ops-table cmp-table">
-              <thead><tr><th>Item</th><th class="col-num">Planilha</th><th class="col-num">Safra</th><th>Situação e motivo</th></tr></thead>
-              <% main.group_by(&:section).each do |section, section_rows| %>
-                <tbody>
-                  <% if kind == :production %><tr class="cmp-section"><th colspan="4" scope="rowgroup"><%= SheetComparison::SECTION_LABELS.fetch(section) %></th></tr><% end %>
-                  <%= render partial: "conferences/comparison_row", collection: comparison_sorted(section_rows), as: :row %>
-                </tbody>
-              <% end %>
-            </table>
-            <% if extra.any? %>
+            <% if open.any? %>
+              <table class="ops-table cmp-table">
+                <thead><tr><th>Item</th><th class="col-num">Planilha</th><th class="col-num">Safra</th><th>Situação e motivo</th></tr></thead>
+                <% open.group_by(&:section).sort_by { |section, _| kind == :schedule ? section : 0 }.each do |section, section_rows| %>
+                  <tbody>
+                    <% unless kind == :purchase %><tr class="cmp-section"><th colspan="4" scope="rowgroup"><%= SheetComparison::SECTION_LABELS.fetch(section, section) %></th></tr><% end %>
+                    <%= render partial: "conferences/comparison_row", collection: comparison_sorted(section_rows), as: :row %>
+                  </tbody>
+                <% end %>
+              </table>
+            <% else %>
+              <p class="cmp-all-equal"><%= icon :check %>Nenhuma diferença neste dia.</p>
+            <% end %>
+            <% [ [ equal, "item igual", "itens iguais" ], [ extra, "item que só o Safra tem", "itens que só o Safra tem" ] ].each do |list, one, many| %>
+              <% next if list.empty? %>
               <details class="cmp-extra">
-                <summary><%= plural(extra.size, "item que só o Safra calcula", "itens que só o Safra calcula") %></summary>
+                <summary><%= plural(list.size, one, many) %></summary>
                 <table class="ops-table cmp-table">
-                  <tbody><%= render partial: "conferences/comparison_row", collection: comparison_sorted(extra), as: :row %></tbody>
+                  <tbody><%= render partial: "conferences/comparison_row", collection: list.sort_by { |row| [ row.section, row.label ] }, as: :row, locals: { show_section: kind != :purchase } %></tbody>
                 </table>
               </details>
             <% end %>

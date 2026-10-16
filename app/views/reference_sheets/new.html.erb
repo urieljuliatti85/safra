@@ -1,14 +1,14 @@
 <% content_for :title, "Importar planilhas · Safra" %>
 <div class="mb-5">
   <h1 class="page-title">Importar planilhas da semana</h1>
-  <p class="page-sub">Envie a 02 - Planilha de produção e a 03 - Compras CEASA como estão. O Safra lê só as abas da semana escolhida e mostra os números ao lado do que ele calcula.</p>
+  <p class="page-sub">Envie a 01 - Programação, a 02 - Planilha de produção e a 03 - Compras CEASA como estão. O Safra lê só as abas da semana escolhida e mostra os números ao lado do que ele tem e calcula.</p>
 </div>
 
 <%= form_with url: reference_sheets_path, multipart: true, class: "panel p-5 grid gap-4 max-w-xl", data: { turbo: false } do %>
   <div>
     <label for="files" class="mb-1 block font-bold">Arquivos</label>
     <input id="files" type="file" name="files[]" multiple accept=".ods,.xlsx,.xls" required class="field w-full">
-    <p class="muted mt-1 text-sm">Pode enviar os dois de uma vez. Cada aba precisa ter a data no nome, como "TERÇA 13-10-26". Importar o mesmo dia de novo troca os números.</p>
+    <p class="muted mt-1 text-sm">Pode enviar os três de uma vez. Cada aba precisa ter a data no nome, como "TERÇA 13-10-26". Importar o mesmo dia de novo troca os números.</p>
   </div>
   <div>
     <label for="week" class="mb-1 block font-bold">Semana</label>

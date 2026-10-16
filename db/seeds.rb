@@ -81,8 +81,8 @@ ActsAsTenant.with_tenant(company) do
     purchase_dates.each { |date| PurchaseDay.find_or_create_by!(date: date) }
 
     load_yaml.call("apelidos_planilhas.yml").each do |row|
-      target = row["alvo"] == "produto" ? "product" : "raw_material"
-      record = target == "product" ? products.fetch(row["codigo"]) : raw_materials.fetch(row["codigo"])
+      target, records = { "produto" => [ "product", products ], "materia_prima" => [ "raw_material", raw_materials ], "cliente" => [ "customer", customers ] }.fetch(row["alvo"])
+      record = records.fetch(row["codigo"])
       create_missing.call(
         SheetAlias.find_or_initialize_by(target: target, name: ReferenceSheets::Matcher.key(row["nome_na_planilha"])),
         label: row["nome_na_planilha"], target => record

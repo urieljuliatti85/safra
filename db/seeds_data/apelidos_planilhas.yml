@@ -1,8 +1,5 @@
 # Como as planilhas 02 (produção) e 03 (compras CEASA) escrevem itens que o Safra não reconhece pelo nome.
-# alvo: produto (cortes) ou materia_prima (descascador, aprontes e compras).
-- nome_na_planilha: REPOLHO BR. PICADO
-  alvo: produto
-  codigo: repolho_picado
+# alvo: produto (programação e cortes), materia_prima (descascador, aprontes e compras) ou cliente (programação).
 - nome_na_planilha: YAKISSOBA
   alvo: produto
   codigo: yakissoba
@@ -18,3 +15,15 @@
 - nome_na_planilha: OVOS FILMADOS
   alvo: materia_prima
   codigo: ovos
+- nome_na_planilha: BANANA NANICA
+  alvo: produto
+  codigo: banana_embalada
+- nome_na_planilha: CENTRAL
+  alvo: cliente
+  codigo: hnorte
+- nome_na_planilha: HORIZONTE SUL
+  alvo: cliente
+  codigo: hsul
+- nome_na_planilha: AURORA MOLINARI
+  alvo: cliente
+  codigo: amoll

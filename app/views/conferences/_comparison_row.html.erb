@@ -1,11 +1,34 @@
+<% show_section = local_assigns.fetch(:show_section, false) %>
 <tr class="<%= comparison_row_class(row) %>">
-  <td class="name"><%= row.label %></td>
+  <td class="name"><%= row.label %><% if show_section %> <span class="muted text-sm">(<%= SheetComparison::SECTION_LABELS.fetch(row.section, row.section) %>)</span><% end %></td>
   <td class="num-col" data-label="Planilha"><%= comparison_value(row, :planilha) %></td>
   <td class="num-col" data-label="Safra"><%= comparison_value(row, :sistema) %></td>
   <td class="reason">
     <strong><%= row.status_label %></strong><% if row.reason %> · <%= row.reason_label %><% end %><% if row.detail %>: <%= row.detail %><% end %>
+    <% if row.reason == :noted && row.note.user %><span class="cmp-note-by"> (<%= row.note.user.name %>, <%= l(row.note.updated_at, format: "%d/%m") %>)</span><% end %>
     <% if SheetComparison::CATALOG_REASONS.include?(row.reason) && row.record.is_a?(RawMaterial) %>
       · <%= link_to "completar cadastro", edit_raw_material_path(row.record), class: "underline" %>
+    <% end %>
+    <% if row.note_stale %>
+      <p class="cmp-note-stale">Nota antiga, os números mudaram depois: <%= row.note.note %></p>
+    <% end %>
+    <% if comparison_notable?(row) %>
+      <details class="cmp-note">
+        <summary><%= row.note ? "Editar nota" : "Explicar" %></summary>
+        <%= form_with url: comparison_notes_path, class: "cmp-note-form" do %>
+          <% { kind: row.kind, section: row.section, date: row.date.iso8601, item: row.code || row.label, week: @week.iso8601,
+               planilha: row.planilha&.to_d&.to_s("F"), sistema: row.sistema&.to_d&.to_s("F") }.each do |name, value| %>
+            <%= hidden_field_tag name, value, id: nil %>
+          <% end %>
+          <% field_id = "nota-#{row.kind}-#{row.date.iso8601}-#{(row.section + '-' + (row.code || row.label)).parameterize}" %>
+          <label for="<%= field_id %>" class="sr-only">Por que <%= row.label %> está diferente</label>
+          <textarea id="<%= field_id %>" name="note" rows="2" maxlength="500" required class="field" placeholder="Ex.: o cliente mudou o pedido por telefone na terça"><%= row.note&.note %></textarea>
+          <%= button_tag "Salvar nota", type: "submit", class: "btn" %>
+        <% end %>
+        <% if row.note %>
+          <%= button_to "Remover nota", comparison_note_path(row.note, week: @week.iso8601), method: :delete, class: "flow-link cmp-note-remove", form_class: "mt-1" %>
+        <% end %>
+      </details>
     <% end %>
   </td>
 </tr>

@@ -16,6 +16,9 @@ pt-BR:
       order_import: { one: importação, other: importações }
       production_plan: { one: envio da produção, other: envios da produção }
       purchase_plan: { one: envio da compra, other: envios da compra }
+      reference_sheet: { one: planilha importada, other: planilhas importadas }
+      sheet_alias: { one: nome de planilha, other: nomes de planilha }
+      comparison_note: { one: nota da comparação, other: notas da comparação }
     attributes:
       supplier:
         name: Nome
@@ -101,3 +104,22 @@ pt-BR:
         date: Dia
         version: Versão
         sent_at: Enviada em
+      reference_sheet:
+        kind: Planilha
+        date: Dia
+        filename: Arquivo
+        tab_name: Aba
+      sheet_alias:
+        label: Nome na planilha
+        target: Tipo
+        product: Produto
+        raw_material: Matéria-prima
+        customer: Cliente
+        ignored: Fora da comparação
+      comparison_note:
+        note: Nota
+        item: Item
+        date: Dia
+        section: Seção
+        planilha: Planilha
+        sistema: Safra

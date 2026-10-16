@@ -15,10 +15,13 @@ module ConferencesHelper
 
   def comparison_row_class(row)
     return "is-ok" if row.ok?
-    return "is-changed" if row.scored? && !row.explained? || row.status == :unmatched
+    return "is-changed" if (row.scored? && !row.explained?) || row.status == :unmatched
 
     nil
   end
+
+  # Diferença que a equipe pode explicar com uma nota (o que bate ou não foi reconhecido não precisa).
+  def comparison_notable?(row) = !row.ok? && row.status != :unmatched
 
   def comparison_week_text(week) = "#{short_date(week)} a #{short_date(week + 6)}"
 

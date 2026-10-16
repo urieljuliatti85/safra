@@ -4,8 +4,8 @@ class ReferenceSheet < ApplicationRecord
   acts_as_tenant :company
   include Auditable
 
-  KINDS = %w[production purchase].freeze
-  KIND_LABELS = { "production" => "Planilha de produção", "purchase" => "Compras CEASA" }.freeze
+  KINDS = %w[schedule production purchase].freeze
+  KIND_LABELS = { "schedule" => "Programação de produção", "production" => "Planilha de produção", "purchase" => "Compras CEASA" }.freeze
 
   audited except: %w[imported_by_id]
 
@@ -16,9 +16,6 @@ class ReferenceSheet < ApplicationRecord
 
   validates :kind, inclusion: { in: KINDS }
   validates :date, presence: true, uniqueness: { scope: %i[company_id kind] }
-
-  scope :production, -> { where(kind: "production") }
-  scope :purchase, -> { where(kind: "purchase") }
 
   def self.weeks = distinct.pluck(:date).map(&:beginning_of_week).uniq.sort.reverse
 end

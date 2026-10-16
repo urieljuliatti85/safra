@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_060000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_070000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -81,6 +81,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_060000) do
     t.datetime "updated_at", null: false
     t.integer "raw_lead_days", default: 1, null: false
     t.boolean "active", default: true, null: false
+  end
+
+  create_table "comparison_notes", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "kind", null: false
+    t.string "section", null: false
+    t.date "date", null: false
+    t.string "item", null: false
+    t.text "note", null: false
+    t.decimal "planilha", precision: 10, scale: 3
+    t.decimal "sistema", precision: 10, scale: 3
+    t.bigint "user_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "kind", "section", "date", "item"], name: "index_comparison_notes_on_row", unique: true
+    t.index ["company_id"], name: "index_comparison_notes_on_company_id"
+    t.index ["user_id"], name: "index_comparison_notes_on_user_id"
   end
 
   create_table "customer_aliases", force: :cascade do |t|
@@ -285,6 +302,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_060000) do
     t.decimal "quantity", precision: 10, scale: 3
     t.string "unit"
     t.integer "position", default: 0, null: false
+    t.string "group_label"
+    t.date "delivery_date"
     t.index ["reference_sheet_id"], name: "index_reference_sheet_lines_on_reference_sheet_id"
   end
 
@@ -321,8 +340,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_060000) do
     t.boolean "ignored", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "customer_id"
     t.index ["company_id", "target", "name"], name: "index_sheet_aliases_on_company_id_and_target_and_name", unique: true
     t.index ["company_id"], name: "index_sheet_aliases_on_company_id"
+    t.index ["customer_id"], name: "index_sheet_aliases_on_customer_id"
     t.index ["product_id"], name: "index_sheet_aliases_on_product_id"
     t.index ["raw_material_id"], name: "index_sheet_aliases_on_raw_material_id"
   end
@@ -368,6 +389,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_060000) do
   add_foreign_key "api_tokens", "companies"
   add_foreign_key "audit_logs", "companies"
   add_foreign_key "audit_logs", "users"
+  add_foreign_key "comparison_notes", "companies"
+  add_foreign_key "comparison_notes", "users"
   add_foreign_key "customer_aliases", "companies"
   add_foreign_key "customer_aliases", "customers"
   add_foreign_key "customer_aliases", "products"
@@ -401,6 +424,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_060000) do
   add_foreign_key "reference_sheets", "users", column: "imported_by_id"
   add_foreign_key "sessions", "users"
   add_foreign_key "sheet_aliases", "companies"
+  add_foreign_key "sheet_aliases", "customers"
   add_foreign_key "sheet_aliases", "products"
   add_foreign_key "sheet_aliases", "raw_materials"
   add_foreign_key "stock_counts", "companies"

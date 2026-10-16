@@ -88,6 +88,56 @@ class ReferenceSheetsTest < ActiveSupport::TestCase
     assert_equal :unexplained, abobora.reason
   end
 
+  test "lê os blocos da programação com cliente e dia de entrega" do
+    tabs = read("programacao.ods")
+    assert_equal %w[schedule schedule], tabs.map(&:kind)
+    lines = tabs.first.lines
+    assert_equal [ "BOM PASTOR", Date.new(2026, 10, 12) ], [ lines.first.group_label, lines.first.delivery_date ]
+    assert_equal [ "ALFACE PICADA" ], lines.select { |line| line.group_label == "CENTRAL" }.map(&:label) # o bloco vai até o próximo cabeçalho
+    assert_not lines.any? { |line| line.label.include?("EMBALADAS") || line.quantity == 999.5 }
+  end
+
+  test "reconhece clientes da programação e abreviações das planilhas" do
+    matcher = ReferenceSheets::Matcher.new
+    assert_equal "hbp", matcher.call("BOM PASTOR", "customer").record.code
+    assert_equal "hnorte", matcher.call("CENTRAL", "customer").record.code
+    assert_equal "batata_inteira", matcher.call("BATATA INTEIRA DESC.", "product").record.code
+    assert_equal "repolho_picado", matcher.call("REPOLHO BR. PICADO", "product").record.code
+  end
+
+  test "programação: vale a aba mais recente e cada diferença diz o motivo" do
+    import("programacao.ods")
+    comparison = SheetComparison.new(company, dates: WEEK..(WEEK + 6))
+    hbp = comparison.schedule_rows.select { |r| r.section == "Bom Pastor" && r.date == WEEK }.index_by(&:label)
+    assert hbp["Batata em cubinhos"].ok?
+    assert_equal [ :different, :unexplained ], [ hbp["Cenoura em palitos"].status, hbp["Cenoura em palitos"].reason ]
+    assert_equal [ :only_system, :not_in_sheet ], [ hbp["Chuchu em cubos"].status, hbp["Chuchu em cubos"].reason ]
+
+    vix = comparison.schedule_rows.select { |r| r.section == "Horiz. Sul" }.index_by(&:label)
+    assert vix["Vagem em palitos"].ok?, "a aba de 13/10 substitui a de 12/10 para o mesmo cliente e dia"
+    assert_equal :other_product, vix["Chuchu em cubos"].reason
+    assert_match "Chuchu em cubinhos", vix["Chuchu em cubos"].detail
+    assert_equal :unmatched, vix["PRODUTO MISTERIOSO"].status
+    assert comparison.scores[:schedule][1].positive?
+  end
+
+  test "nota da equipe explica a diferença enquanto os números não mudam" do
+    import("programacao.ods")
+    find = ->(c) { c.schedule_rows.find { |r| r.section == "Bom Pastor" && r.date == WEEK && r.label == "Cenoura em palitos" } }
+    row = find.call(SheetComparison.new(company, dates: WEEK..(WEEK + 6)))
+    ComparisonNote.create!(kind: "schedule", section: row.section, date: row.date, item: row.code, note: "Cliente pediu 1 kg a menos por telefone",
+                           planilha: row.planilha, sistema: row.sistema)
+
+    noted = find.call(SheetComparison.new(company, dates: WEEK..(WEEK + 6)))
+    assert_equal [ :noted, "Cliente pediu 1 kg a menos por telefone" ], [ noted.reason, noted.detail ]
+    assert noted.explained?
+
+    OrderLine.joins(order: :customer).find_by!(customers: { code: "hbp" }, delivery_date: WEEK, product: row.record).update!(quantity: 5)
+    stale = find.call(SheetComparison.new(company, dates: WEEK..(WEEK + 6)))
+    assert stale.note_stale
+    assert_equal :unexplained, stale.reason
+  end
+
   test "compra sem kg por embalagem aponta o cadastro" do
     comparison = SheetComparison.new(company, dates: WEEK..(WEEK + 6))
     mamao = comparison.purchase_rows.find { |r| r.code == "mamao" && r.date == Date.new(2026, 10, 13) }

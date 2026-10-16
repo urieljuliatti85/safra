@@ -128,11 +128,20 @@ Planilhas de exemplo ficam em `referencia/planilhas` (fora do git). Se essa past
 
 ## Validar o teste com as planilhas
 
-Enquanto o Safra roda em paralelo com as planilhas, a equipe continua preenchendo a `02 - PLANILHA DE PRODUÇÃO` e a `03 - COMPRAS CEASA`. Em **Conferência > Comparar com as planilhas > Importar planilhas** você envia os dois arquivos como estão (ods, xlsx ou xls) e escolhe a semana:
+Enquanto o Safra roda em paralelo com as planilhas, a equipe continua preenchendo a `01 - PROG. DE PRODUÇÃO`, a `02 - PLANILHA DE PRODUÇÃO` e a `03 - COMPRAS CEASA`. Em **Conferência > Comparar com as planilhas > Importar planilhas** você envia os arquivos como estão (ods, xlsx ou xls) e escolhe a semana:
 
-1. O Safra lê só as abas da semana (a data vem do nome da aba, como `TERÇA 13-10-26`). Na 02, lê os blocos descascador e aprontes (caixas) e os cortes (kg); na 03, cada matéria-prima com a quantidade (`20 CX`, `10 SC`, `45 KG`, `500 Gr`). Instruções, separadores e linhas sem quantidade ficam de fora. Importar o mesmo dia de novo troca os números.
-2. Os nomes são reconhecidos pelo cadastro (`ABÓBORA CUBOS` é Abóbora em cubos; `BAROA DESCASCADA` é a matéria-prima baroa). Nome que o Safra não reconhece aparece no topo para ligar a um produto ou matéria-prima (ou tirar da comparação); a ligação vale para as próximas semanas. As ligações iniciais estão em `db/seeds_data/apelidos_planilhas.yml`.
-3. A comparação mostra o placar da semana (itens iguais em produção e em compras) e, para cada diferença, o motivo provável: outro dia de produção (o mesmo número aparece num dia vizinho), falta de fator, de kg por embalagem ou de kg por caixa no cadastro (com link para completar), estoque abatido, diferença de 1 embalagem, pedido em outra unidade, dia que não é de compra, nenhum pedido que leve ao item. O que sobra fica como **sem regra que explique**, em vermelho: é o que precisa de conversa com a equipe. O descascador aparece, mas ainda não é comparado.
+1. O Safra lê só as abas da semana (a data vem do nome da aba, como `TERÇA 13-10-26`).
+   - **01:** blocos por cliente e dia de entrega (`BOM PASTOR ( TER – 13/10 )`), comparados com os pedidos lançados no Safra. Cada cliente e dia vale pela aba mais recente que o traz.
+   - **02:** blocos descascador e aprontes (caixas) e cortes (kg), comparados com a produção calculada.
+   - **03:** cada matéria-prima com a quantidade (`20 CX`, `10 SC`, `45 KG`, `500 Gr`), comparada com a compra calculada.
+   - Instruções, separadores e linhas sem quantidade ficam de fora. Importar o mesmo dia de novo troca os números.
+2. Os nomes são reconhecidos pelo cadastro (`ABÓBORA CUBOS` é Abóbora em cubos; `BAROA DESCASCADA` é a matéria-prima baroa; `BATATA INTEIRA DESC.` é Batata inteira descascada; `BOM PASTOR` é o cliente). Nome que o Safra não reconhece aparece no topo para ligar a um produto, matéria-prima ou cliente (ou tirar da comparação); a ligação vale para as próximas semanas. As ligações iniciais estão em `db/seeds_data/apelidos_planilhas.yml` (por exemplo, `CENTRAL` é o Hospital Horizonte Norte).
+3. A comparação mostra o placar da semana (itens iguais na programação, na produção e nas compras) e, para cada diferença, o motivo provável:
+   - **Programação:** data de entrega diferente, lançado em outro cliente, outro produto da mesma matéria-prima, pedido em outra unidade.
+   - **Produção e compras:** outro dia de produção (o mesmo número aparece num dia vizinho), falta de fator, de kg por embalagem ou de kg por caixa no cadastro (com link para completar), estoque abatido, diferença de 1 embalagem, pedido em outra unidade, dia que não é de compra, nenhum pedido que leve ao item.
+   - O que sobra fica como **sem regra que explique**, em vermelho: é o que precisa de conversa com a equipe. O descascador aparece, mas ainda não é comparado.
+4. **Explicar** abre uma nota em cada diferença ("o cliente mudou o pedido por telefone"). A diferença passa a contar como explicada, com o nome de quem escreveu. Se os números da linha mudarem depois (planilha nova ou pedido alterado), a nota aparece como antiga e a diferença volta a contar como aberta.
+5. **PDF da semana** traz o placar, as diferenças por motivo e, dia a dia, cada diferença (as sem explicação em vermelho), para mostrar à empresa. Os dias e itens iguais entram só na contagem.
 
 As planilhas de 13 e 15/10/2026 (`db/seeds_data/referencia_planilhas.yml`) entram pelo seed quando o dia ainda não foi importado; os testes usam esses números como fixture.
 
@@ -198,7 +207,7 @@ Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde ant
 - `app/models/concerns/auditable.rb` e `AuditLog`: histórico de alterações.
 - `app/controllers/api/v1`, `app/presenters/api_presenter.rb` e `ApiToken`: API de integração; `spec/` e `swagger/`: specs rswag e o OpenAPI gerado.
 - `app/policies`: autorização com Pundit, negada por padrão e liberada por papel (`allow :admin, :office, to: ...`).
-- `app/services`: `ProductionPlanner`, `PurchasePlanner`, `WeekOverview`, `PlanPublisher`, `PlanDiff`, `ConferenceChecker`, `OrderGridSaver`, `SheetComparison` (planilhas × Safra, com os motivos), em `reference_sheets/` a leitura das planilhas 02 e 03 (`Reader`, `Matcher`, `Importer`) e, em `order_imports/`, a leitura de planilhas (`SheetReader`), o reconhecimento de nomes (`Matcher`), a prévia (`Preview`) e a gravação (`Applier`).
+- `app/services`: `ProductionPlanner`, `PurchasePlanner`, `WeekOverview`, `PlanPublisher`, `PlanDiff`, `ConferenceChecker`, `OrderGridSaver`, `SheetComparison` (planilhas × Safra, com os motivos e as notas), em `reference_sheets/` a leitura das planilhas 01, 02 e 03 (`Reader`, `Matcher`, `Importer`) e, em `order_imports/`, a leitura de planilhas (`SheetReader`), o reconhecimento de nomes (`Matcher`), a prévia (`Preview`) e a gravação (`Applier`).
 - `app/pdfs`: PDFs com Prawn (fonte Bricolage Grotesque embutida).
 - `db/seeds_data`: dados reais da semana de 12/10/2026 em YAML.
 - `referencia/planilhas`: planilhas originais dos clientes. Não são versionadas (dados de clientes).

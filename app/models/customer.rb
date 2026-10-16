@@ -6,6 +6,7 @@ class Customer < ApplicationRecord
 
   has_many :aliases, class_name: "CustomerAlias", dependent: :destroy
   has_many :orders, dependent: :restrict_with_error
+  has_many :sheet_aliases, dependent: :destroy
 
   normalizes :state, with: ->(value) { value.strip.upcase.presence }
   normalizes :postal_code, with: ->(value) { value.gsub(/\D/, "").presence }

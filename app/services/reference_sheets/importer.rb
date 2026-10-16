@@ -1,5 +1,5 @@
 module ReferenceSheets
-  # Guarda as abas da semana escolhida de um ou mais arquivos (02 e 03). O mesmo dia importado de novo troca as linhas.
+  # Guarda as abas da semana escolhida de um ou mais arquivos (01, 02 e 03). O mesmo dia importado de novo troca as linhas.
   class Importer
     File = Data.define(:path, :filename)
 
@@ -28,7 +28,8 @@ module ReferenceSheets
       sheet.lines.delete_all
       tab.lines.each_with_index do |line, index|
         sheet.lines.create!(section: line.section, label: line.label, quantity_text: line.quantity_text,
-                            quantity: line.quantity, unit: line.unit, position: index)
+                            quantity: line.quantity, unit: line.unit, group_label: line.group_label, delivery_date: line.delivery_date,
+                            position: index)
       end
       sheet
     end

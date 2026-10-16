@@ -72,4 +72,6 @@ Rails.application.routes.draw do
   get "conference/sheets/import", to: "reference_sheets#new", as: :new_reference_sheets
   post "conference/sheets/import", to: "reference_sheets#create", as: :reference_sheets
   post "conference/sheets/aliases", to: "sheet_aliases#create", as: :sheet_aliases
+  post "conference/sheets/notes", to: "comparison_notes#create", as: :comparison_notes
+  delete "conference/sheets/notes/:id", to: "comparison_notes#destroy", as: :comparison_note
 end

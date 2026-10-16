@@ -1,17 +1,20 @@
 module ReferenceSheets
-  # Reconhece o item da planilha: primeiro pelos nomes já ligados (SheetAlias), depois pelo nome do produto ou da
-  # matéria-prima. "ABÓBORA CUBOS" acha "Abóbora em cubos"; "BAROA DESCASCADA" acha a matéria-prima baroa.
+  # Reconhece o item da planilha: primeiro pelos nomes já ligados (SheetAlias), depois pelo nome do produto, da
+  # matéria-prima ou do cliente. "ABÓBORA CUBOS" acha "Abóbora em cubos"; "BAROA DESCASCADA" acha a matéria-prima
+  # baroa; "BOM PASTOR" acha o cliente pelo nome curto.
   # Nome que não reconhece devolve nil e vira pergunta na tela de comparação.
   class Matcher
     Match = Data.define(:record, :ignored, :by) # by: :alias | :name
 
     STOPWORDS = %w[em de da do com].freeze
+    # Abreviações das planilhas: "BATATA INTEIRA DESC.", "REPOLHO BR. PICADO".
+    ABBREVIATIONS = { "desc" => "descascada", "br" => "branco" }.freeze
     # Como os aprontes e o descascador dizem o estado da matéria-prima ("ALFACE LAVADA", "BATATA BATIDA").
     STATE_WORDS = %w[lavada lavado lavadas lavados descascada descascado descascadas descascados arrumada arrumado
                      batida batido batidas batidos cortada cortado inteira inteiro].freeze
 
     def self.key(text)
-      (OrderImports::NameNormalizer.call(text).split - STOPWORDS).join(" ")
+      (OrderImports::NameNormalizer.call(text).split - STOPWORDS).map { |word| ABBREVIATIONS.fetch(word, word) }.join(" ")
     end
 
     def initialize
@@ -24,6 +27,9 @@ module ReferenceSheets
       @raw_materials = RawMaterial.all.each_with_object({}) do |raw_material, index|
         index[self.class.key(raw_material.name)] ||= raw_material
         index[self.class.key(raw_material.code.tr("_", " "))] ||= raw_material
+      end
+      @customers = Customer.all.each_with_object({}) do |customer, index|
+        [ customer.short_name, customer.name, customer.code ].each { |name| index[self.class.key(name)] ||= customer }
       end
       @cache = {}
     end
@@ -40,7 +46,11 @@ module ReferenceSheets
         return Match.new(record: found.record, ignored: found.ignored?, by: :alias)
       end
 
-      record = target == "product" ? @products[key] : (@raw_materials[key] || @raw_materials[(key.split - STATE_WORDS).join(" ")])
+      record = case target
+      when "product" then @products[key]
+      when "customer" then @customers[key]
+      else @raw_materials[key] || @raw_materials[(key.split - STATE_WORDS).join(" ")]
+      end
       record && Match.new(record: record, ignored: false, by: :name)
     end
   end

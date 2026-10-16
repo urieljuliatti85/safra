@@ -62,11 +62,63 @@ class ReferenceSheetsIntegrationTest < ActionDispatch::IntegrationTest
     assert_select ".flash", /Formato não aceito: imagem_pedido.png/
   end
 
+  test "a programação aparece por dia de entrega e cliente" do
+    upload("programacao.ods", "planilha_producao.ods", "compras_ceasa.ods")
+    follow_redirect!
+    assert_select ".flash", /programação de produção de 12\/10 e 13\/10/
+    assert_select ".cmp-score", /Programação/
+    assert_select "#dia-schedule-2026-10-16 tr.cmp-section th", "Horiz. Sul"
+    assert_select "#dia-schedule-2026-10-16 td.reason", /Outro produto da mesma matéria-prima: no Safra: Chuchu em cubinhos/
+  end
+
+  test "explicar uma diferença com nota e depois remover" do
+    upload("programacao.ods")
+    product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_palitos") }
+    params = { kind: "schedule", section: "Bom Pastor", date: "2026-10-12", item: product.code, planilha: "3.0", sistema: "2.0",
+               note: "Cliente reduziu por telefone", week: "2026-10-12" }
+    post comparison_notes_path, params: params
+    assert_redirected_to conference_sheets_path(week: "2026-10-12", anchor: "dia-schedule-2026-10-12")
+    follow_redirect!
+    assert_select "#dia-schedule-2026-10-12 td.reason", /Explicado pela equipe: Cliente reduziu por telefone \(Escritório Safra/
+
+    note = ActsAsTenant.with_tenant(company) { ComparisonNote.last }
+    delete comparison_note_path(note, week: "2026-10-12")
+    follow_redirect!
+    assert_select ".flash", /Nota removida/
+    assert_select "#dia-schedule-2026-10-12 td.reason", text: /Explicado pela equipe/, count: 0
+  end
+
+  test "nota vazia volta com o erro" do
+    post comparison_notes_path, params: { kind: "schedule", section: "Bom Pastor", date: "2026-10-12", item: "x", note: " ", week: "2026-10-12" }
+    follow_redirect!
+    assert_select ".flash", /Nota/
+  end
+
+  test "o PDF da semana sai com o placar" do
+    get conference_sheets_path(week: "2026-10-12", format: :pdf)
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+    assert response.body.start_with?("%PDF")
+  end
+
+  test "ligar o cliente da programação" do
+    upload("programacao.ods")
+    ActsAsTenant.with_tenant(company) { SheetAlias.where(target: "customer").delete_all }
+    get conference_sheets_path(week: "2026-10-12")
+    assert_select "#nomes", /CENTRAL/
+    customer = ActsAsTenant.with_tenant(company) { Customer.find_by!(code: "hnorte") }
+    post sheet_aliases_path, params: { target: "customer", label: "CENTRAL", record_id: customer.id, week: "2026-10-12" }
+    follow_redirect!
+    assert_select ".flash", /"CENTRAL" agora é Hospital Horizonte Norte/
+  end
+
   test "produção não importa planilhas nem liga nomes" do
     sign_in_as(user_for(:production))
     upload("planilha_producao.ods")
     assert_redirected_to production_path
     post sheet_aliases_path, params: { target: "product", label: "X", record_id: "ignore" }
+    assert_redirected_to production_path
+    post comparison_notes_path, params: { kind: "schedule", section: "Bom Pastor", date: "2026-10-12", item: "x", note: "x" }
     assert_redirected_to production_path
   end
 end

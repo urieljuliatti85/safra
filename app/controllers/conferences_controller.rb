@@ -13,9 +13,14 @@ class ConferencesController < ApplicationController
     return unless @week
 
     @comparison = SheetComparison.new(current_company, dates: @week..(@week + 6))
-    if @comparison.unmatched.any?
-      @products = Product.order(:name)
-      @raw_materials = RawMaterial.order(:name)
+    respond_to do |format|
+      format.html do
+        @choices = { "product" => Product.order(:name), "raw_material" => RawMaterial.order(:name), "customer" => Customer.order(:name) } if @comparison.unmatched.any?
+      end
+      format.pdf do
+        send_data ComparisonPdf.new(comparison: @comparison, week: @week).render,
+                  filename: "planilhas-x-safra-#{@week.iso8601}.pdf", type: "application/pdf", disposition: "inline"
+      end
     end
   end
 end
