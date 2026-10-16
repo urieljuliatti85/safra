@@ -91,20 +91,27 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
+  # Com DATABASE_URL (Railway, Render...) tudo vai para o mesmo servidor PostgreSQL, em quatro bancos: o do
+  # app e os do Solid Cache, Solid Queue e Solid Cable (o caminho da URL, que é o nome do banco, é trocado em cada um).
+  # Sem DATABASE_URL (Kamal), usa usuário e senha abaixo.
   primary: &primary_production
     <<: *default
+    url: <%= ENV["DATABASE_URL"] %>
     database: safra_production
     username: safra
     password: <%= ENV["SAFRA_DATABASE_PASSWORD"] %>
   cache:
     <<: *primary_production
+    url: <%= ENV["DATABASE_URL"] && URI.parse(ENV["DATABASE_URL"]).tap { |uri| uri.path = "/safra_production_cache" }.to_s %>
     database: safra_production_cache
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
+    url: <%= ENV["DATABASE_URL"] && URI.parse(ENV["DATABASE_URL"]).tap { |uri| uri.path = "/safra_production_queue" }.to_s %>
     database: safra_production_queue
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
+    url: <%= ENV["DATABASE_URL"] && URI.parse(ENV["DATABASE_URL"]).tap { |uri| uri.path = "/safra_production_cable" }.to_s %>
     database: safra_production_cable
     migrations_paths: db/cable_migrate

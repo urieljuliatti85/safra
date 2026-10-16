@@ -140,6 +140,35 @@ Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde ant
 - `prototipo/safra.html`: protótipo funcional, referência da lógica de cálculo.
 - `PRODUCT.md` e `DESIGN.md`: produto e sistema visual (Calendário de safra).
 
-## Deploy
+## Deploy na Railway
 
-Configuração do Kamal em `config/deploy.yml`, ainda com os valores padrão do Rails: precisa de servidor, domínio e credenciais antes do primeiro deploy.
+O app roda na Railway a partir do `Dockerfile`, com PostgreSQL da própria Railway e um volume para as imagens dos pedidos. `railway.json` define o build por Dockerfile e o healthcheck em `/up`.
+
+**Serviços do projeto `safra`:**
+
+| Serviço | O que é |
+|---|---|
+| `safra` | O app (GitHub `main`, deploy automático a cada merge). |
+| `Postgres` | O banco. A Railway entrega `DATABASE_URL`; o `config/database.yml` usa essa URL para o banco do app e cria mais três no mesmo servidor (`safra_production_cache`, `_queue` e `_cable`, do Solid Cache, Queue e Cable). |
+| Volume em `/rails/storage` | As imagens dos pedidos (Active Storage em disco). |
+
+**Variáveis do serviço `safra`:**
+
+| Variável | Valor |
+|---|---|
+| `DATABASE_URL` | Referência ao Postgres: `${{Postgres.DATABASE_URL}}`. |
+| `SECRET_KEY_BASE` | Segredo longo e aleatório (`bin/rails secret`). Vale no lugar do `RAILS_MASTER_KEY`. |
+| `PORT` | `80`, porta em que o Thruster escuta. |
+| `RAILWAY_RUN_UID` | `0`, para o app conseguir gravar no volume (que a Railway monta como root). |
+| `SAFRA_ADMIN_EMAIL` | E-mail do primeiro administrador. |
+| `SAFRA_ADMIN_PASSWORD` | Senha provisória dele (vale até o primeiro acesso). |
+
+Segredos (`SECRET_KEY_BASE`, `SAFRA_ADMIN_PASSWORD`) entram só no painel da Railway, nunca no git.
+
+**Primeiro deploy.** O container roda `db:prepare` ao subir: cria os bancos, carrega os esquemas e roda o seed, que cria a empresa, os cadastros e o primeiro administrador. Entre com `SAFRA_ADMIN_EMAIL` e a senha provisória; o sistema pede para trocá-la. Depois, cadastre os demais em **Usuários**. As variáveis `SAFRA_ADMIN_*` podem ser removidas depois que o administrador existe.
+
+**Atualizações.** Cada merge na `main` com o CI verde publica sozinho. Migrations rodam no `db:prepare` da subida. Para rodar um comando no servidor (por exemplo `bin/rails db:seed` ou o console): `railway ssh` ou o painel da Railway.
+
+**Limite conhecido.** O volume só pode ser montado em uma instância: não escale o app para mais de uma réplica enquanto as imagens estiverem em disco local. Para várias réplicas, mover o Active Storage para um bucket S3.
+
+**Kamal.** O `config/deploy.yml` continua com os valores padrão do Rails e não está em uso.
