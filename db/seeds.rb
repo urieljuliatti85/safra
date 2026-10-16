@@ -1,5 +1,6 @@
 # Carrega os cadastros e os pedidos da semana de 12/10/2026 a partir de db/seeds_data/*.yml.
-# Idempotente: pode rodar várias vezes. Os pedidos da semana são recriados a cada execução.
+# Só cria o que falta: nunca sobrescreve um cadastro editado na tela nem apaga pedidos já lançados, então é
+# seguro rodar de novo. Para recomeçar do zero em desenvolvimento: bin/rails db:reset.
 require "yaml"
 
 data_dir = Rails.root.join("db/seeds_data")
@@ -9,6 +10,13 @@ week_start = Date.new(2026, 10, 12)
 purchase_dates = [ Date.new(2026, 10, 13), Date.new(2026, 10, 15), Date.new(2026, 10, 19) ]
 
 load_yaml = ->(name) { YAML.safe_load_file(data_dir.join(name), permitted_classes: [ Date ]) }
+# Registro novo recebe os atributos do YAML; um que já existe fica como está.
+create_missing = lambda do |record, attributes|
+  next record unless record.new_record?
+
+  record.update!(attributes)
+  record
+end
 
 company = Company.find_or_create_by!(name: "Hortifruti Modelo")
 
@@ -19,8 +27,8 @@ ActsAsTenant.with_tenant(company) do
     end
 
     raw_materials = load_yaml.call("materias_primas.yml").to_h do |row|
-      raw_material = RawMaterial.find_or_initialize_by(code: row["codigo"])
-      raw_material.update!(
+      raw_material = create_missing.call(
+        RawMaterial.find_or_initialize_by(code: row["codigo"]),
         name: row["nome"],
         supplier: row["fornecedor"] && suppliers.fetch(row["fornecedor"]),
         multiply_factor: row["fator_multiplicar"],
@@ -33,8 +41,8 @@ ActsAsTenant.with_tenant(company) do
     end
 
     cuts = load_yaml.call("cortes.yml").to_h do |row|
-      cut = Cut.find_or_initialize_by(code: row["codigo"])
-      cut.update!(
+      cut = create_missing.call(
+        Cut.find_or_initialize_by(code: row["codigo"]),
         name: row["nome"],
         sector: row["setor"],
         sector_name: row["nome_setor"],
@@ -44,8 +52,8 @@ ActsAsTenant.with_tenant(company) do
     end
 
     products = load_yaml.call("produtos.yml").to_h do |row|
-      product = Product.find_or_initialize_by(code: row["codigo"])
-      product.update!(
+      product = create_missing.call(
+        Product.find_or_initialize_by(code: row["codigo"]),
         name: row["nome"],
         product_group: product_groups.fetch(row["grupo"]),
         raw_material: raw_materials.fetch(row["materia_prima"]),
@@ -56,21 +64,28 @@ ActsAsTenant.with_tenant(company) do
     end
 
     customers = load_yaml.call("clientes.yml").to_h do |row|
-      customer = Customer.find_or_initialize_by(code: row["codigo"])
-      customer.update!(name: row["nome"], short_name: row["nome_curto"], order_source: row["origem_pedido"])
+      customer = create_missing.call(
+        Customer.find_or_initialize_by(code: row["codigo"]),
+        name: row["nome"], short_name: row["nome_curto"], order_source: row["origem_pedido"]
+      )
       [ row["codigo"], customer ]
     end
 
     load_yaml.call("apelidos.yml").each do |row|
-      CustomerAlias.find_or_initialize_by(customer: customers.fetch(row["cliente"]), name_in_order: row["nome_no_pedido"])
-                   .update!(product: products.fetch(row["produto"]))
+      create_missing.call(
+        CustomerAlias.find_or_initialize_by(customer: customers.fetch(row["cliente"]), name_in_order: row["nome_no_pedido"]),
+        product: products.fetch(row["produto"])
+      )
     end
 
     purchase_dates.each { |date| PurchaseDay.find_or_create_by!(date: date) }
 
+    # Os pedidos da semana só entram na primeira carga de cada cliente: depois disso quem manda é o que foi lançado.
     orders = customers.transform_values { |customer| Order.find_or_create_by!(customer: customer, week_start: week_start) }
-    orders.each_value { |order| order.lines.destroy_all }
+    fresh_orders = orders.select { |_, order| order.previously_new_record? }
     load_yaml.call("pedidos_2026-10-12.yml").each do |row|
+      next unless fresh_orders.key?(row["cliente"])
+
       orders.fetch(row["cliente"]).lines.create!(
         product: products.fetch(row["produto"]),
         delivery_date: row["entrega"],

@@ -1,0 +1,78 @@
+<% content_for :title, "Matérias-primas · Safra" %>
+<% package_options = RawMaterial::PACKAGES.map { |p| [ { "cx" => "caixa", "sc" => "saco", "kg" => "kg", "un" => "unidade" }.fetch(p), p ] } %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Cadastros</h1>
+    <p class="page-sub">Fator de perda (kg in natura por kg processado) e peso da embalagem de compra: é com eles que a produção vira número de caixas e sacos na CEASA. Complete o que falta e salve tudo de uma vez.</p>
+  </div>
+  <%= link_to new_raw_material_path, class: "btn btn-primary" do %><%= icon :plus %>Nova matéria-prima<% end %>
+</div>
+<%= render "catalog/tabs" %>
+
+<% if @scores && @scores[1].positive? %>
+  <p class="panel mb-4 p-3 num">Compras iguais à planilha de 13 e 15/10: <strong><%= @scores[0] %> de <%= @scores[1] %></strong>. Quanto mais completo o cadastro, mais esse número sobe (veja o detalhe em <%= link_to "Conferência", conference_sheets_path, class: "underline" %>).</p>
+<% end %>
+
+<% if @errors.present? %>
+  <div class="flash flash-alert" role="alert">
+    <%= icon :alert %>
+    <div><p class="font-bold">Nada foi salvo. Corrija:</p><ul class="list-disc ml-5"><% @errors.each do |error| %><li><%= error %></li><% end %></ul></div>
+  </div>
+<% end %>
+
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <nav class="chips" aria-label="Filtro">
+    <%= link_to "Todas (#{@flags.size})", raw_materials_path(q: @query.presence), class: "chip", "aria-current": (@filter == "all" ? "true" : nil) %>
+    <%= link_to "Incompletas (#{@incomplete_count})", raw_materials_path(filter: "incomplete", q: @query.presence), class: "chip", "aria-current": (@filter == "incomplete" ? "true" : nil) %>
+    <%= link_to "Usadas nos pedidos (#{@used_ids.size})", raw_materials_path(filter: "used", q: @query.presence), class: "chip", "aria-current": (@filter == "used" ? "true" : nil) %>
+  </nav>
+  <%= form_with url: raw_materials_path, method: :get, class: "ml-auto flex items-center gap-2", data: { turbo: false } do %>
+    <%= hidden_field_tag :filter, @filter unless @filter == "all" %>
+    <%= label_tag :q, "Buscar", class: "sr-only" %>
+    <%= search_field_tag :q, @query, placeholder: "Buscar matéria-prima", class: "field" %>
+    <%= button_tag "Buscar", type: "submit", class: "btn" %>
+  <% end %>
+</div>
+
+<%= form_with url: bulk_update_raw_materials_path, method: :patch, data: { turbo: false } do %>
+  <%= hidden_field_tag :filter, @filter unless @filter == "all" %>
+  <%= hidden_field_tag :q, @query if @query.present? %>
+  <div class="sheet-wrap">
+    <table class="sheet">
+      <thead>
+        <tr>
+          <th class="sticky-col">Matéria-prima</th>
+          <th scope="col" class="px-2 text-left">Fornecedor</th>
+          <th scope="col" class="px-2 text-left">Compra em</th>
+          <th scope="col" class="px-2 text-right">Kg por embalagem</th>
+          <th scope="col" class="px-2 text-right">Fator</th>
+          <th scope="col" class="px-2 text-right">Kg por caixa descascada</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @raw_materials.each do |rm| %>
+          <% flags = @flags.fetch(rm.id) %>
+          <tr>
+            <th scope="row" class="sticky-col font-medium">
+              <%= link_to rm.name, edit_raw_material_path(rm), class: "underline" %>
+              <% if flags[:factor] %><span class="tag-change">sem fator</span><% end %>
+              <% if flags[:package] %><span class="tag-change">sem kg por embalagem</span><% end %>
+            </th>
+            <td class="px-1"><%= select_tag "raw_materials[#{rm.id}][supplier_id]", options_for_select(@suppliers.map { |s| [ s.name, s.id ] }, rm.supplier_id), include_blank: "Sem fornecedor", class: "field", "aria-label": "Fornecedor de #{rm.name}" %></td>
+            <td class="px-1"><%= select_tag "raw_materials[#{rm.id}][purchase_package]", options_for_select(package_options, rm.purchase_package), class: "field", "aria-label": "Embalagem de compra de #{rm.name}" %></td>
+            <td class="px-1"><%= text_field_tag "raw_materials[#{rm.id}][kg_per_package]", (qty(rm.kg_per_package) if rm.kg_per_package), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Kg por embalagem de #{rm.name}" %></td>
+            <td class="px-1"><%= text_field_tag "raw_materials[#{rm.id}][multiply_factor]", (qty(rm.multiply_factor) if rm.multiply_factor), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Fator de #{rm.name}" %></td>
+            <td class="px-1"><%= text_field_tag "raw_materials[#{rm.id}][kg_per_peeled_box]", (qty(rm.kg_per_peeled_box) if rm.kg_per_peeled_box), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Kg por caixa descascada de #{rm.name}" %></td>
+          </tr>
+        <% end %>
+        <% if @raw_materials.empty? %>
+          <tr><td colspan="6" class="muted p-6 text-center">Nenhuma matéria-prima neste filtro.</td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <div class="savebar">
+    <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar tudo<% end %>
+    <span class="muted text-sm">Fator: kg in natura por kg processado (1,35 = 1,35 kg para 1 kg). Use vírgula para decimais; campo vazio fica sem valor.</span>
+  </div>
+<% end %>

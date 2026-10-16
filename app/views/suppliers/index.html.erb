@@ -1,0 +1,26 @@
+<% content_for :title, "Fornecedores · Safra" %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Cadastros</h1>
+    <p class="page-sub">Quem vende na CEASA. Cada matéria-prima aponta para o fornecedor de quem se compra, e a compra sai agrupada por ele.</p>
+  </div>
+  <%= link_to new_supplier_path, class: "btn btn-primary" do %><%= icon :plus %>Novo fornecedor<% end %>
+</div>
+<%= render "catalog/tabs" %>
+<section class="panel">
+  <table class="ops-table" style="table-layout: auto">
+    <thead><tr><th>Fornecedor</th><th class="col-num">Matérias-primas</th><th></th></tr></thead>
+    <tbody>
+      <% @suppliers.each do |supplier| %>
+        <tr>
+          <td class="name"><strong><%= supplier.name %></strong></td>
+          <td class="num-col"><%= @counts[supplier.id].to_i %></td>
+          <td class="whitespace-nowrap text-right">
+            <%= link_to "Editar", edit_supplier_path(supplier), class: "btn" %>
+            <%= button_to "Excluir", supplier_path(supplier), method: :delete, class: "btn", form: { class: "inline", data: { turbo_confirm: "Excluir o fornecedor #{supplier.name}?" } } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</section>

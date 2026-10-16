@@ -1,0 +1,48 @@
+pt-BR:
+  activerecord:
+    models:
+      supplier: Fornecedor
+      raw_material: Matéria-prima
+      product: Produto
+      customer: Cliente
+      customer_alias: Apelido
+      user: Usuário
+      cut: Corte
+    attributes:
+      supplier:
+        name: Nome
+      raw_material:
+        name: Nome
+        code: Código
+        supplier: Fornecedor
+        multiply_factor: Fator
+        kg_per_package: Kg por embalagem
+        kg_per_peeled_box: Kg por caixa descascada
+        purchase_package: Embalagem de compra
+        note: Observação
+      product:
+        name: Nome
+        code: Código
+        product_group: Grupo
+        raw_material: Matéria-prima
+        cut: Corte
+        unit: Unidade
+      customer:
+        name: Nome
+        short_name: Nome curto
+        code: Código
+        order_source: Como o pedido chega
+      customer_alias:
+        name_in_order: Nome no pedido
+        product: Produto
+      user:
+        name: Nome
+        email_address: E-mail
+        role: Papel
+        password: Senha
+      cut:
+        lead_days: Antecedência
+      company:
+        raw_lead_days: Antecedência do in natura
+      production_rule:
+        lead_days: Antecedência

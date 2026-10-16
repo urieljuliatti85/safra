@@ -13,8 +13,8 @@ module ApplicationHelper
     (0..5).map { |days| [ days.zero? ? "No dia da entrega" : (days == 1 ? "1 dia antes" : "#{days} dias antes"), days ] }
   end
 
-  def nav_link(label, path, controller)
-    current = controller_name == controller
+  def nav_link(label, path, controllers)
+    current = Array(controllers).include?(controller_name)
     link_to label, path, class: "nav-link", "aria-current": (current ? "page" : nil), data: { reveal_target: ("current" if current) }.compact
   end
 

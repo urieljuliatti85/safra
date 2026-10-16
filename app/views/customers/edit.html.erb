@@ -1,0 +1,35 @@
+<% content_for :title, "Editar cliente · Safra" %>
+<div class="mb-5"><h1 class="page-title"><%= @customer.name %></h1><p class="page-sub">Código <code><%= @customer.code %></code> (não muda).</p></div>
+<%= render "form", customer: @customer %>
+
+<section id="apelidos" class="panel mt-6" aria-label="Apelidos dos produtos">
+  <div class="panel-head"><h2>Apelidos dos produtos</h2><span class="meta"><%= plural(@aliases.size, "apelido", "apelidos") %></span></div>
+  <p class="muted p-3 text-sm">Como <%= @customer.short_name %> escreve cada produto no pedido. A importação de planilhas usa esta lista; nomes novos aparecem para você escolher e entram aqui sozinhos.</p>
+  <% if @aliases.any? %>
+    <div class="overflow-x-auto">
+      <table class="ops-table" style="min-width: 30rem; table-layout: auto">
+        <thead><tr><th>Nome no pedido</th><th>Produto no sistema</th><th></th></tr></thead>
+        <tbody>
+          <% @aliases.each do |record| %>
+            <tr>
+              <td class="name"><%= record.name_in_order %></td>
+              <td class="who"><%= record.product.name %></td>
+              <td class="text-right"><%= button_to "Remover", customer_customer_alias_path(@customer, record), method: :delete, class: "btn", form: { class: "inline", data: { turbo_confirm: "Remover o apelido \"#{record.name_in_order}\"?" } } %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+  <%= form_with url: customer_customer_aliases_path(@customer), scope: :customer_alias, class: "flex flex-wrap items-end gap-3 border-t border-line-soft p-3", data: { turbo: false } do |form| %>
+    <div>
+      <%= form.label :name_in_order, "Nome no pedido", class: "mb-1 block text-sm font-bold" %>
+      <%= form.text_field :name_in_order, required: true, class: "field" %>
+    </div>
+    <div>
+      <%= form.label :product_id, "Produto", class: "mb-1 block text-sm font-bold" %>
+      <%= form.collection_select :product_id, @products, :id, :name, { prompt: "Escolha o produto" }, required: true, class: "field" %>
+    </div>
+    <%= form.button type: "submit", class: "btn" do %><%= icon :plus %>Adicionar apelido<% end %>
+  <% end %>
+</section>

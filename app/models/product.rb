@@ -14,6 +14,8 @@ class Product < ApplicationRecord
   validates :code, uniqueness: { scope: :company_id }
   validates :product_group, inclusion: { in: GROUPS }
   validates :cut, presence: true, unless: :raw?
+  validates :cut, absence: true, if: :raw?
+  validates :unit, inclusion: { in: OrderLine::UNITS }
 
   def raw?
     product_group == "raw"

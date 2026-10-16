@@ -27,6 +27,17 @@ Rails.application.routes.draw do
   resource :rules, only: %i[show update], path: "regras"
   resources :purchase_days, only: %i[create destroy], path: "dias-de-compra"
 
+  scope path: "cadastros" do
+    resources :suppliers, path: "fornecedores", except: :show
+    resources :raw_materials, path: "materias-primas", except: :show do
+      patch :bulk_update, path: "lote", on: :collection
+    end
+    resources :products, path: "produtos", except: :show
+    resources :customers, path: "clientes", except: :show do
+      resources :customer_aliases, path: "apelidos", only: %i[create destroy]
+    end
+  end
+
   get "conference", to: "conferences#show"
   get "conference/sheets", to: "conferences#sheets", as: :conference_sheets
 end

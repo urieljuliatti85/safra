@@ -25,7 +25,7 @@ class RuleSimulationTest < ActiveSupport::TestCase
   test "mudança inválida devolve o erro e não deixa nada" do
     cut = Cut.find_by!(code: "cubos")
     result = RuleSimulation.new(company: company, changes: RuleChanges.new(cut_leads: { cut.id => 9 })).call
-    assert_match "Lead days", result.errors.first
+    assert_match "Cubos: Antecedência deve estar em 0..5", result.errors.first
     assert_nil result.after_score
     assert_equal 1, cut.reload.lead_days
   end

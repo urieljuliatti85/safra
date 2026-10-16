@@ -1,0 +1,42 @@
+<%# locals: raw_material %>
+<%= form_with model: raw_material, class: "panel grid max-w-xl gap-4 p-5", data: { turbo: false } do |form| %>
+  <%= render "catalog/errors", record: raw_material %>
+  <div>
+    <%= form.label :name, "Nome", class: "mb-1 block font-bold" %>
+    <%= form.text_field :name, required: true, autofocus: true, class: "field w-full" %>
+  </div>
+  <div>
+    <%= form.label :supplier_id, "Fornecedor", class: "mb-1 block font-bold" %>
+    <%= form.collection_select :supplier_id, Supplier.order(:name), :id, :name, { include_blank: "Sem fornecedor" }, class: "field w-full" %>
+  </div>
+  <div>
+    <%= form.label :purchase_package, "Compra em", class: "mb-1 block font-bold" %>
+    <%= form.select :purchase_package, RawMaterial::PACKAGES.map { |p| [ { "cx" => "caixa", "sc" => "saco", "kg" => "kg", "un" => "unidade" }.fetch(p), p ] }, {}, class: "field w-full" %>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-3">
+    <div>
+      <%= form.label :multiply_factor, "Fator", class: "mb-1 block font-bold" %>
+      <%= form.text_field :multiply_factor, value: (qty(raw_material.multiply_factor) if raw_material.multiply_factor), inputmode: "decimal", class: "field w-full" %>
+    </div>
+    <div>
+      <%= form.label :kg_per_package, "Kg por embalagem", class: "mb-1 block font-bold" %>
+      <%= form.text_field :kg_per_package, value: (qty(raw_material.kg_per_package) if raw_material.kg_per_package), inputmode: "decimal", class: "field w-full" %>
+    </div>
+    <div>
+      <%= form.label :kg_per_peeled_box, "Kg por caixa descascada", class: "mb-1 block font-bold" %>
+      <%= form.text_field :kg_per_peeled_box, value: (qty(raw_material.kg_per_peeled_box) if raw_material.kg_per_peeled_box), inputmode: "decimal", class: "field w-full" %>
+    </div>
+  </div>
+  <p class="muted text-sm">Fator: quantos kg in natura saem para 1 kg processado. Kg por embalagem: o peso da caixa ou do saco que se compra. Kg por caixa descascada: para o cálculo de aprontes.</p>
+  <div>
+    <%= form.label :note, "Observação", class: "mb-1 block font-bold" %>
+    <%= form.text_area :note, rows: 2, class: "field w-full" %>
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <%= form.button type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar<% end %>
+    <%= link_to "Cancelar", raw_materials_path, class: "btn" %>
+    <% if raw_material.persisted? %>
+      <%= button_to "Excluir", raw_material_path(raw_material), method: :delete, class: "btn", form: { class: "ml-auto", data: { turbo_confirm: "Excluir #{raw_material.name}?" } } %>
+    <% end %>
+  </div>
+<% end %>

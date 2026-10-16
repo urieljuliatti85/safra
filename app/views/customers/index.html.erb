@@ -1,0 +1,31 @@
+<% content_for :title, "Clientes · Safra" %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Cadastros</h1>
+    <p class="page-sub">Quem faz pedido. Cada cliente tem os apelidos dos produtos como ele os escreve, para a importação reconhecer sozinha.</p>
+  </div>
+  <%= link_to new_customer_path, class: "btn btn-primary" do %><%= icon :plus %>Novo cliente<% end %>
+</div>
+<%= render "catalog/tabs" %>
+<section class="panel">
+  <div class="overflow-x-auto">
+    <table class="ops-table" style="min-width: 36rem; table-layout: auto">
+      <thead><tr><th>Cliente</th><th>Como o pedido chega</th><th class="col-num">Apelidos</th><th></th></tr></thead>
+      <tbody>
+        <% @customers.each do |customer| %>
+          <tr>
+            <td class="name"><strong><%= customer.name %></strong><br><span class="muted text-sm"><%= customer.short_name %></span></td>
+            <td class="who"><%= customer.order_source.presence || "-" %></td>
+            <td class="num-col"><%= @alias_counts[customer.id].to_i %></td>
+            <td class="whitespace-nowrap text-right">
+              <%= link_to "Editar", edit_customer_path(customer), class: "btn" %>
+              <% if @line_counts[customer.id].to_i.zero? %>
+                <%= button_to "Excluir", customer_path(customer), method: :delete, class: "btn", form: { class: "inline", data: { turbo_confirm: "Excluir o cliente #{customer.name}?" } } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

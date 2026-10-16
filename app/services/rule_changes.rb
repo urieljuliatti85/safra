@@ -30,11 +30,17 @@ class RuleChanges
       set_exception(new_exception[:product_id].to_i, new_exception[:lead_days]) if new_exception[:product_id].present?
     end
     []
-  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotFound => e
-    [ e.message ]
+  rescue ActiveRecord::RecordInvalid => e
+    [ "#{label_for(e.record)}: #{e.record.errors.full_messages.to_sentence}" ]
+  rescue ActiveRecord::RecordNotFound
+    [ "Corte ou produto não encontrado." ]
   end
 
   private
+
+  def label_for(record)
+    record.try(:name) || record.try(:product)&.name || record.class.model_name.human
+  end
 
   # Vazio apaga a exceção (o produto volta a seguir o corte).
   def set_exception(product_id, lead)

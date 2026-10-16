@@ -29,11 +29,11 @@ Nos próximos dias, só os passos 1 e 3 (o passo 1 é seguro repetir: se o conta
 
 Em desenvolvimento e teste a conexão usa `localhost`, usuário `postgres`, senha `postgres`. Para outro servidor, defina `DATABASE_HOST`, `DATABASE_USERNAME` e `DATABASE_PASSWORD`.
 
-Os dados vêm de `db/seeds_data/*.yml` (fornecedores, matérias-primas, cortes, produtos, clientes, apelidos e os pedidos da semana). O seed é idempotente e recria os pedidos da semana a cada execução:
+Os dados vêm de `db/seeds_data/*.yml` (fornecedores, matérias-primas, cortes, produtos, clientes, apelidos e os pedidos da semana). O seed **só cria o que falta**: nunca sobrescreve um cadastro editado na tela nem apaga pedidos já lançados, então é seguro rodar de novo, inclusive em produção. Os pedidos da semana entram só na primeira carga de cada cliente.
 
 ```bash
-bin/rails db:seed          # recarrega os cadastros e os pedidos
-bin/rails db:reset         # apaga o banco e recomeça do zero
+bin/rails db:seed          # cria o que falta (cadastros, pedidos da primeira carga e usuários de desenvolvimento)
+bin/rails db:reset         # apaga o banco e recomeça do zero (precisa de nenhum servidor ou editor com o banco aberto)
 ```
 
 ### Telas
@@ -45,6 +45,7 @@ bin/rails db:reset         # apaga o banco e recomeça do zero
 | Produção | Lista do dia por setor, aprontes, envio aos setores em versões e diferença depois do envio. |
 | Compras | Compra da CEASA por fornecedor, texto para WhatsApp e envio em versões. |
 | Conferência | Alertas de fator, unidade, data e observações, e comparação com as planilhas de 13 e 15/10. |
+| Cadastros | Matérias-primas (fator de perda, peso da embalagem, fornecedor) numa grade editável em lote, produtos, clientes com os apelidos dos produtos e fornecedores. |
 | Regras | Antecedência da produção por corte e por produto, do in natura e os dias de compra na CEASA. **Ver efeito sem salvar** mostra o placar contra as planilhas antes e depois, item por item. |
 
 Programação, Produção e Compras têm PDF (botão "PDF" ou `/production.pdf?date=2026-10-13`).
@@ -57,7 +58,7 @@ O sistema exige login. Cada usuário pertence a uma empresa e só enxerga os dad
 | Papel | O que pode |
 |---|---|
 | Administrador | Tudo, mais gerenciar usuários (menu "Usuários"). |
-| Escritório | Pedidos, importação, programação, produção, compras, conferência, regras e envio aos setores. |
+| Escritório | Pedidos, importação, programação, produção, compras, conferência, regras, cadastros e envio aos setores. |
 | Produção | Só vê Programação, Produção e os PDFs. Não altera nada e não vê o botão de enviar. |
 
 **Usuários de desenvolvimento** (criados por `bin/setup` ou `bin/rails db:seed`, só em desenvolvimento e teste), todos com a senha `safra-dev-123`:
@@ -71,6 +72,17 @@ Se o banco já existia antes do login, rode `bin/rails db:seed` para criá-los.
 **Em produção** não há usuário de exemplo. O primeiro administrador sai do seed, com `SAFRA_ADMIN_EMAIL` e `SAFRA_ADMIN_PASSWORD` definidos ao rodar `bin/rails db:seed`; a senha vale só até o primeiro acesso. Depois, o administrador cadastra os demais em **Usuários**.
 
 **Senha provisória.** Ao criar um usuário ou redefinir a senha, o sistema gera uma senha provisória e mostra **uma única vez**, na tela, para o administrador repassar. A pessoa é obrigada a trocar no primeiro acesso, e os acessos abertos dela caem. Não há recuperação por e-mail: quem esquecer a senha pede ao administrador uma nova. Desativar um usuário também encerra as sessões dele.
+
+## Cadastros
+
+Em **Cadastros** a equipe mantém o que antes só vinha por seed:
+
+- **Matérias-primas:** uma grade para completar vários de uma vez: fornecedor, embalagem de compra (caixa, saco, kg, unidade), kg por embalagem, fator de perda e kg por caixa descascada. Os filtros **Incompletas** (sem fator em item processado, ou sem peso da embalagem em item comprado por caixa ou saco) e **Usadas nos pedidos** mostram por onde começar, e o placar de compras contra a planilha de 13 e 15/10 sobe conforme o cadastro fica completo. Sem o fator, a compra do item processado não é convertida; sem o peso da embalagem, não vira número de caixas ou sacos.
+- **Produtos:** grupo (processado, fruta ou in natura), matéria-prima, corte e unidade. Processado e fruta exigem corte; in natura não tem.
+- **Clientes:** nome, nome curto e como o pedido chega, mais os **apelidos** dos produtos como o cliente os escreve (a importação usa a lista; nomes novos entram sozinhos).
+- **Fornecedores.**
+
+O código de cada cadastro é gerado do nome (`Batata roxa` vira `batata_roxa`) e não muda depois, porque seeds, planilhas de referência e apelidos apontam para ele. Decimais aceitam vírgula (`1,35`), e campo vazio fica sem valor. Excluir é barrado quando há dependências (matéria-prima com produtos, produto ou cliente com pedidos, fornecedor com matérias-primas). As mensagens do sistema estão em português.
 
 ## Importar pedidos de planilhas
 
