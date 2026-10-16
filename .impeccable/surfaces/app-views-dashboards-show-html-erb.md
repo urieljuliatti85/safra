@@ -21,6 +21,6 @@ STORY: a pessoa entende em segundos em qual etapa há pendência, acredita no es
 
 FIRST VIEWPORT: título "Painel" com a data de hoje; sob ele, aviso único e curto só quando há algo a conferir. Depois, quatro etapas lado a lado em ordem 1 Pedidos, 2 Programação, 3 Produção, 4 Compras, ligadas pela linha; cada etapa tem um estado em palavras, dois ou três fatos curtos e uma ação. Abaixo, a faixa da semana (componente existente) com hoje em destaque. No celular as etapas empilham em coluna, a linha vira vertical e a faixa rola na horizontal dentro do próprio painel.
 
-FORM: Fluxo em etapas, segunda estrutura sorteada, posição 7 na lista ordenada; seed: fca844e9f9a73cf8. Movimento de assinatura: a linha-fio que liga as etapas e mostra onde o trabalho parou.
+FORM (revisado em 16/10/2026, variante "Saturação" escolhida no live): quatro cartões lado a lado; a etapa que pede ação (falta enviar = verde de lavoura; mudou = vermelho sólido) é inundada de cor com botões brancos, a etapa em ordem recua em tinta suave com nó e status em Broto, a ociosa fica no fundo com nó tracejado. Sem a linha-fio. Forma anterior: Fluxo em etapas, segunda estrutura sorteada, posição 7 na lista ordenada; seed: fca844e9f9a73cf8. Movimento de assinatura: a linha-fio que liga as etapas e mostra onde o trabalho parou.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.

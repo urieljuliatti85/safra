@@ -19,20 +19,18 @@
 <ol class="flow" aria-label="Etapas do trabalho">
   <% summary.stages.each_with_index do |stage, index| %>
     <li class="flow-step" data-state="<%= stage.state %>">
-      <span class="flow-node" aria-hidden="true"><%= index + 1 %></span>
-      <section class="panel" aria-labelledby="stage-<%= stage.key %>">
-        <div class="panel-head"><h2 id="stage-<%= stage.key %>"><%= stage.title %></h2></div>
-        <div class="flow-body">
-          <p class="flow-status"><span class="sr-only">Etapa <%= index + 1 %>: </span><%= stage.status %></p>
-          <% if stage.facts.any? %>
-            <ul class="flow-facts"><% stage.facts.each do |fact| %><li><%= fact %></li><% end %></ul>
-          <% end %>
-          <div class="flow-actions">
-            <%= link_to stage.action_label, stage.action_path, class: "btn #{'btn-primary' if %i[pending changed].include?(stage.state)}" %>
-            <% if stage.secondary %><%= link_to stage.secondary[:label], stage.secondary[:path], class: "btn" %><% end %>
-          </div>
-        </div>
-      </section>
+      <div class="flow-head">
+        <span class="flow-node" aria-hidden="true"><%= index + 1 %></span>
+        <h2 class="flow-title" id="stage-<%= stage.key %>"><%= stage.title %></h2>
+      </div>
+      <p class="flow-status"><span class="sr-only">Etapa <%= index + 1 %>: </span><%= stage.status %></p>
+      <% if stage.facts.any? %>
+        <ul class="flow-facts"><% stage.facts.each do |fact| %><li><%= fact %></li><% end %></ul>
+      <% end %>
+      <div class="flow-actions">
+        <%= link_to stage.action_label, stage.action_path, class: "btn #{'btn-primary' if %i[pending changed].include?(stage.state)}" %>
+        <% if stage.secondary %><%= link_to stage.secondary[:label], stage.secondary[:path], class: "btn" %><% end %>
+      </div>
     </li>
   <% end %>
 </ol>
