@@ -25,7 +25,7 @@
             <td class="whitespace-nowrap">
               <%= link_to "Editar", edit_user_path(user), class: "btn" %>
               <% if user != current_user && user.active? %>
-                <%= button_to "Redefinir senha", reset_password_user_path(user), method: :post, class: "btn", form: { class: "inline", data: { turbo_confirm: "Gerar uma senha provisória nova para #{user.name}? A senha atual deixa de valer e os acessos abertos caem." } } %>
+                <%= button_to "Redefinir senha", reset_password_user_path(user), method: :post, class: "btn", form: { class: "inline", data: { turbo_confirm: reset_password_confirmation(user, @last_access[user.id]) } } %>
               <% end %>
             </td>
           </tr>

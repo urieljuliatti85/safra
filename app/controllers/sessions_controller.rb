@@ -4,8 +4,9 @@ class SessionsController < ApplicationController
   skip_after_action :verify_authorized
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_session_path, alert: "Muitas tentativas. Espere alguns minutos e tente de novo." }
 
+  # Com alguém já logado neste navegador, a tela diz quem é antes de deixar entrar com outra conta:
+  # o login é um só por navegador, e entrar por cima troca a pessoa em todas as abas.
   def new
-    redirect_to root_path if authenticated?
   end
 
   def create

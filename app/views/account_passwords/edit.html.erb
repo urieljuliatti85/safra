@@ -1,6 +1,7 @@
 <% content_for :title, "Trocar senha · Safra" %>
 <div class="mx-auto max-w-sm pt-2">
   <h1 class="page-title mb-1">Trocar senha</h1>
+  <p class="page-sub mb-1">De <strong><%= current_user.name %></strong> (<%= current_user.email_address %>).</p>
   <p class="page-sub mb-5">
     <% if current_user.must_change_password %>Sua senha é provisória. Escolha uma senha só sua para continuar.<% else %>Depois de trocar, os outros aparelhos em que você está logado são desconectados.<% end %>
   </p>

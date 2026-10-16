@@ -6,7 +6,7 @@ class UsersController < ApplicationController
 
   def index
     @users = current_company.users.order(:name)
-    @last_access = Session.where(user_id: @users.map(&:id)).group(:user_id).maximum(:created_at)
+    @last_access = last_access(@users.map(&:id))
   end
 
   def new
@@ -51,6 +51,14 @@ class UsersController < ApplicationController
   end
 
   private
+
+  # Último login pelo histórico (redefinir a senha apaga as sessões, mas o histórico fica); sessões cobrem logins
+  # de antes do histórico existir.
+  def last_access(ids)
+    logins = AuditLog.where(action: "login", user_id: ids).group(:user_id).maximum(:created_at)
+    sessions = Session.where(user_id: ids).group(:user_id).maximum(:created_at)
+    logins.merge(sessions) { |_id, login, session| [ login, session ].max }
+  end
 
   def load_user
     @user = current_company.users.find(params[:id])

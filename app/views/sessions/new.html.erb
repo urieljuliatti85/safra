@@ -1,6 +1,16 @@
 <% content_for :title, "Entrar · Safra" %>
 <div class="mx-auto max-w-sm pt-6">
   <h1 class="page-title mb-1">Entrar no Safra</h1>
+  <% if authenticated? %>
+    <div class="panel mt-4 grid gap-3 p-5" role="status">
+      <p>Este navegador já está no Safra como <strong><%= Current.user.name %></strong> (<%= Current.user.email_address %>).</p>
+      <p class="muted text-sm">O login vale para todas as abas deste navegador. Para usar duas contas ao mesmo tempo, abra a outra numa janela anônima.</p>
+      <div class="flex flex-wrap gap-3">
+        <%= link_to "Continuar como #{Current.user.name.split.first}", root_path, class: "btn btn-primary" %>
+        <%= button_to "Sair e entrar com outra conta", session_path, method: :delete, class: "btn", form: { class: "contents" } %>
+      </div>
+    </div>
+  <% else %>
   <p class="page-sub mb-5">Use o e-mail e a senha que o administrador criou para você.</p>
 
   <%= form_with url: session_path, class: "panel grid gap-4 p-5", data: { turbo: false } do |form| %>
@@ -14,5 +24,6 @@
     </div>
     <%= form.button type: "submit", class: "btn btn-primary" do %><%= icon :check %>Entrar<% end %>
     <p class="muted text-sm">Esqueceu a senha? Peça ao administrador para gerar uma senha provisória.</p>
+  <% end %>
   <% end %>
 </div>

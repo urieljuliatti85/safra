@@ -64,4 +64,37 @@ class UsersAdminTest < ActionDispatch::IntegrationTest
     assert_redirected_to users_path
     assert_not user_for(:admin).must_change_password
   end
+
+  test "último acesso vem do histórico de logins e não some ao redefinir a senha" do
+    user = User.create!(company: company, name: "Ana", email_address: "ana@teste.local", role: "office", password: "senha-boa-123")
+    travel_to Time.zone.local(2026, 10, 15, 8, 30) do
+      post session_path, params: { email_address: "ana@teste.local", password: "senha-boa-123" }
+    end
+    sign_in_as(user_for(:admin))
+    post reset_password_user_path(user)
+    get users_path
+    assert_select "tr", text: /Ana.*15\/10 08:30/m
+  end
+
+  test "o aviso de redefinir deixa claro quando a pessoa já escolheu a própria senha" do
+    User.create!(company: company, name: "Ana Souza", email_address: "ana@teste.local", role: "office", password: "senha-boa-123")
+    User.create!(company: company, name: "Bia", email_address: "bia@teste.local", role: "office", password: "senha-boa-123", must_change_password: true)
+    get users_path
+    assert_select "form[data-turbo-confirm*='Ana Souza já escolheu a própria senha']"
+    assert_select "form[data-turbo-confirm*='Só faça isso se Ana esqueceu a senha']"
+    assert_select "form[data-turbo-confirm*='Gerar outra senha provisória para Bia']"
+  end
+
+  test "trocar senha mostra de quem é a conta" do
+    get edit_account_password_path
+    assert_select "p", text: /De Admin Safra \(admin@safra.local\)/
+  end
+
+  test "tela de login com alguém já logado diz quem é e oferece sair" do
+    get new_session_path
+    assert_response :success
+    assert_select "[role=status]", text: /já está no Safra como Admin Safra/
+    assert_select "form[action='#{session_path}'] button", text: "Sair e entrar com outra conta"
+    assert_select "input[type=password]", count: 0
+  end
 end
