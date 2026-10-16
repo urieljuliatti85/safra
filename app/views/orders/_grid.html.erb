@@ -25,7 +25,7 @@
               <th scope="row" class="sticky-col font-medium">
                 <%= product.name %>
                 <% note = lines.map(&:note).compact.first %>
-                <% if note %><span class="tag-change" title="<%= note %>">obs.</span><% end %>
+                <% if note %><span class="line-note is-clamped" title="Observação do pedido: <%= note %>"><%= icon :note %><span><span class="sr-only">Observação: </span><%= note %></span></span><% end %>
               </th>
               <td class="unit"><%= unit %></td>
               <% grid.dates.each do |date| %>

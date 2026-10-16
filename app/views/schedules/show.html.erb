@@ -23,7 +23,7 @@
             <tr>
               <td class="name">
                 <%= entry.product.name %>
-                <% if entry.note %><span class="tag-change" title="<%= entry.note %>">obs.</span><% end %>
+                <% if entry.note %><span class="line-note"><%= icon :note %><span><span class="sr-only">Observação: </span><%= entry.note %></span></span><% end %>
               </td>
               <td class="qty" data-unit="<%= entry.unit %>"><%= qty(entry.quantity) %></td>
               <td class="unit"><%= entry.unit %></td>

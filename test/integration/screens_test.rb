@@ -11,6 +11,18 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_select "input[aria-label^='Cenoura em cubinhos']"
   end
 
+  test "observação da linha aparece por extenso na grade e na programação" do
+    ActsAsTenant.with_tenant(company) do
+      OrderLine.joins(order: :customer).where(customers: { code: "hbp" }).where(delivery_date: Date.new(2026, 10, 14)).first
+               .update!(note: "entregar até 7h")
+    end
+    get orders_path(customer: "hbp", week: "2026-10-12")
+    assert_select ".line-note", /entregar até 7h/
+    assert_select ".tag-change", text: "obs.", count: 0
+    get schedule_path(date: "2026-10-14")
+    assert_select ".line-note", /entregar até 7h/
+  end
+
   test "salvar a grade altera o pedido e avisa quando o plano enviado mudou" do
     ActsAsTenant.with_tenant(company) do
       PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call)
