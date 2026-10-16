@@ -1,0 +1,33 @@
+<% content_for :title, "Cortes · Safra" %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Cadastros</h1>
+    <p class="page-sub">Como cada produto processado é feito. O corte define em que lista de produção o produto aparece (o setor) e quantos dias antes da entrega ele é produzido. Para ver o efeito de mudar a antecedência antes de salvar, use <%= link_to "Regras", rules_path, class: "underline" %>.</p>
+  </div>
+  <%= link_to new_cut_path, class: "btn btn-primary" do %><%= icon :plus %>Novo corte<% end %>
+</div>
+<%= render "catalog/tabs" %>
+<section class="panel">
+  <div class="overflow-x-auto">
+    <table class="ops-table" style="min-width: 40rem; table-layout: auto">
+      <thead><tr><th>Corte</th><th>Setor</th><th>Produz</th><th class="col-num">Produtos</th><th></th></tr></thead>
+      <tbody>
+        <% @cuts.each do |cut| %>
+          <tr>
+            <td class="name"><strong><%= cut.name %></strong></td>
+            <td class="who"><%= cut.sector_name %></td>
+            <td><%= lead_options.find { |_, days| days == cut.lead_days }&.first %></td>
+            <td class="num-col"><%= @product_counts[cut.id].to_i %></td>
+            <td class="whitespace-nowrap text-right">
+              <%= link_to "Editar", edit_cut_path(cut), class: "btn" %>
+              <% if @product_counts[cut.id].to_i.zero? %>
+                <%= button_to "Excluir", cut_path(cut), method: :delete, class: "btn", form: { class: "inline", data: { turbo_confirm: "Excluir o corte #{cut.name}?" } } %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+        <% if @cuts.empty? %><tr><td colspan="5" class="muted p-6 text-center">Nenhum corte cadastrado.</td></tr><% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

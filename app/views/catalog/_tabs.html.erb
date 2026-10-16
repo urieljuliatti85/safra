@@ -2,5 +2,6 @@
   <%= link_to "Matérias-primas", raw_materials_path, class: "chip", "aria-current": (controller_name == "raw_materials" ? "true" : nil) %>
   <%= link_to "Produtos", products_path, class: "chip", "aria-current": (controller_name == "products" ? "true" : nil) %>
   <%= link_to "Clientes", customers_path, class: "chip", "aria-current": (%w[customers customer_aliases].include?(controller_name) ? "true" : nil) %>
+  <%= link_to "Cortes", cuts_path, class: "chip", "aria-current": (controller_name == "cuts" ? "true" : nil) %>
   <%= link_to "Fornecedores", suppliers_path, class: "chip", "aria-current": (controller_name == "suppliers" ? "true" : nil) %>
 </nav>

@@ -16,7 +16,7 @@ class CatalogTest < ActionDispatch::IntegrationTest
     get raw_materials_path
     assert_response :success
     assert_select "h1", "Cadastros"
-    assert_select "nav[aria-label=Cadastros] a", 4
+    assert_select "nav[aria-label=Cadastros] a", 5
     assert_select "input[aria-label='Fator de Cenoura'][value='1,35']"
     assert_select "input[aria-label='Kg por embalagem de Cenoura'][value='20']"
     assert_select "select[aria-label='Fornecedor de Cenoura'] option[selected]", "Fornecedor B"

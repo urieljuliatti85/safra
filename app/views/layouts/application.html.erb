@@ -38,7 +38,7 @@
             <%= nav_link "Estoque", stock_path, "stocks" if policy(:stock).show? %>
             <%= nav_link "Conferência", conference_path, "conferences" if policy(:conference).show? %>
             <%= nav_link "Regras", rules_path, "rules" if policy(:rule).show? %>
-            <%= nav_link "Cadastros", raw_materials_path, %w[raw_materials products customers suppliers customer_aliases] if policy(:raw_material).index? %>
+            <%= nav_link "Cadastros", raw_materials_path, %w[raw_materials products customers suppliers customer_aliases cuts] if policy(:raw_material).index? %>
           </nav>
           <details class="user-menu">
             <summary><span class="user-name"><%= current_user.name %></span><span class="sr-only">Menu da conta</span><%= icon :chevron_right, class: "icon user-chevron" %></summary>

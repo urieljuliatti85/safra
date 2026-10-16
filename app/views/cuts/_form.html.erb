@@ -1,0 +1,28 @@
+<%# locals: cut, products_count %>
+<%= form_with model: cut, class: "panel grid max-w-xl gap-4 p-5", data: { turbo: false } do |form| %>
+  <%= render "catalog/errors", record: cut %>
+  <div>
+    <%= form.label :name, "Nome do corte", class: "mb-1 block font-bold" %>
+    <%= form.text_field :name, required: true, autofocus: true, class: "field w-full" %>
+    <p class="muted mt-1 text-sm">Ex.: Cubos grandes, Fatiado fino, Meia-lua.</p>
+  </div>
+  <div>
+    <%= form.label :sector, "Setor (lista de produção em que aparece)", class: "mb-1 block font-bold" %>
+    <%= form.select :sector, Cut::SECTORS.map { |code| [ Cut::SECTOR_NAMES[code], code ] }, {}, class: "field w-full" %>
+    <ul class="muted mt-2 grid gap-1 text-sm">
+      <% Cut::SECTORS.each do |code| %><li><strong><%= Cut::SECTOR_NAMES[code] %>:</strong> <%= Cut::SECTOR_HINTS[code] %></li><% end %>
+    </ul>
+    <% if products_count.to_i.positive? %>
+      <p class="mt-2 text-sm font-bold">Este corte tem <%= plural(products_count, "produto", "produtos") %>: mudar o setor muda a lista de produção em que eles aparecem.</p>
+    <% end %>
+  </div>
+  <div>
+    <%= form.label :lead_days, "Produz", class: "mb-1 block font-bold" %>
+    <%= form.select :lead_days, lead_options, {}, class: "field w-full" %>
+    <p class="muted mt-1 text-sm">Antes da entrega. Produtos desse corte podem ter uma exceção própria em Regras. Domingo não tem produção: cai para sábado.</p>
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <%= form.button type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar<% end %>
+    <%= link_to "Cancelar", cuts_path, class: "btn" %>
+  </div>
+<% end %>

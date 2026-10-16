@@ -33,6 +33,7 @@ Rails.application.routes.draw do
       patch :bulk_update, path: "lote", on: :collection
     end
     resources :products, path: "produtos", except: :show
+    resources :cuts, path: "cortes", except: :show
     resources :customers, path: "clientes", except: :show do
       resources :customer_aliases, path: "apelidos", only: %i[create destroy]
     end

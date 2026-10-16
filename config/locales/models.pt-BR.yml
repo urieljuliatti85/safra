@@ -52,6 +52,10 @@ pt-BR:
         platform_admin: Dono da plataforma
         company: Empresa
       cut:
+        name: Nome
+        code: Código
+        sector: Setor
+        sector_name: Nome do setor
         lead_days: Antecedência
       company:
         name: Nome

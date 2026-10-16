@@ -83,9 +83,10 @@ Em **Cadastros** a equipe mantém o que antes só vinha por seed:
 - **Matérias-primas:** uma grade para completar vários de uma vez: fornecedor, embalagem de compra (caixa, saco, kg, unidade), kg por embalagem, fator de perda e kg por caixa descascada. Os filtros **Incompletas** (sem fator em item processado, ou sem peso da embalagem em item comprado por caixa ou saco) e **Usadas nos pedidos** mostram por onde começar, e o placar de compras contra a planilha de 13 e 15/10 sobe conforme o cadastro fica completo. Sem o fator, a compra do item processado não é convertida; sem o peso da embalagem, não vira número de caixas ou sacos.
 - **Produtos:** grupo (processado, fruta ou in natura), matéria-prima, corte e unidade. Processado e fruta exigem corte; in natura não tem.
 - **Clientes:** nome, nome curto e como o pedido chega, mais os **apelidos** dos produtos como o cliente os escreve (a importação usa a lista; nomes novos entram sozinhos).
+- **Cortes:** como o produto processado é feito (cubos, cubinhos, ralado...). O corte define o **setor** (a lista de produção em que o produto aparece: descascados inteiros, cortes manuais, ralados e picados, palitos, cubinhos ou frutas) e a **antecedência** da produção. Uma empresa nova começa com os cortes padrão e cria os seus. O nome do setor é um só por setor; trocar o setor de um corte em uso muda onde os produtos dele aparecem na produção.
 - **Fornecedores.**
 
-O código de cada cadastro é gerado do nome (`Batata roxa` vira `batata_roxa`) e não muda depois, porque seeds, planilhas de referência e apelidos apontam para ele. Decimais aceitam vírgula (`1,35`), e campo vazio fica sem valor. Excluir é barrado quando há dependências (matéria-prima com produtos, produto ou cliente com pedidos, fornecedor com matérias-primas). As mensagens do sistema estão em português.
+O código de cada cadastro é gerado do nome (`Batata roxa` vira `batata_roxa`) e não muda depois, porque seeds, planilhas de referência e apelidos apontam para ele. Decimais aceitam vírgula (`1,35`), e campo vazio fica sem valor. Excluir é barrado quando há dependências (matéria-prima ou corte com produtos, produto ou cliente com pedidos, fornecedor com matérias-primas). As mensagens do sistema estão em português.
 
 ## Empresas (multiempresa)
 
