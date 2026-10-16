@@ -33,7 +33,7 @@
     <p class="p-3 num">
       Produção: <strong><%= sim.before_score[:production][0] %> → <%= sim.after_score[:production][0] %></strong> de <%= sim.after_score[:production][1] %> ·
       Compras: <strong><%= sim.before_score[:purchase][0] %> → <%= sim.after_score[:purchase][0] %></strong> de <%= sim.after_score[:purchase][1] %> ·
-      <span class="text-field-deep font-bold"><%= sim.improved %> passam a bater</span>,
+      <span class="text-accent font-bold"><%= sim.improved %> passam a bater</span>,
       <span class="<%= 'text-change font-bold' if sim.worsened.positive? %>"><%= sim.worsened %> deixam de bater</span>
     </p>
     <% if sim.deltas.any? %>

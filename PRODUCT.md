@@ -48,4 +48,4 @@ Dados reais da semana de 12/10/2026 em `db/seeds_data/`, protótipo em `prototip
 
 ## Accessibility & Inclusion
 
-Leitura sob luz forte ou refletida (contraste alto, texto grande nas listas de produção). Uso em ambiente úmido. Português do Brasil, formatos numéricos e de data brasileiros.
+Leitura sob luz forte ou refletida (contraste alto, texto grande nas listas de produção). A tela é escura por decisão do usuário (igual ao BI); a lista da bancada continua em PDF claro, por causa da luz forte. Uso em ambiente úmido. Português do Brasil, formatos numéricos e de data brasileiros.

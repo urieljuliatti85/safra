@@ -1,23 +1,26 @@
 ---
 name: Safra
-description: Calendário de safra. Planejamento de produção e compras de hortifrúti, lido na bancada sob luz forte e impresso em A4.
+description: Calendário de safra em painel escuro de sala de controle. Planejamento de produção e compras de hortifrúti; a tela é escura, o papel (PDF e impressão) continua claro.
 colors:
   field: "#2e7d32"
-  field-deep: "#1e5a24"
+  field-hover: "#3a8f3e"
+  accent: "#8bc34a"
   sprout: "#8bc34a"
   sprout-mid: "#5aa84b"
   sprout-pale: "#cfe3bf"
-  field-wash: "#e7f1e2"
-  leaf: "#f4f7f0"
-  surface: "#ffffff"
-  ink: "#14231a"
-  ink-soft: "#4a5d50"
-  line: "#cbd7c4"
-  line-soft: "#e3eadd"
+  field-wash: "#183024"
+  leaf: "#0c1810"
+  surface: "#12251a"
+  ink: "#eaf3e4"
+  ink-soft: "#a3bba8"
+  line: "#274533"
+  line-soft: "#1d3527"
   sun: "#f2b705"
-  change: "#b3261e"
-  change-wash: "#fdecea"
-  soil: "#8a6a3c"
+  change: "#ff8d85"
+  change-solid: "#b3261e"
+  change-wash: "#3a1512"
+  soil: "#d9b27a"
+  on-sprout: "#0c1810"
 typography:
   page-title:
     fontFamily: "Bricolage Grotesque, Bricolage Fallback, ui-sans-serif, system-ui, sans-serif"
@@ -76,13 +79,13 @@ components:
     padding: "8px 16px"
     height: "40px"
   button-primary-hover:
-    backgroundColor: "{colors.field-deep}"
+    backgroundColor: "{colors.field-hover}"
   panel:
     backgroundColor: "{colors.surface}"
     rounded: "{rounded.lg}"
   panel-head:
     backgroundColor: "{colors.field-wash}"
-    textColor: "{colors.field-deep}"
+    textColor: "{colors.accent}"
     typography: "{typography.section}"
     padding: "12px 16px"
   pill-sent:
@@ -126,14 +129,14 @@ components:
 
 **Creative North Star: "Calendário de safra"**
 
-Safra é uma ferramenta de operação: quem a abre está na bancada ou na câmara fria, com luz forte e refletida, área úmida, às vezes com a mão ocupada. O sistema nasce dessa cena, não de um gosto por temas escuros. Por isso é claro, de tinta escura sobre fundo de folha, e o PDF impresso é cidadão de primeira classe: as mesmas cores, a mesma fonte e a mesma coluna de quantidades valem na tela e no papel A4.
+Safra é uma ferramenta de operação e de análise, e a tela segue o painel de BI: uma sala de controle escura, de tinta clara sobre verde-quase-preto, escolhida pelo usuário para todo o sistema. A lista da bancada continua sendo o PDF em papel claro (A4, tinta escura), que não muda: a mesma fonte e a mesma coluna de quantidades valem na tela e no papel, mas o papel é claro.
 
 A metáfora é o calendário do plantio: uma semana em colunas, um canteiro por setor, barras que crescem onde há trabalho. Os verdes são de lavoura e fazem todo o trabalho de estrutura. Duas cores de sinal têm dono único e quase nunca aparecem: o amarelo-sol só diz "hoje", o vermelho só diz "mudou depois do envio". Modo Operate: densidade confortável, nada decorativo, a quantidade é sempre o que se lê primeiro.
 
-Não há modo escuro, e isso é decisão de uso, não omissão. Não há ilustração nem foto; a identidade vem da cor, da fonte única e da faixa da semana.
+O sistema é escuro por escolha (não há modo claro de tela); no papel e na impressão do navegador (`@media print`) os mesmos tokens voltam à base clara. Risco assumido: sob luz forte e refletida a tela escura perde contraste; por isso a tinta é clara de alto contraste (#eaf3e4 sobre #0c1810) e a lista de bancada segue em PDF claro. Não há ilustração nem foto; a identidade vem da cor, da fonte única e da faixa da semana.
 
 **Key Characteristics:**
-- Fundo de folha (#f4f7f0) com painéis brancos e bordas verde-acinzentadas finas; profundidade só por tom e borda.
+- Fundo verde-quase-preto (#0c1810) com painéis um tom acima (#12251a) e bordas verde-escuras finas; profundidade só por tom e borda.
 - Uma família tipográfica (Bricolage Grotesque), cinco papéis de tamanho, quantidades tabulares e alinhadas à direita.
 - Verde como estrutura; sol e vermelho como sinais de uso único; terra só para a cobertura da compra.
 - A faixa da semana é a assinatura: oito dias, uma raia por setor, uma raia contínua de compra.
@@ -141,30 +144,30 @@ Não há modo escuro, e isso é decisão de uso, não omissão. Não há ilustra
 
 ## Colors
 
-Paleta de lavoura sobre folha clara: verdes em quatro tons de trabalho, neutros esverdeados, e três cores com papel reservado.
+Paleta de lavoura sobre verde-quase-preto: verdes de trabalho (Broto como cor de dado e de texto), neutros esverdeados claros, e três cores com papel reservado.
 
 ### Primary
-- **Verde de Lavoura** (#2e7d32, `field`): ação primária, aba atual, dia aberto na faixa, selo "enviada", barras de nível alto, foco de cursor. Texto branco sobre ele.
-- **Verde Fundo** (#1e5a24, `field-deep`): hover do primário, marca e nome Safra, títulos de painel, anel de foco (3px).
+- **Verde de Lavoura** (#2e7d32, `field`): ação primária, dia aberto na faixa, selo "enviada", barras de nível alto. Texto branco sobre ele; hover em `field-hover` (#3a8f3e).
+- **Broto Vivo** (#8bc34a, `accent`): marca e nome Safra, títulos de painel, aba atual, cor de dado nos gráficos, anel de foco (3px), seleção de texto.
 
 ### Secondary
-- **Broto** (#8bc34a, `sprout`): barras de nível baixo (1 a 2 itens), seleção de texto, borda de aviso positivo. Texto de tinta sobre ele, nunca branco.
-- **Broto Médio** (#5aa84b, `sprout-mid`): barras de nível médio (3 a 5 itens). Só existe como o degrau do meio da escala de barras.
+- **Broto** (#8bc34a, `sprout`): barras de nível baixo (1 a 2 itens), borda de aviso positivo. Texto escuro (`on-sprout`, #0c1810) sobre ele, nunca branco.
+- **Broto Médio** (#5aa84b, `sprout-mid`): barras de nível médio (3 a 5 itens), com texto escuro. Só existe como o degrau do meio da escala de barras.
 - **Broto Pálido** (#cfe3bf, `sprout-pale`): declarado no tema para apoio de superfície verde; ainda sem uso nas telas.
-- **Lavagem de Lavoura** (#e7f1e2, `field-wash`): cabeça de painel, grupos da grade, dia aberto na faixa (coluna inteira), hover de botão.
+- **Lavagem de Lavoura** (#183024, `field-wash`): cabeça de painel, grupos da grade, dia aberto na faixa (coluna inteira), hover de botão.
 
 ### Tertiary (papéis reservados)
-- **Sol** (#f2b705, `sun`): exclusivamente "hoje": dia de hoje na faixa e na grade, e o ponto do ícone do app. Nunca decoração.
-- **Mudou** (#b3261e, `change`) e **Lavagem de Mudança** (#fdecea, `change-wash`): exclusivamente "mudou depois do envio" e erros: linha alterada, etiqueta "mudou", caixa de diferença, alerta. Texto sobre a lavagem usa um vermelho mais escuro (#6f1710).
-- **Terra** (#8a6a3c, `soil`): exclusivamente a barra contínua da compra CEASA e os avisos de conferência de matéria-prima (fundo #f6f0e6, borda #d8c8ac, texto #6b5230).
+- **Sol** (#f2b705, `sun`): exclusivamente "hoje": dia de hoje na faixa, na grade e nas colunas do BI, e o ponto do ícone do app. Texto escuro sobre ele. Nunca decoração.
+- **Mudou** (#ff8d85 para texto e traço, `change`; #b3261e para preenchimento com texto branco, `change-solid`) e **Lavagem de Mudança** (#3a1512, `change-wash`): exclusivamente "mudou depois do envio" e erros: linha alterada, etiqueta "mudou", caixa de diferença, alerta. Texto sobre a lavagem em #f4c1bc, borda #6e2a24.
+- **Terra** (#d9b27a, `soil`): exclusivamente a barra contínua da compra CEASA e os avisos de conferência de matéria-prima (fundo #2a2315, borda #5c4a2c, texto #e6cfa6).
 
 ### Neutral
-- **Folha** (#f4f7f0, `leaf`): fundo da página e da área de texto do WhatsApp.
-- **Branco** (#ffffff, `surface`): painéis, barra de navegação, botões, células da grade.
-- **Tinta** (#14231a, `ink`): texto principal.
-- **Tinta Suave** (#4a5d50, `ink-soft`): metadados, cabeçalhos de coluna, unidades, contorno de rascunho.
-- **Linha** (#cbd7c4, `line`): bordas de painel, botão, divisão de cabeçalho.
-- **Linha Suave** (#e3eadd, `line-soft`): divisões entre linhas, hachura de domingo.
+- **Fundo** (#0c1810, `leaf`): fundo da página e da área de texto do WhatsApp.
+- **Superfície** (#12251a, `surface`): painéis, barra de navegação, botões, campos, células da grade.
+- **Tinta** (#eaf3e4, `ink`): texto principal.
+- **Tinta Suave** (#a3bba8, `ink-soft`): metadados, cabeçalhos de coluna, unidades, contorno de rascunho.
+- **Linha** (#274533, `line`): bordas de painel, botão, divisão de cabeçalho.
+- **Linha Suave** (#1d3527, `line-soft`): divisões entre linhas, hachura de domingo.
 
 ### Named Rules
 **The Dono Único Rule.** Sol é "hoje", vermelho é "mudou", terra é "compra". Nenhuma dessas cores serve de enfeite nem de ênfase genérica; a raridade é o que as faz ser lidas.
@@ -211,14 +214,14 @@ Movimento: as barras da faixa crescem da esquerda em 0,5s (`cubic-bezier(.16,1,.
 
 ## Shapes
 
-Cantos suaves em três degraus: 4px para etiquetas e foco, 8px (0.5rem) para botões, campos e avisos, 12px (0.75rem) para painéis, faixa e grade. Pílulas (999px) para chips de seleção e status; barras da faixa são cápsulas (altura 1.5rem, raio 0.75rem). A barra de compra é a exceção de propósito: sem raio no meio, com cantos arredondados só na primeira e na última célula, para ler como uma faixa contínua. Domingo é marcado por hachura diagonal fina em Linha Suave, não por cor. Ícones: traço único de 1,75px, `currentColor`, pontas arredondadas, 24x24 exibidos a 1,125rem; desenhados à mão neste projeto (sem biblioteca). Marca: dois brotos de folha em traço de 2px; no ícone do app, traço Folha sobre quadrado Verde de Lavoura (raio 112/512) com ponto sol.
+Cantos suaves em três degraus: 4px para etiquetas e foco, 8px (0.5rem) para botões, campos e avisos, 12px (0.75rem) para painéis, faixa e grade. Pílulas (999px) para chips de seleção e status; barras da faixa são cápsulas (altura 1.5rem, raio 0.75rem). A barra de compra é a exceção de propósito: sem raio no meio, com cantos arredondados só na primeira e na última célula, para ler como uma faixa contínua. Domingo é marcado por hachura diagonal fina em Linha Suave, não por cor. Ícones: traço único de 1,75px, `currentColor`, pontas arredondadas, 24x24 exibidos a 1,125rem; desenhados à mão neste projeto (sem biblioteca). Marca: dois brotos de folha em traço de 2px; no ícone do app, traço claro sobre quadrado Verde de Lavoura (raio 112/512) com ponto sol.
 
 ## Components
 
 ### Buttons
 - **Shape:** cantos de 8px, altura mínima 2.5rem, padding 8px 16px, texto 700, ícone opcional de 1.125rem à esquerda.
 - **Padrão:** fundo branco, borda Linha, texto tinta. Hover: fundo lavagem verde e borda verde de lavoura.
-- **Primário:** fundo Verde de Lavoura, texto branco; hover Verde Fundo. Um por região, a ação que avança (enviar aos setores, salvar).
+- **Primário:** fundo Verde de Lavoura, texto branco; hover `field-hover`. Um por região, a ação que avança (enviar aos setores, salvar).
 - **Ícone-botão:** quadrado 2.5rem com o mesmo comportamento (navegação de dia).
 
 ### Chips
@@ -238,14 +241,13 @@ Cantos suaves em três degraus: 4px para etiquetas e foco, 8px (0.5rem) para bot
 - Células de 3,75rem, texto à direita e tabular, sem borda até hover; preenchida fica em 700. Cabeçalho de dia de hoje em sol; domingo hachurado; grupos em lavagem verde fixos à esquerda. Foco com anel de 3px.
 
 ### Campos
-- Altura 2.5rem, borda tinta suave, raio 8px, fundo branco. A área do WhatsApp é um bloco sem borda lateral, fundo Folha, leitura em 0.9375rem/1.5, com botão de copiar que confirma "Copiado" por 2 segundos.
+- Altura 2.5rem, borda tinta suave, raio 8px, fundo superfície, tinta clara (`color-scheme: dark` nos controles nativos). A área do WhatsApp é um bloco sem borda lateral, fundo da página, leitura em 0.9375rem/1.5, com botão de copiar que confirma "Copiado" por 2 segundos.
 
 ### Navegação
-- Abas de texto 600 em tinta suave; hover tinta; atual com tinta e sublinhado de 3px em Verde de Lavoura. Marca em Verde Fundo, 800, 1.375rem, com o duplo broto.
+- Abas de texto 600 em tinta suave; hover tinta; atual com tinta e sublinhado de 3px em Verde de Lavoura. Marca em Broto Vivo, 800, 1.375rem, com o duplo broto.
 
-### BI (painel escuro)
-- Exceção deliberada e só desta tela (`/bi`, menu "BI", admin e escritório): painel escuro de sala de controle, escolhido pelo usuário para análise no computador do escritório. Fundo verde-quase-preto (#0c1810), painéis #12251a, linha #274533, tinta #eaf3e4, tinta suave #a3bba8; a nav fica escura nesta tela. Mesma fonte (Bricolage), mesmos verdes (Broto como cor de dado), sol só para "hoje" (coluna do dia), terra clara (#d9b27a) só para compra. No papel (`@media print`) volta à base clara com os mesmos tokens.
-- Papéis: uma exceção de tamanho, o número da semana em 3,5 a 6rem, 800, tabular, só nesta tela. O resto usa os cinco papéis.
+### BI (gráficos)
+- Tela `/bi` (menu "BI", admin e escritório), a referência de onde nasceu o tema escuro do sistema. Uma exceção de tamanho: o número da semana em 3,5 a 6rem, 800, tabular, só nesta tela; o resto usa os cinco papéis.
 - Gráficos em HTML e CSS puros (sem biblioteca): colunas verticais por dia, barra empilhada por setor em cinco tons de verde com legenda de valores, barra "bullet" de perda (comprimento = kg in natura; verde = vira produto; hachurada = perda) e barras horizontais para compras (terra) e rankings (verde). Totais só em kg; outras unidades são contadas em nota.
 
 ### Faixa da Semana (assinatura)
@@ -254,10 +256,10 @@ Cantos suaves em três degraus: 4px para etiquetas e foco, 8px (0.5rem) para bot
 ## Do's and Don'ts
 
 ### Do:
-- **Do** manter a base clara: fundo Folha (#f4f7f0), painéis brancos, tinta #14231a. O uso real é luz forte e papel.
+- **Do** manter a base escura da sala de controle: fundo #0c1810, painéis #12251a, tinta #eaf3e4; o PDF e a impressão seguem claros.
 - **Do** reservar sol para "hoje", vermelho para "mudou depois do envio" e terra para a cobertura da compra.
 - **Do** alinhar toda quantidade à direita, tabular, na coluna fixa de 6,5rem, em 1.25rem 800.
-- **Do** separar superfícies por tom e borda de 1px em Linha; foco visível com anel de 3px em Verde Fundo.
+- **Do** separar superfícies por tom e borda de 1px em Linha; foco visível com anel de 3px em Broto Vivo.
 - **Do** manter alvos de toque de pelo menos 2.5rem e transformar tabelas em listas abaixo de 640px.
 - **Do** espelhar no PDF qualquer cor ou peso novo que importe na bancada.
 - **Do** desenhar ícones novos em traço único de 1,75px com `currentColor`, no `IconHelper`.
