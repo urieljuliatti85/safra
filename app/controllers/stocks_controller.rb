@@ -11,37 +11,14 @@ class StocksController < ApplicationController
   end
 
   def update
-    errors = []
-    changed = 0
-    StockCount.transaction do
-      RawMaterial.where(id: params.fetch(:counts, {}).keys).find_each do |raw_material|
-        text = params[:counts][raw_material.id.to_s].to_s.strip
-        existing = StockCount.find_by(raw_material: raw_material, date: @date)
-        if text.empty?
-          existing&.destroy!
-          changed += 1 if existing
-          next
-        end
-
-        record = existing || StockCount.new(raw_material: raw_material, date: @date)
-        record.kg = text
-        next unless record.new_record? || record.changed?
-
-        if record.save
-          changed += 1
-        else
-          errors << "#{raw_material.name}: #{record.errors.full_messages.to_sentence}"
-        end
-      end
-      raise ActiveRecord::Rollback if errors.any?
-    end
-
-    if errors.empty?
+    result = StockCountSaver.new(date: @date, counts: params.fetch(:counts, {}).to_unsafe_h).call
+    if result.ok?
+      changed = result.changed
       redirect_to stock_path(date: @date, q: params[:q].presence, todas: params[:todas].presence),
                   notice: changed.zero? ? "Nada mudou." : "#{changed} #{changed == 1 ? 'contagem salva' : 'contagens salvas'} em #{Formatting.short_date(@date)}.",
                   alert: stale_purchase_warning
     else
-      @errors = errors
+      @errors = result.errors
       load_data
       render :show, status: :unprocessable_entity
     end

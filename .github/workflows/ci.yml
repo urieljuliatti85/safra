@@ -104,6 +104,20 @@ jobs:
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
 
+      - name: Run API request specs (RSpec/rswag)
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+        run: bundle exec rspec
+
+      - name: Check the OpenAPI file is up to date
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+        run: |
+          bundle exec rake rswag:specs:swaggerize
+          git diff --exit-code swagger/ || { echo "swagger/v1/swagger.yaml desatualizado: rode bundle exec rake rswag:specs:swaggerize e commite." >&2; exit 1; }
+
   system-test:
     runs-on: ubuntu-latest
 

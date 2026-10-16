@@ -1,0 +1,25 @@
+<% content_for :title, "Nova chave de API · Safra" %>
+<div class="mb-5"><h1 class="page-title">Nova chave de API</h1></div>
+<%= form_with model: @token, url: api_tokens_path, class: "panel grid gap-4 p-5 max-w-xl", data: { turbo: false } do |form| %>
+  <% if @token.errors.any? %>
+    <div class="flash flash-alert" role="alert">
+      <%= icon :alert %>
+      <ul class="list-disc ml-5"><% @token.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul>
+    </div>
+  <% end %>
+  <div>
+    <%= form.label :name, "Nome da chave", class: "mb-1 block font-bold" %>
+    <%= form.text_field :name, required: true, maxlength: 80, placeholder: "ERP da Hortifruti Modelo", class: "field w-full" %>
+    <p class="muted mt-1 text-sm">Diga qual sistema usa a chave, para reconhecer depois no histórico.</p>
+  </div>
+  <div>
+    <%= form.label :scope, "Acesso", class: "mb-1 block font-bold" %>
+    <%= form.select :scope, ApiToken::SCOPES.map { |scope| [ ApiToken::SCOPE_LABELS[scope], scope ] }, {}, class: "field w-full" %>
+    <p class="muted mt-1 text-sm">Só leitura consulta cadastros, pedidos e planos. Leitura e escrita também grava pedidos e contagens de estoque.</p>
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <%= form.button type: "submit", class: "btn btn-primary" do %><%= icon :check %>Criar chave<% end %>
+    <%= link_to "Cancelar", api_tokens_path, class: "btn" %>
+  </div>
+  <p class="muted text-sm">O sistema mostra a chave uma única vez, na próxima tela.</p>
+<% end %>

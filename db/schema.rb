@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_040000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_030000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "api_tokens", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "name", null: false
+    t.string "token_digest", null: false
+    t.string "token_prefix", null: false
+    t.string "scope", default: "read", null: false
+    t.datetime "last_used_at"
+    t.datetime "revoked_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_api_tokens_on_company_id"
+    t.index ["token_digest"], name: "index_api_tokens_on_token_digest", unique: true
   end
 
   create_table "audit_logs", force: :cascade do |t|
@@ -300,6 +314,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_030000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "api_tokens", "companies"
   add_foreign_key "audit_logs", "companies"
   add_foreign_key "audit_logs", "users"
   add_foreign_key "customer_aliases", "companies"

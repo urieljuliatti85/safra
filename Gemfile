@@ -41,6 +41,9 @@ gem "thruster", require: false
 gem "image_processing", "~> 2.2"
 
 group :development, :test do
+  # Specs de request da API v1 (rswag gera o OpenAPI a partir deles); o resto do app é Minitest
+  gem "rspec-rails", "~> 8.0"
+  gem "rswag-specs", "~> 2.17"
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 
@@ -65,6 +68,8 @@ group :test do
   gem "selenium-webdriver"
 end
 
+gem "rswag-api", "~> 2.17"
+gem "rswag-ui", "~> 2.17"
 gem "acts_as_tenant", "~> 2.2"
 gem "pundit", "~> 2.5"
 

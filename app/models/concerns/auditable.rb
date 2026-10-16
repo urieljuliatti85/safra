@@ -1,5 +1,6 @@
 # Registra no histórico quem criou, alterou ou excluiu o registro, com o antes e o depois de cada campo.
-# Só registra o que passa pelo app com alguém logado (Current.user): seeds e console não entram.
+# Só registra o que passa pelo app com alguém logado (Current.user) ou por uma chave de API (Current.api_token):
+# seeds e console não entram.
 # Os callbacks rodam dentro da transação: se ela for desfeita (como na simulação de regras), o registro some junto.
 #
 #   audited except: %w[payload]      # campos que não interessam ao histórico
@@ -32,15 +33,16 @@ module Auditable
 
   def record_audit(action)
     user = Current.user
-    return unless user
+    actor_name = user&.name || (Current.api_token && "API: #{Current.api_token.name}")
+    return unless actor_name
 
     details = audit_details(action)
     return if action == "update" && details.empty?
 
-    company = ActsAsTenant.current_tenant || user.company
+    company = ActsAsTenant.current_tenant || user&.company || Current.api_token.company
     ActsAsTenant.with_tenant(company) do
       AuditLog.create!(
-        company: company, user: user, user_name: user.name, action: action,
+        company: company, user: user, user_name: actor_name, action: action,
         auditable_type: self.class.name, auditable_id: id, auditable_label: audit_label.to_s.truncate(MAX_TEXT),
         details: details, request_id: Current.request_id, ip_address: Current.ip_address
       )

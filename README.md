@@ -126,11 +126,24 @@ Regras que ajudam a entender a conferência:
 
 Planilhas de exemplo ficam em `referencia/planilhas` (fora do git). Se essa pasta existir, os testes importam as planilhas reais e conferem que reproduzem os pedidos dos seeds.
 
+## API para integrações (v1)
+
+JSON sob `/api/v1`, documentada em **`/api-docs`** (Swagger UI; o arquivo OpenAPI fica em `swagger/v1/swagger.yaml`).
+
+- **Chave por empresa.** O administrador cria e revoga em **Chaves de API** (menu da conta). O token (`safra_...`) aparece **uma única vez**; no banco fica só o hash (SHA-256). Duas permissões: *só leitura* e *leitura e escrita*. Cada chave enxerga só os dados da própria empresa; chave revogada ou empresa suspensa recebe 401. Envie `Authorization: Bearer <chave>`; guarde a chave como segredo (nunca em código nem em chat).
+- **Leitura:** cadastros (`customers`, `products`, `raw_materials`, `cuts`, `suppliers`), pedido de um cliente em uma semana (`GET /orders`), programação, produção e compras já calculadas, com a versão enviada e o que mudou depois (`/schedule`, `/production`, `/purchases`) e estoque (`/stock`).
+- **Escrita:** `PUT /orders` (linhas do pedido de uma semana, com as mesmas regras da grade: quantidade 0 apaga, linha inválida não grava nada) e `PUT /stock` (contagem da câmara fria). Passam pelos mesmos serviços das telas (`OrderGridSaver`, `StockCountSaver`) e entram no **Histórico** como "API: <nome da chave>".
+- **Erros** sempre como `{ "error": { "code", "message", "details" } }`; limite de 300 requisições por minuto por chave.
+- **Fora desta versão:** gravar a observação da linha, criar cadastros e enviar produção ou compra aos setores (continuam nas telas).
+
+Os specs de request em `spec/requests/api/v1` (RSpec com rswag) documentam e testam cada endpoint. Depois de mudar a API, regere o OpenAPI e commite: `RAILS_ENV=test bundle exec rake rswag:specs:swaggerize`. O CI recusa o PR se o arquivo estiver desatualizado.
+
 ## Testes e qualidade
 
 ```bash
 bin/rails test           # testes unitários e de integração (usam os seeds)
 bin/rails test:system    # testes de navegador (Chrome headless)
+bundle exec rspec        # specs de request da API v1 (rswag; o resto do app é Minitest)
 bin/rubocop              # estilo
 bin/ci                   # rubocop, auditorias de segurança e testes (sem os de sistema)
 ```
@@ -139,7 +152,7 @@ O relatório de comparação com as planilhas é gravado em `tmp/conferencia_pla
 
 ### Pre-commit
 
-O `bin/setup` ativa o hook `.githooks/pre-commit`: Rubocop nos arquivos Ruby do commit e a suíte de testes quando o commit toca código. Sem o hook ativo (clone novo sem rodar o setup): `git config core.hooksPath .githooks`. Em emergência: `git commit --no-verify`.
+O `bin/setup` ativa o hook `.githooks/pre-commit`: Rubocop nos arquivos Ruby do commit, a suíte Minitest e os specs da API quando o commit toca código. Sem o hook ativo (clone novo sem rodar o setup): `git config core.hooksPath .githooks`. Em emergência: `git commit --no-verify`.
 
 ## Solução de problemas
 
@@ -171,6 +184,7 @@ Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde ant
 
 - `app/models`: modelos multiempresa (`acts_as_tenant` por `Company`), `User` e `Session`.
 - `app/models/concerns/auditable.rb` e `AuditLog`: histórico de alterações.
+- `app/controllers/api/v1`, `app/presenters/api_presenter.rb` e `ApiToken`: API de integração; `spec/` e `swagger/`: specs rswag e o OpenAPI gerado.
 - `app/policies`: autorização com Pundit, negada por padrão e liberada por papel (`allow :admin, :office, to: ...`).
 - `app/services`: `ProductionPlanner`, `PurchasePlanner`, `WeekOverview`, `PlanPublisher`, `PlanDiff`, `ConferenceChecker`, `OrderGridSaver` e, em `order_imports/`, a leitura de planilhas (`SheetReader`), o reconhecimento de nomes (`Matcher`), a prévia (`Preview`) e a gravação (`Applier`).
 - `app/pdfs`: PDFs com Prawn (fonte Bricolage Grotesque embutida).

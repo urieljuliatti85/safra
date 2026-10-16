@@ -1,0 +1,935 @@
+---
+openapi: 3.0.1
+info:
+  title: API do Safra
+  version: v1
+  description: |
+    Integração com o Safra, sistema de planejamento de produção e compras. Cada chave de API pertence a uma empresa
+    e só enxerga os dados dela. O administrador cria e revoga chaves em "Chaves de API", no menu da conta.
+
+    **Autenticação:** envie `Authorization: Bearer <chave>`. Chaves de leitura consultam; chaves de escrita também gravam
+    pedidos e contagens de estoque. Erros vêm como `{ "error": { "code", "message", "details" } }`.
+
+    **Formatos:** datas em AAAA-MM-DD; quantidades como número decimal (kg, un, cx ou mç, conforme a unidade); a semana de
+    pedido começa na segunda-feira e cobre 8 dias (segunda a segunda). O limite é de 300 requisições por minuto por chave.
+servers:
+- url: "/"
+  description: Esta instalação
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Chave de API da empresa (safra_...)
+  schemas:
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          properties:
+            code:
+              type: string
+              example: unauthorized
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: string
+    Customer:
+      type: object
+      required:
+      - code
+      - name
+      - short_name
+      properties:
+        code:
+          type: string
+          example: hbp
+        name:
+          type: string
+          example: Hospital Bom Pastor
+        short_name:
+          type: string
+    Supplier:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    Cut:
+      type: object
+      required:
+      - code
+      - name
+      - sector
+      - sector_name
+      - lead_days
+      properties:
+        code:
+          type: string
+          example: cubinhos
+        name:
+          type: string
+        sector:
+          type: string
+        sector_name:
+          type: string
+        lead_days:
+          type: integer
+    RawMaterial:
+      type: object
+      required:
+      - code
+      - name
+      properties:
+        code:
+          type: string
+          example: cenoura
+        name:
+          type: string
+        supplier:
+          type: string
+          nullable: true
+        multiply_factor:
+          type: number
+          nullable: true
+          description: kg in natura por kg processado
+        kg_per_package:
+          type: number
+          nullable: true
+        kg_per_peeled_box:
+          type: number
+          nullable: true
+        purchase_package:
+          type: string
+          example: sc
+    Product:
+      type: object
+      required:
+      - code
+      - name
+      - group
+      - unit
+      - raw_material
+      properties:
+        code:
+          type: string
+          example: cenoura_cubinhos
+        name:
+          type: string
+        group:
+          type: string
+          enum:
+          - processed
+          - raw
+          - fruit
+        unit:
+          type: string
+          enum:
+          - kg
+          - un
+          - cx
+          - mç
+        raw_material:
+          type: string
+        cut:
+          type: string
+          nullable: true
+        sector:
+          type: string
+          nullable: true
+    OrderLine:
+      type: object
+      required:
+      - product
+      - unit
+      - date
+      - quantity
+      properties:
+        product:
+          type: string
+          description: Código do produto
+        unit:
+          type: string
+        date:
+          type: string
+          format: date
+        quantity:
+          type: number
+        note:
+          type: string
+          nullable: true
+    Order:
+      type: object
+      required:
+      - customer
+      - week_start
+      - lines
+      properties:
+        customer:
+          type: string
+        week_start:
+          type: string
+          format: date
+        lines:
+          type: array
+          items:
+            "$ref": "#/components/schemas/OrderLine"
+        changed_dates:
+          type: array
+          items:
+            type: string
+            format: date
+          description: 'Só no PUT: dias de entrega que mudaram'
+        stale_plans:
+          type: array
+          items:
+            type: string
+            format: date
+          description: 'Só no PUT: dias com produção enviada que mudou'
+    OrderUpdate:
+      type: object
+      required:
+      - customer
+      - week
+      - lines
+      properties:
+        customer:
+          type: string
+          example: hbp
+        week:
+          type: string
+          format: date
+          example: '2026-10-12'
+          description: Segunda-feira da semana
+        lines:
+          type: array
+          items:
+            type: object
+            required:
+            - product
+            - date
+            - quantity
+            properties:
+              product:
+                type: string
+                example: cenoura_cubinhos
+              date:
+                type: string
+                format: date
+                example: '2026-10-14'
+              quantity:
+                oneOf:
+                - type: number
+                - type: string
+                example: '12,5'
+                description: 0 ou vazio apaga a linha
+              unit:
+                type: string
+                description: 'Padrão: a unidade do produto'
+    Change:
+      type: object
+      properties:
+        label:
+          type: string
+        unit:
+          type: string
+        before:
+          type: number
+          nullable: true
+        after:
+          type: number
+          nullable: true
+        kind:
+          type: string
+          enum:
+          - added
+          - removed
+          - changed
+    PlanVersion:
+      type: object
+      nullable: true
+      properties:
+        version:
+          type: integer
+        sent_at:
+          type: string
+          format: date-time
+    Schedule:
+      type: object
+      required:
+      - date
+      - customers
+      properties:
+        date:
+          type: string
+          format: date
+        customers:
+          type: array
+          items:
+            type: object
+            properties:
+              customer:
+                "$ref": "#/components/schemas/Customer"
+              items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    product:
+                      type: string
+                    name:
+                      type: string
+                    quantity:
+                      type: number
+                    unit:
+                      type: string
+                    production_date:
+                      type: string
+                      format: date
+                      nullable: true
+                    note:
+                      type: string
+                      nullable: true
+    Production:
+      type: object
+      required:
+      - date
+      - items
+      - aprontes
+      properties:
+        date:
+          type: string
+          format: date
+        sent_version:
+          "$ref": "#/components/schemas/PlanVersion"
+        changes_since_sent:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Change"
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              product:
+                type: string
+              name:
+                type: string
+              sector:
+                type: string
+              quantity:
+                type: number
+              unit:
+                type: string
+              breakdown:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    customer:
+                      type: string
+                    delivery_date:
+                      type: string
+                      format: date
+                    quantity:
+                      type: number
+        aprontes:
+          type: array
+          items:
+            type: object
+            properties:
+              raw_material:
+                type: string
+              kg:
+                type: number
+              boxes:
+                type: integer
+    Purchase:
+      type: object
+      required:
+      - items
+      properties:
+        date:
+          type: string
+          format: date
+          nullable: true
+        sent_version:
+          "$ref": "#/components/schemas/PlanVersion"
+        changes_since_sent:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Change"
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              raw_material:
+                type: string
+              name:
+                type: string
+              supplier:
+                type: string
+                nullable: true
+              unit:
+                type: string
+              kg:
+                type: number
+              stock_kg:
+                type: number
+              net_kg:
+                type: number
+              packages:
+                type: integer
+                nullable: true
+              package:
+                type: string
+              missing_factor:
+                type: boolean
+    Stock:
+      type: object
+      required:
+      - date
+      - counts
+      - previous
+      properties:
+        date:
+          type: string
+          format: date
+        counts:
+          type: array
+          items:
+            type: object
+            properties:
+              raw_material:
+                type: string
+              kg:
+                type: number
+        previous:
+          type: array
+          description: Última contagem anterior de cada matéria-prima
+          items:
+            type: object
+            properties:
+              raw_material:
+                type: string
+              kg:
+                type: number
+              date:
+                type: string
+                format: date
+    StockUpdate:
+      type: object
+      required:
+      - date
+      - counts
+      properties:
+        date:
+          type: string
+          format: date
+          example: '2026-10-13'
+        counts:
+          type: array
+          items:
+            type: object
+            required:
+            - raw_material
+            properties:
+              raw_material:
+                type: string
+                example: cenoura
+              kg:
+                oneOf:
+                - type: number
+                - type: string
+                - type: 'null'
+                example: '12,5'
+                description: Vazio ou nulo apaga a contagem; 0 é câmara vazia
+security:
+- bearerAuth: []
+paths:
+  "/api/v1/customers":
+    get:
+      summary: 'Lista: clientes'
+      tags:
+      - Cadastros
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: só enxerga a própria empresa
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/Customer"
+        '401':
+          description: sem cabeçalho de autorização
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/suppliers":
+    get:
+      summary: 'Lista: fornecedores'
+      tags:
+      - Cadastros
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer <chave>
+        schema:
+          type: string
+      responses:
+        '200':
+          description: fornecedores
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/Supplier"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/cuts":
+    get:
+      summary: 'Lista: cortes'
+      tags:
+      - Cadastros
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer <chave>
+        schema:
+          type: string
+      responses:
+        '200':
+          description: cortes
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/Cut"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/raw_materials":
+    get:
+      summary: 'Lista: matérias-primas'
+      tags:
+      - Cadastros
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer <chave>
+        schema:
+          type: string
+      responses:
+        '200':
+          description: matérias-primas
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/RawMaterial"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/products":
+    get:
+      summary: 'Lista: produtos'
+      tags:
+      - Cadastros
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: Bearer <chave>
+        schema:
+          type: string
+      responses:
+        '200':
+          description: produtos
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - data
+                properties:
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/Product"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/orders":
+    get:
+      summary: Lê o pedido de um cliente em uma semana
+      tags:
+      - Pedidos
+      description: Devolve as linhas do pedido (produto, unidade, data de entrega
+        e quantidade). Semana sem pedido volta com `lines` vazio.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: customer
+        in: query
+        required: true
+        description: Código do cliente
+        schema:
+          type: string
+      - name: week
+        in: query
+        format: date
+        required: true
+        description: Segunda-feira da semana (AAAA-MM-DD)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: semana sem pedido
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Order"
+        '404':
+          description: cliente inexistente
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '400':
+          description: semana que não começa na segunda-feira
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    put:
+      summary: Grava linhas do pedido de um cliente em uma semana
+      tags:
+      - Pedidos
+      description: |
+        Cria o pedido da semana se não existir e grava as linhas enviadas, como na grade de pedidos: quantidade 0 ou vazia
+        apaga a linha; o que não vem no corpo não muda. Se uma linha é inválida, nada é gravado. A resposta traz o pedido
+        atualizado, os dias de entrega que mudaram e os dias com produção já enviada que ficou diferente (`stale_plans`).
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: cria o pedido de uma semana nova
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Order"
+        '422':
+          description: linha inválida não grava nada
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '400':
+          description: sem linhas
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '403':
+          description: token só de leitura
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/OrderUpdate"
+        required: true
+  "/api/v1/schedule":
+    get:
+      summary: Programação de entregas de um dia
+      tags:
+      - Planos
+      description: O que cada cliente pediu para entregar no dia e quando cada item
+        é produzido.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: date
+        in: query
+        format: date
+        required: false
+        description: 'Padrão: hoje'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: programação do dia
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Schedule"
+        '400':
+          description: data inválida
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/production":
+    get:
+      summary: Produção de um dia, por produto, com a abertura por cliente e os aprontes
+      tags:
+      - Planos
+      description: Calculada pelo sistema a partir dos pedidos. `sent_version` é a
+        última versão enviada aos setores; `changes_since_sent` mostra o que mudou
+        desde então.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: date
+        in: query
+        format: date
+        required: false
+        description: 'Padrão: hoje'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: traz a versão enviada e o que mudou depois
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Production"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/purchases":
+    get:
+      summary: Compra da CEASA de um dia de compra, por matéria-prima
+      tags:
+      - Planos
+      description: Quantidade a comprar (já abatido o estoque da câmara fria) por
+        matéria-prima. Sem `date`, usa o dia de compra mais recente até hoje.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: date
+        in: query
+        format: date
+        required: false
+        description: Dia de compra (AAAA-MM-DD)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: compra do dia
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Purchase"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/stock":
+    get:
+      summary: Contagem de estoque de um dia
+      tags:
+      - Estoque
+      description: Contagens do dia e a última contagem anterior de cada matéria-prima.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: date
+        in: query
+        format: date
+        required: false
+        description: 'Padrão: hoje'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: contagens
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Stock"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+    put:
+      summary: Grava a contagem de estoque de um dia
+      tags:
+      - Estoque
+      description: kg vazio ou nulo apaga a contagem (não contado); 0 é câmara vazia.
+        Se uma contagem é inválida, nada é gravado. A compra seguinte abate o que
+        está contado.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: kg nulo apaga a contagem
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                  changed:
+                    type: integer
+        '422':
+          description: matéria-prima inexistente
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '403':
+          description: token só de leitura
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/StockUpdate"
+        required: true

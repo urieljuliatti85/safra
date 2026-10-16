@@ -1,5 +1,5 @@
 #!/bin/sh
-# Pre-commit: Rubocop nos arquivos Ruby do commit e a suíte de testes (Minitest).
+# Pre-commit: Rubocop nos arquivos Ruby do commit, a suíte Minitest e os specs de request da API (RSpec/rswag).
 # Ativado por `git config core.hooksPath .githooks` (feito pelo bin/setup).
 # Para pular em caso de emergência: git commit --no-verify
 
@@ -21,6 +21,14 @@ if printf '%s\n' "$staged" | grep -qE '^(app|config|db|lib|test)/|^Gemfile(\.loc
   echo "pre-commit: testes"
   bin/rails test || {
     echo "pre-commit: testes falharam. O Postgres está de pé? (docker start safra-pg)" >&2
+    exit 1
+  }
+fi
+
+if printf '%s\n' "$staged" | grep -qE '^(app|config|db|lib|spec|swagger)/|^Gemfile(\.lock)?$'; then
+  echo "pre-commit: specs da API (rspec)"
+  bundle exec rspec || {
+    echo "pre-commit: specs da API falharam. Se a API mudou, rode: RAILS_ENV=test bundle exec rake rswag:specs:swaggerize" >&2
     exit 1
   }
 fi

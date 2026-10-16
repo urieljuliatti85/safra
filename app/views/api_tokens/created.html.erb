@@ -1,0 +1,14 @@
+<% content_for :title, "Chave criada · Safra" %>
+<div class="mb-5"><h1 class="page-title">Chave criada</h1></div>
+<section class="panel grid gap-4 p-5 max-w-xl">
+  <div class="flash flash-alert" role="alert">
+    <%= icon :alert %>
+    <p><strong>Copie agora.</strong> Esta é a única vez que a chave aparece. Depois só resta o início dela (<span class="num"><%= @token.token_prefix %>…</span>); se perder, revogue e crie outra.</p>
+  </div>
+  <div>
+    <label for="plain-token" class="mb-1 block font-bold"><%= @token.name %> · <%= @token.scope_label %></label>
+    <input id="plain-token" type="text" readonly value="<%= @plain %>" class="field w-full num" onfocus="this.select()">
+    <p class="muted mt-2 text-sm">Envie no cabeçalho <code>Authorization: Bearer &lt;chave&gt;</code>. Guarde como segredo, nunca em código nem em chat.</p>
+  </div>
+  <div><%= link_to "Voltar às chaves", api_tokens_path, class: "btn btn-primary" %></div>
+</section>

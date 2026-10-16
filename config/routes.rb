@@ -1,10 +1,27 @@
 Rails.application.routes.draw do
   resource :session, only: %i[new create destroy]
+  resources :api_tokens, only: %i[index new create destroy], path: "chaves-api"
   resource :account_password, only: %i[edit update], path: "conta/senha"
   resources :users, only: %i[index new create edit update] do
     post :reset_password, on: :member
   end
   get "up" => "rails/health#show", as: :rails_health_check
+
+  # API v1 (JSON, token por empresa) e a documentação OpenAPI gerada pelos specs (rswag).
+  mount Rswag::Ui::Engine => "/api-docs"
+  mount Rswag::Api::Engine => "/api-docs"
+  namespace :api, defaults: { format: :json } do
+    namespace :v1 do
+      %w[customers products raw_materials cuts suppliers].each { |name| get name, to: "catalog##{name}" }
+      get "orders", to: "orders#show"
+      put "orders", to: "orders#update"
+      get "schedule", to: "plans#schedule"
+      get "production", to: "plans#production"
+      get "purchases", to: "plans#purchases"
+      get "stock", to: "stocks#show"
+      put "stock", to: "stocks#update"
+    end
+  end
 
   root "home#show"
   get "painel", to: "dashboards#show", as: :dashboard
