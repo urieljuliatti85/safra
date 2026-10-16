@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_030000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,6 +66,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_020000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "raw_lead_days", default: 1, null: false
+    t.boolean "active", default: true, null: false
   end
 
   create_table "customer_aliases", force: :cascade do |t|
@@ -292,6 +293,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_020000) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "platform_admin", default: false, null: false
     t.index ["company_id"], name: "index_users_on_company_id"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end

@@ -104,12 +104,13 @@ if Rails.env.development? || Rails.env.test?
   [ [ "Admin Safra", "admin@safra.local", "admin" ], [ "Escritório Safra", "escritorio@safra.local", "office" ],
     [ "Produção Safra", "producao@safra.local", "production" ] ].each do |name, email, role|
     user = User.find_or_initialize_by(email_address: email)
-    user.update!(company: company, name: name, role: role, password: demo_password, password_confirmation: demo_password, active: true, must_change_password: false)
+    user.update!(company: company, name: name, role: role, password: demo_password, password_confirmation: demo_password, active: true, must_change_password: false,
+                 platform_admin: role == "admin")
   end
 elsif ENV["SAFRA_ADMIN_EMAIL"].present? && ENV["SAFRA_ADMIN_PASSWORD"].present?
   user = User.find_or_initialize_by(email_address: ENV["SAFRA_ADMIN_EMAIL"])
   if user.new_record?
-    user.update!(company: company, name: "Administrador", role: "admin", password: ENV["SAFRA_ADMIN_PASSWORD"], must_change_password: true)
+    user.update!(company: company, name: "Administrador", role: "admin", password: ENV["SAFRA_ADMIN_PASSWORD"], must_change_password: true, platform_admin: true)
   end
 elsif !User.admins.exists?
   puts "Atenção: não há administrador. Defina SAFRA_ADMIN_EMAIL e SAFRA_ADMIN_PASSWORD e rode db:seed."

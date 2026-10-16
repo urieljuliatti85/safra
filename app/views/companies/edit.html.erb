@@ -1,0 +1,20 @@
+<% content_for :title, "Editar empresa · Safra" %>
+<div class="mb-5"><h1 class="page-title"><%= @company.name %></h1></div>
+<%= form_with model: @company, class: "panel grid max-w-xl gap-4 p-5", data: { turbo: false } do |form| %>
+  <%= render "catalog/errors", record: @company %>
+  <div>
+    <%= form.label :name, "Nome da empresa", class: "mb-1 block font-bold" %>
+    <%= form.text_field :name, required: true, autofocus: true, class: "field w-full" %>
+  </div>
+  <div>
+    <div class="flex items-center gap-2">
+      <%= form.check_box :active, class: "size-5" %>
+      <%= form.label :active, "Empresa ativa", class: "font-bold" %>
+    </div>
+    <p class="muted mt-1 text-sm">Ao suspender, ninguém da empresa entra e os acessos abertos caem. Os dados ficam guardados e voltam quando você reativar.</p>
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+    <%= form.button type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar<% end %>
+    <%= link_to "Cancelar", companies_path, class: "btn" %>
+  </div>
+<% end %>

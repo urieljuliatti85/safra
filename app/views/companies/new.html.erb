@@ -1,0 +1,36 @@
+<% content_for :title, "Nova empresa · Safra" %>
+<div class="mb-5"><h1 class="page-title">Nova empresa</h1></div>
+<%= form_with url: companies_path, class: "panel grid max-w-xl gap-4 p-5", data: { turbo: false } do %>
+  <% if @errors.present? %>
+    <div class="flash flash-alert" role="alert"><%= icon :alert %><ul class="list-disc ml-5"><% @errors.each do |error| %><li><%= error %></li><% end %></ul></div>
+  <% end %>
+  <div>
+    <%= label_tag :name, "Nome da empresa", class: "mb-1 block font-bold" %>
+    <%= text_field_tag :name, params[:name], required: true, autofocus: true, class: "field w-full" %>
+  </div>
+  <fieldset class="grid gap-3 rounded-lg border border-line p-3">
+    <legend class="px-1 font-bold">Primeiro administrador</legend>
+    <div>
+      <%= label_tag :admin_name, "Nome", class: "mb-1 block font-bold" %>
+      <%= text_field_tag :admin_name, params[:admin_name], required: true, class: "field w-full" %>
+    </div>
+    <div>
+      <%= label_tag :admin_email, "E-mail", class: "mb-1 block font-bold" %>
+      <%= email_field_tag :admin_email, params[:admin_email], required: true, autocomplete: "off", class: "field w-full" %>
+    </div>
+    <p class="muted text-sm">O sistema gera uma senha provisória e mostra uma vez, na próxima tela. A pessoa troca no primeiro acesso.</p>
+  </fieldset>
+  <fieldset class="grid gap-2 rounded-lg border border-line p-3">
+    <legend class="px-1 font-bold">Cadastros iniciais</legend>
+    <label class="flex items-start gap-2"><%= radio_button_tag :catalog_from, "standard", params[:catalog_from].blank? || params[:catalog_from] == "standard", class: "mt-1 size-5" %>
+      <span><strong>Só os cortes padrão</strong><br><span class="muted text-sm">A empresa começa vazia: cadastra clientes, matérias-primas e produtos pela tela ou importando planilhas.</span></span></label>
+    <% @sources.each do |source| %>
+      <label class="flex items-start gap-2"><%= radio_button_tag :catalog_from, source.id, params[:catalog_from].to_s == source.id.to_s, class: "mt-1 size-5" %>
+        <span><strong>Copiar o catálogo de <%= source.name %></strong><br><span class="muted text-sm">Cortes, fornecedores, matérias-primas (com fatores e peso da embalagem), produtos e exceções de antecedência. Não copia clientes, pedidos, estoque nem usuários.</span></span></label>
+    <% end %>
+  </fieldset>
+  <div class="flex flex-wrap items-center gap-3">
+    <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Criar empresa<% end %>
+    <%= link_to "Cancelar", companies_path, class: "btn" %>
+  </div>
+<% end %>

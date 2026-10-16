@@ -9,7 +9,7 @@ class SessionsController < ApplicationController
   end
 
   def create
-    user = User.active.authenticate_by(params.permit(:email_address, :password))
+    user = User.active.joins(:company).where(companies: { active: true }).authenticate_by(params.permit(:email_address, :password))
     if user
       start_new_session_for user
       AuditLog.record_event("login", user: user, request: request)
@@ -34,6 +34,13 @@ class SessionsController < ApplicationController
     return unless user
 
     AuditLog.record_event("login_failed", user: user, request: request,
-                          details: { "Motivo" => [ nil, user.active? ? "senha incorreta" : "usuário desativado" ] })
+                          details: { "Motivo" => [ nil, failure_reason(user) ] })
+  end
+
+  def failure_reason(user)
+    if !user.company.active? then "empresa suspensa"
+    elsif !user.active? then "usuário desativado"
+    else "senha incorreta"
+    end
   end
 end

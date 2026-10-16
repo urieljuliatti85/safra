@@ -1,0 +1,28 @@
+<% content_for :title, "Empresas · Safra" %>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Empresas</h1>
+    <p class="page-sub">Cada empresa tem os seus usuários e os seus dados, isolados das outras. Aqui você cria uma empresa nova com o primeiro administrador, renomeia e suspende. Você não vê os dados delas.</p>
+  </div>
+  <%= link_to new_company_path, class: "btn btn-primary" do %><%= icon :plus %>Nova empresa<% end %>
+</div>
+<section class="panel">
+  <div class="overflow-x-auto">
+    <table class="ops-table" style="min-width: 44rem; table-layout: auto">
+      <thead><tr><th>Empresa</th><th>Situação</th><th class="col-num">Usuários</th><th class="col-num">Clientes</th><th class="col-num">Produtos</th><th>Último acesso</th><th></th></tr></thead>
+      <tbody>
+        <% @companies.each do |company| %>
+          <tr class="<%= 'is-changed' unless company.active? %>">
+            <td class="name"><strong><%= company.name %></strong><% if company == current_company %> <span class="muted text-sm">(a sua)</span><% end %></td>
+            <td><%= company.active? ? "Ativa" : "Suspensa" %></td>
+            <td class="num-col"><%= @users[company.id].to_i %></td>
+            <td class="num-col"><%= @customers[company.id].to_i %></td>
+            <td class="num-col"><%= @products[company.id].to_i %></td>
+            <td class="num"><%= @last_access[company.id] ? l(@last_access[company.id], format: "%d/%m %H:%M") : "nunca" %></td>
+            <td class="text-right"><%= link_to "Editar", edit_company_path(company), class: "btn" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>

@@ -65,6 +65,7 @@
     caret-color: var(--color-field);
     -webkit-text-size-adjust: 100%;
   }
+  input[type=checkbox], input[type=radio] { accent-color: var(--color-field); }
   ::selection { background: var(--color-sprout); color: var(--color-ink); }
   :focus-visible { outline: 3px solid var(--color-field-deep); outline-offset: 2px; border-radius: 4px; }
   input, select, textarea { font: inherit; }

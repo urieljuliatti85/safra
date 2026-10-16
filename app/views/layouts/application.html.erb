@@ -45,6 +45,7 @@
             <div class="user-menu-panel">
               <p class="muted text-sm"><%= current_user.role_label %> · <%= current_company.name %></p>
               <% if policy(:user).index? %><%= link_to "Usuários", users_path, class: "user-menu-item" %><% end %>
+              <% if policy(:company).index? %><%= link_to "Empresas", companies_path, class: "user-menu-item" %><% end %>
               <% if policy(:audit_log).index? %><%= link_to "Histórico", audit_logs_path, class: "user-menu-item" %><% end %>
               <%= link_to "Trocar senha", edit_account_password_path, class: "user-menu-item" %>
               <%= button_to "Sair", session_path, method: :delete, class: "user-menu-item", form: { class: "contents" } %>

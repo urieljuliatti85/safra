@@ -25,13 +25,18 @@ class User < ApplicationRecord
     define_method(:"#{role}?") { self.role == role }
   end
 
+  # Senha provisória legível (sem 0, O, I, l, 1), mostrada uma vez ao administrador.
+  def self.generate_provisional_password
+    SecureRandom.alphanumeric(10).tr("0OIl1", "abcde")
+  end
+
   def role_label
     ROLE_LABELS.fetch(role)
   end
 
   # Gera uma senha provisória legível, grava e devolve para o admin repassar uma única vez.
   def reset_to_provisional_password!
-    provisional = SecureRandom.alphanumeric(10).tr("0OIl1", "abcde")
+    provisional = User.generate_provisional_password
     update!(password: provisional, password_confirmation: provisional, must_change_password: true)
     sessions.destroy_all
     provisional

@@ -16,7 +16,7 @@ class UsersController < ApplicationController
   def create
     @user = current_company.users.new(params.require(:user).permit(:name, :email_address))
     @user.role = params.dig(:user, :role) # validado pela inclusão em User::ROLES
-    provisional = SecureRandom.alphanumeric(10).tr("0OIl1", "abcde")
+    provisional = User.generate_provisional_password
     @user.assign_attributes(password: provisional, password_confirmation: provisional, must_change_password: true)
     if @user.save
       redirect_to users_path, notice: provisional_notice(@user, provisional, "criado")

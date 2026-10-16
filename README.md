@@ -70,6 +70,8 @@ O sistema exige login. Cada usuário pertence a uma empresa e só enxerga os dad
 
 Se o banco já existia antes do login, rode `bin/rails db:seed` para criá-los.
 
+**Dono da plataforma.** Além do papel dentro da empresa, um usuário pode ser o dono da plataforma: só ele cria, renomeia e suspende empresas (menu da conta > **Empresas**). Não é um papel que se conceda pela tela, e ele **não vê os dados** das outras empresas. O primeiro administrador do seed (`admin@safra.local` em desenvolvimento, `SAFRA_ADMIN_EMAIL` em produção) é o dono da plataforma. Num banco que já existia, a migration promove o primeiro administrador.
+
 **Em produção** não há usuário de exemplo. O primeiro administrador sai do seed, com `SAFRA_ADMIN_EMAIL` e `SAFRA_ADMIN_PASSWORD` definidos ao rodar `bin/rails db:seed`; a senha vale só até o primeiro acesso. Depois, o administrador cadastra os demais em **Usuários**.
 
 **Senha provisória.** Ao criar um usuário ou redefinir a senha, o sistema gera uma senha provisória e mostra **uma única vez**, na tela, para o administrador repassar. A pessoa é obrigada a trocar no primeiro acesso, e os acessos abertos dela caem. Não há recuperação por e-mail: quem esquecer a senha pede ao administrador uma nova. Desativar um usuário também encerra as sessões dele.
@@ -84,6 +86,15 @@ Em **Cadastros** a equipe mantém o que antes só vinha por seed:
 - **Fornecedores.**
 
 O código de cada cadastro é gerado do nome (`Batata roxa` vira `batata_roxa`) e não muda depois, porque seeds, planilhas de referência e apelidos apontam para ele. Decimais aceitam vírgula (`1,35`), e campo vazio fica sem valor. Excluir é barrado quando há dependências (matéria-prima com produtos, produto ou cliente com pedidos, fornecedor com matérias-primas). As mensagens do sistema estão em português.
+
+## Empresas (multiempresa)
+
+Cada empresa tem os seus usuários, cadastros, pedidos e histórico, isolados das outras. Em **Empresas** o dono da plataforma:
+
+- **Cria uma empresa** com o primeiro administrador (senha provisória mostrada uma vez, troca obrigatória no primeiro acesso) e escolhe os cadastros iniciais: **só os cortes padrão** (a empresa começa vazia) ou **uma cópia do catálogo** de outra empresa (cortes, fornecedores, matérias-primas com fatores e peso da embalagem, produtos e exceções de antecedência). Clientes, apelidos, pedidos, estoque, dias de compra e usuários nunca são copiados. A montagem inicial não aparece no histórico da empresa nova.
+- **Renomeia** e **suspende**: ninguém da empresa suspensa entra, as sessões abertas caem e as tentativas ficam no histórico como "empresa suspensa". Os dados ficam guardados e voltam ao reativar. Não é possível suspender a própria empresa, e não há exclusão de empresa.
+
+O e-mail de cada usuário é único em todo o sistema, e o login identifica a empresa pelo usuário.
 
 ## Histórico (quem alterou o quê)
 

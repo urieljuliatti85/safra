@@ -49,11 +49,13 @@ pt-BR:
         role: Papel
         password: Senha
         active: Pode entrar
+        platform_admin: Dono da plataforma
         company: Empresa
       cut:
         lead_days: Antecedência
       company:
         name: Nome
+        active: Ativa
         raw_lead_days: Antecedência do in natura
       production_rule:
         lead_days: Antecedência

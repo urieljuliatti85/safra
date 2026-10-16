@@ -42,6 +42,7 @@ Rails.application.routes.draw do
   patch "estoque", to: "stocks#update"
 
   get "historico", to: "audit_logs#index", as: :audit_logs
+  resources :companies, path: "empresas", only: %i[index new create edit update]
 
   get "conference", to: "conferences#show"
   get "conference/sheets", to: "conferences#sheets", as: :conference_sheets

@@ -26,7 +26,10 @@ module Authentication
     end
 
     def find_session_by_cookie
-      Session.find_by(id: cookies.signed[:session_id]) if cookies.signed[:session_id]
+      return unless cookies.signed[:session_id]
+
+      # Só vale a sessão de quem ainda está ativo e de uma empresa que não foi suspensa.
+      Session.joins(user: :company).where(users: { active: true }, companies: { active: true }).find_by(id: cookies.signed[:session_id])
     end
 
     def request_authentication
