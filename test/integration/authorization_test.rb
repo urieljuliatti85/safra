@@ -24,9 +24,9 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Você não tem acesso a essa tela", response.body
   end
 
-  test "produção vê programação, produção e PDFs" do
+  test "produção vê programação, produção, estoque e PDFs" do
     sign_in_as(user_for(:production))
-    [ "/schedule", "/production", "/production.pdf?date=2026-10-13", "/schedule.pdf?date=2026-10-14" ].each do |path|
+    [ "/schedule", "/production", "/estoque", "/production.pdf?date=2026-10-13", "/schedule.pdf?date=2026-10-14" ].each do |path|
       get path
       assert_response :success, path
     end
@@ -44,7 +44,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
 
   test "produção é barrada em pedidos, compras, conferência, importação e usuários" do
     sign_in_as(user_for(:production))
-    [ "/orders", "/purchases", "/purchases.pdf?date=2026-10-13", "/conference", "/conference/sheets", "/order_imports/new", "/regras", "/estoque", "/users", "/historico" ].each do |path|
+    [ "/orders", "/purchases", "/purchases.pdf?date=2026-10-13", "/conference", "/conference/sheets", "/order_imports/new", "/regras", "/users", "/historico" ].each do |path|
       get path
       assert_redirected_to production_path, path
     end

@@ -15,16 +15,18 @@
 <% end %>
 
 <div class="mb-4 flex flex-wrap items-center gap-3">
+  <% if purchase_visible? %>
   <p class="num">
     <% if @purchase_date %>Próxima compra a partir desta contagem: <strong><%= weekday_date(@purchase_date) %></strong>. <%= link_to "Ver compra", purchases_path(date: @purchase_date), class: "underline" %>
     <% else %>Não há dia de compra a partir de <%= short_date(@date) %>. <%= link_to "Cadastrar em Regras", rules_path(anchor: "compras"), class: "underline" %>
     <% end %>
   </p>
+  <% end %>
   <%= form_with url: stock_path, method: :get, class: "ml-auto flex flex-wrap items-center gap-2", data: { turbo: false } do %>
     <%= hidden_field_tag :date, @date.iso8601 %>
     <%= label_tag :q, "Buscar", class: "sr-only" %>
     <%= search_field_tag :q, @query, placeholder: "Buscar matéria-prima", class: "field" %>
-    <label class="flex items-center gap-2"><%= check_box_tag :todas, "1", @all, class: "size-5" %>Mostrar todas (<%= @total %>)</label>
+    <% if purchase_visible? %><label class="flex items-center gap-2"><%= check_box_tag :todas, "1", @all, class: "size-5" %>Mostrar todas (<%= @total %>)</label><% end %>
     <%= button_tag "Filtrar", type: "submit", class: "btn" %>
   <% end %>
 </div>

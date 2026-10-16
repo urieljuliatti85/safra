@@ -59,8 +59,8 @@ O sistema exige login. Cada usuário pertence a uma empresa e só enxerga os dad
 | Papel | O que pode |
 |---|---|
 | Administrador | Tudo, mais gerenciar usuários e ver o histórico (no menu da conta, ao lado do nome). |
-| Escritório | Pedidos, importação, programação, produção, compras, conferência, estoque, regras, cadastros e envio aos setores. |
-| Produção | Só vê Programação, Produção e os PDFs. Não altera nada e não vê o botão de enviar. |
+| Escritório | Pedidos, importação, programação, produção, compras, conferência, estoque (com a compra ao lado), regras, cadastros e envio aos setores. |
+| Produção | Vê Programação, Produção e os PDFs, e conta a câmara fria em Estoque (sem ver colunas nem avisos de compra). Não altera mais nada e não vê o botão de enviar. |
 
 **Usuários de desenvolvimento** (criados por `bin/setup` ou `bin/rails db:seed`, só em desenvolvimento e teste), todos com a senha `safra-dev-123`:
 

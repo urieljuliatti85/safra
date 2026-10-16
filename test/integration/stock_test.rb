@@ -91,13 +91,19 @@ class StockTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{stock_path(date: '2026-10-13')}']", text: /Contar estoque/
   end
 
-  test "produção não acessa o estoque" do
+  test "produção conta o estoque, mas não vê a compra" do
     sign_in_as(user_for(:production))
-    get stock_path
-    assert_redirected_to production_path
+    get stock_path(date: "2026-10-12")
+    assert_response :success
+    assert_select "h1", /Estoque/
+    assert_select "a[href^='#{purchases_path}']", count: 0
+    assert_select "th", text: /Comprar|Abate do estoque|Precisa em/, count: 0
+    assert_select "input[name='counts[#{raw_material('cenoura').id}]']"
     patch stock_path, params: { date: "2026-10-12", counts: { raw_material("cenoura").id => "5" } }
-    assert_redirected_to production_path
-    assert_equal 0, StockCount.count
+    assert_redirected_to stock_path(date: "2026-10-12")
+    assert_equal 5, StockCount.find_by!(raw_material: raw_material("cenoura"), date: "2026-10-12").kg
+    follow_redirect!
+    assert_no_match "mudou desde a versão enviada", response.body
   end
 
   test "sem dia de compra depois da data a tela avisa e continua usável" do
