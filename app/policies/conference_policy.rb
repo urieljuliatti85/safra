@@ -1,3 +1,3 @@
 class ConferencePolicy < ApplicationPolicy
-  allow :admin, :office, to: %i[show sheets]
+  allow :admin, :office, to: %i[show sheets new create]
 end

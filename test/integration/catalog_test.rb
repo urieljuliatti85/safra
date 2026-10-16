@@ -21,7 +21,7 @@ class CatalogTest < ActionDispatch::IntegrationTest
     assert_select "input[aria-label='Kg por embalagem de Cenoura'][value='20']"
     assert_select "select[aria-label='Fornecedor de Cenoura'] option[selected]", "Fornecedor B"
     assert_select "th a", text: "Cebola"
-    assert_match "Compras iguais à planilha", response.body
+    assert_match "Compras iguais às planilhas importadas", response.body
   end
 
   test "marca matéria-prima sem fator (processada) e sem kg por embalagem (caixa ou saco)" do

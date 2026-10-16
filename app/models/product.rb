@@ -9,6 +9,7 @@ class Product < ApplicationRecord
   belongs_to :cut, optional: true
   has_one :production_rule, dependent: :destroy
   has_many :customer_aliases, dependent: :destroy
+  has_many :sheet_aliases, dependent: :destroy
   has_many :order_lines, dependent: :restrict_with_error
 
   validates :code, :name, :unit, presence: true

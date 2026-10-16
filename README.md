@@ -46,7 +46,7 @@ bin/rails db:reset         # apaga o banco e recomeça do zero (precisa de nenhu
 | Produção | Lista do dia por setor, aprontes, envio aos setores em versões e diferença depois do envio. |
 | Compras | Compra da CEASA por fornecedor, texto para WhatsApp e envio em versões. |
 | Estoque | Contagem da câmara fria por matéria-prima e dia, em kg. A compra da CEASA abate o que está contado; a sobra segue para a compra seguinte, até uma contagem nova. Campo vazio é não contado, 0 é câmara vazia. |
-| Conferência | Alertas de fator, unidade, data e observações, e comparação com as planilhas de 13 e 15/10. |
+| Conferência | Alertas de fator, unidade, data e observações. **Comparar com as planilhas** mostra, semana a semana, os números das planilhas feitas à mão ao lado do que o Safra calcula, com o motivo de cada diferença (veja "Validar o teste com as planilhas"). |
 | Cadastros | Matérias-primas (fator de perda, peso da embalagem, fornecedor) numa grade editável em lote, produtos, clientes com os apelidos dos produtos e fornecedores. |
 | Regras | Antecedência da produção por corte e por produto, do in natura e os dias de compra na CEASA. **Ver efeito sem salvar** mostra o placar contra as planilhas antes e depois, item por item. |
 
@@ -81,7 +81,7 @@ Se o banco já existia antes do login, rode `bin/rails db:seed` para criá-los.
 
 Em **Cadastros** a equipe mantém o que antes só vinha por seed:
 
-- **Matérias-primas:** uma grade para completar vários de uma vez: fornecedor, embalagem de compra (caixa, saco, kg, unidade), kg por embalagem, fator de perda e kg por caixa descascada. Os filtros **Incompletas** (sem fator em item processado, ou sem peso da embalagem em item comprado por caixa ou saco) e **Usadas nos pedidos** mostram por onde começar, e o placar de compras contra a planilha de 13 e 15/10 sobe conforme o cadastro fica completo. Sem o fator, a compra do item processado não é convertida; sem o peso da embalagem, não vira número de caixas ou sacos.
+- **Matérias-primas:** uma grade para completar vários de uma vez: fornecedor, embalagem de compra (caixa, saco, kg, unidade), kg por embalagem, fator de perda e kg por caixa descascada. Os filtros **Incompletas** (sem fator em item processado, ou sem peso da embalagem em item comprado por caixa ou saco) e **Usadas nos pedidos** mostram por onde começar, e o placar de compras contra as planilhas importadas sobe conforme o cadastro fica completo. Sem o fator, a compra do item processado não é convertida; sem o peso da embalagem, não vira número de caixas ou sacos.
 - **Produtos:** grupo (processado, fruta ou in natura), matéria-prima, corte e unidade. Processado e fruta exigem corte; in natura não tem.
 - **Clientes:** nome, nome curto e como o pedido chega, mais os **apelidos** dos produtos como o cliente os escreve (a importação usa a lista; nomes novos entram sozinhos).
 - **Cortes:** como o produto processado é feito (cubos, cubinhos, ralado...). O corte define o **setor** (a lista de produção em que o produto aparece: descascados inteiros, cortes manuais, ralados e picados, palitos, cubinhos ou frutas) e a **antecedência** da produção. Uma empresa nova começa com os cortes padrão e cria os seus. O nome do setor é um só por setor; trocar o setor de um corte em uso muda onde os produtos dele aparecem na produção.
@@ -126,6 +126,16 @@ Regras que ajudam a entender a conferência:
 
 Planilhas de exemplo ficam em `referencia/planilhas` (fora do git). Se essa pasta existir, os testes importam as planilhas reais e conferem que reproduzem os pedidos dos seeds.
 
+## Validar o teste com as planilhas
+
+Enquanto o Safra roda em paralelo com as planilhas, a equipe continua preenchendo a `02 - PLANILHA DE PRODUÇÃO` e a `03 - COMPRAS CEASA`. Em **Conferência > Comparar com as planilhas > Importar planilhas** você envia os dois arquivos como estão (ods, xlsx ou xls) e escolhe a semana:
+
+1. O Safra lê só as abas da semana (a data vem do nome da aba, como `TERÇA 13-10-26`). Na 02, lê os blocos descascador e aprontes (caixas) e os cortes (kg); na 03, cada matéria-prima com a quantidade (`20 CX`, `10 SC`, `45 KG`, `500 Gr`). Instruções, separadores e linhas sem quantidade ficam de fora. Importar o mesmo dia de novo troca os números.
+2. Os nomes são reconhecidos pelo cadastro (`ABÓBORA CUBOS` é Abóbora em cubos; `BAROA DESCASCADA` é a matéria-prima baroa). Nome que o Safra não reconhece aparece no topo para ligar a um produto ou matéria-prima (ou tirar da comparação); a ligação vale para as próximas semanas. As ligações iniciais estão em `db/seeds_data/apelidos_planilhas.yml`.
+3. A comparação mostra o placar da semana (itens iguais em produção e em compras) e, para cada diferença, o motivo provável: outro dia de produção (o mesmo número aparece num dia vizinho), falta de fator, de kg por embalagem ou de kg por caixa no cadastro (com link para completar), estoque abatido, diferença de 1 embalagem, pedido em outra unidade, dia que não é de compra, nenhum pedido que leve ao item. O que sobra fica como **sem regra que explique**, em vermelho: é o que precisa de conversa com a equipe. O descascador aparece, mas ainda não é comparado.
+
+As planilhas de 13 e 15/10/2026 (`db/seeds_data/referencia_planilhas.yml`) entram pelo seed quando o dia ainda não foi importado; os testes usam esses números como fixture.
+
 ## API para integrações (v1)
 
 JSON sob `/api/v1`, documentada em **`/api-docs`** (Swagger UI; o arquivo OpenAPI fica em `swagger/v1/swagger.yaml`).
@@ -150,7 +160,7 @@ bin/rubocop              # estilo
 bin/ci                   # rubocop, auditorias de segurança e testes (sem os de sistema)
 ```
 
-O relatório de comparação com as planilhas é gravado em `tmp/conferencia_planilhas.txt`. Para vê-lo no terminal: `VERBOSE_CONFERENCIA=1 bin/rails test test/services/conferencia_planilhas_test.rb`.
+O relatório de comparação com as planilhas (todas as importadas) é gravado em `tmp/conferencia_planilhas.txt`. Para vê-lo no terminal: `VERBOSE_CONFERENCIA=1 bin/rails test test/services/conferencia_planilhas_test.rb`.
 
 ### Pre-commit
 
@@ -188,7 +198,7 @@ Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde ant
 - `app/models/concerns/auditable.rb` e `AuditLog`: histórico de alterações.
 - `app/controllers/api/v1`, `app/presenters/api_presenter.rb` e `ApiToken`: API de integração; `spec/` e `swagger/`: specs rswag e o OpenAPI gerado.
 - `app/policies`: autorização com Pundit, negada por padrão e liberada por papel (`allow :admin, :office, to: ...`).
-- `app/services`: `ProductionPlanner`, `PurchasePlanner`, `WeekOverview`, `PlanPublisher`, `PlanDiff`, `ConferenceChecker`, `OrderGridSaver` e, em `order_imports/`, a leitura de planilhas (`SheetReader`), o reconhecimento de nomes (`Matcher`), a prévia (`Preview`) e a gravação (`Applier`).
+- `app/services`: `ProductionPlanner`, `PurchasePlanner`, `WeekOverview`, `PlanPublisher`, `PlanDiff`, `ConferenceChecker`, `OrderGridSaver`, `SheetComparison` (planilhas × Safra, com os motivos), em `reference_sheets/` a leitura das planilhas 02 e 03 (`Reader`, `Matcher`, `Importer`) e, em `order_imports/`, a leitura de planilhas (`SheetReader`), o reconhecimento de nomes (`Matcher`), a prévia (`Preview`) e a gravação (`Applier`).
 - `app/pdfs`: PDFs com Prawn (fonte Bricolage Grotesque embutida).
 - `db/seeds_data`: dados reais da semana de 12/10/2026 em YAML.
 - `referencia/planilhas`: planilhas originais dos clientes. Não são versionadas (dados de clientes).

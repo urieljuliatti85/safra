@@ -80,6 +80,37 @@ ActsAsTenant.with_tenant(company) do
 
     purchase_dates.each { |date| PurchaseDay.find_or_create_by!(date: date) }
 
+    load_yaml.call("apelidos_planilhas.yml").each do |row|
+      target = row["alvo"] == "produto" ? "product" : "raw_material"
+      record = target == "product" ? products.fetch(row["codigo"]) : raw_materials.fetch(row["codigo"])
+      create_missing.call(
+        SheetAlias.find_or_initialize_by(target: target, name: ReferenceSheets::Matcher.key(row["nome_na_planilha"])),
+        label: row["nome_na_planilha"], target => record
+      )
+    end
+
+    # Números das planilhas de 13 e 15/10/2026, só se o dia ainda não foi importado de um arquivo.
+    reference = load_yaml.call("referencia_planilhas.yml")
+    { "production" => reference.fetch("producao_planilha"), "purchase" => reference.fetch("compras_ceasa_planilha") }.each do |kind, days|
+      days.each do |date, entries|
+        sheet = ReferenceSheet.find_or_initialize_by(kind: kind, date: Date.parse(date.to_s))
+        next unless sheet.new_record?
+
+        sheet.update!(filename: "referencia_planilhas.yml")
+        lines = if kind == "production"
+          entries.map { |code, quantity| [ "cortes", products.fetch(code).name, quantity.to_s, quantity, products.fetch(code).unit ] }
+        else
+          entries.map do |entry|
+            match = entry["quantidade"].to_s.match(/\A(\d+(?:[.,]\d+)?)\s*(cx|sc|kg|g|un)\z/)
+            [ "compras", raw_materials.fetch(entry["materia_prima"]).name, entry["quantidade"].to_s, match && match[1].tr(",", "."), match && match[2] ]
+          end
+        end
+        lines.each_with_index do |(section, label, text, quantity, unit), index|
+          sheet.lines.create!(section: section, label: label, quantity_text: text, quantity: quantity, unit: unit, position: index)
+        end
+      end
+    end
+
     # Os pedidos da semana só entram na primeira carga de cada cliente: depois disso quem manda é o que foi lançado.
     orders = customers.transform_values { |customer| Order.find_or_create_by!(customer: customer, week_start: week_start) }
     fresh_orders = orders.select { |_, order| order.previously_new_record? }

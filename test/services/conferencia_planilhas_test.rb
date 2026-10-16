@@ -1,6 +1,6 @@
 require "test_helper"
 
-# Compara os planners com referencia_planilhas.yml. Diferenças são listadas, não falham:
+# Compara os planners com as planilhas de 13 e 15/10 (referencia_planilhas.yml, carregado pelo seed). Diferenças são listadas, não falham:
 # cada uma é uma regra ainda não cadastrada ou um ajuste manual (docs/duvidas.md).
 class ConferenciaPlanilhasTest < ActiveSupport::TestCase
   setup do
@@ -29,8 +29,8 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
   test "ralados, picados e rodelas batem 100% com a planilha (regra confirmada)" do
     rows = @conferencia.confirmed_same_day_rows
     assert_not_empty rows
-    diferentes = rows.reject { |row| row.status == "ok" }
-    assert_empty diferentes.map { |row| [ row.date, row.product, row.planilha, row.sistema ] }
+    diferentes = rows.reject(&:ok?)
+    assert_empty diferentes.map { |row| [ row.date, row.code, row.planilha, row.sistema ] }
   end
 
   test "lista as diferenças com as planilhas sem falhar" do

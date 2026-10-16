@@ -34,30 +34,17 @@ class RuleSimulation
 
   private
 
-  def rows_of(comparison)
-    comparison.production_rows.to_h { |r| [ [ :production, r.date, r.product ], r ] }
-              .merge(comparison.purchase_rows.to_h { |r| [ [ :purchase, r.date, r.raw_material ], r ] })
-  end
+  def rows_of(comparison) = comparison.rows.to_h { |row| [ row.key, row ] }
 
-  # Só o que a planilha tem e mudou de valor ou de situação, com o nome do produto ou da matéria-prima.
+  # Só o que a planilha tem e mudou de valor ou de situação.
   def deltas(before_rows, after_rows)
-    names = names_for(after_rows.keys)
     after_rows.filter_map do |key, after|
       before = before_rows[key]
-      next if after.planilha.nil?
+      next unless after.scored?
       next if before && before.sistema == after.sistema && before.status == after.status
 
-      kind, date, code = key
-      Delta.new(kind: kind, date: date, label: names.fetch([ kind, code ], code), planilha: after.try(:planilha_text) || after.planilha,
-                before: before&.sistema, after: after.sistema, before_ok: before&.status == "ok", after_ok: after.status == "ok")
+      Delta.new(kind: after.kind, date: after.date, label: after.label, planilha: after.planilha_text || after.planilha,
+                before: before&.sistema, after: after.sistema, before_ok: before&.ok? || false, after_ok: after.ok?)
     end.sort_by { |d| [ d.kind.to_s, d.date, d.label ] }
-  end
-
-  def names_for(keys)
-    codes = keys.group_by(&:first).transform_values { |list| list.map(&:last).uniq }
-    ActsAsTenant.with_tenant(@company) do
-      Product.where(code: codes[:production]).pluck(:code, :name).to_h { |code, name| [ [ :production, code ], name ] }
-             .merge(RawMaterial.where(code: codes[:purchase]).pluck(:code, :name).to_h { |code, name| [ [ :purchase, code ], name ] })
-    end
   end
 end

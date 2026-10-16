@@ -1,0 +1,20 @@
+# Como as planilhas 02 (produção) e 03 (compras CEASA) escrevem itens que o Safra não reconhece pelo nome.
+# alvo: produto (cortes) ou materia_prima (descascador, aprontes e compras).
+- nome_na_planilha: REPOLHO BR. PICADO
+  alvo: produto
+  codigo: repolho_picado
+- nome_na_planilha: YAKISSOBA
+  alvo: produto
+  codigo: yakissoba
+- nome_na_planilha: MAÇÃ CAT.1 – 150
+  alvo: materia_prima
+  codigo: maca
+- nome_na_planilha: MANGA HADEN
+  alvo: materia_prima
+  codigo: manga
+- nome_na_planilha: BANANA TERRA MÉDIA
+  alvo: materia_prima
+  codigo: banana_terra
+- nome_na_planilha: OVOS FILMADOS
+  alvo: materia_prima
+  codigo: ovos

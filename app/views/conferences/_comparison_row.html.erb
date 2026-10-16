@@ -1,0 +1,11 @@
+<tr class="<%= comparison_row_class(row) %>">
+  <td class="name"><%= row.label %></td>
+  <td class="num-col" data-label="Planilha"><%= comparison_value(row, :planilha) %></td>
+  <td class="num-col" data-label="Safra"><%= comparison_value(row, :sistema) %></td>
+  <td class="reason">
+    <strong><%= row.status_label %></strong><% if row.reason %> · <%= row.reason_label %><% end %><% if row.detail %>: <%= row.detail %><% end %>
+    <% if SheetComparison::CATALOG_REASONS.include?(row.reason) && row.record.is_a?(RawMaterial) %>
+      · <%= link_to "completar cadastro", edit_raw_material_path(row.record), class: "underline" %>
+    <% end %>
+  </td>
+</tr>

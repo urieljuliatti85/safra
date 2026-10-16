@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_050000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_060000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -277,6 +277,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_050000) do
     t.index ["supplier_id"], name: "index_raw_materials_on_supplier_id"
   end
 
+  create_table "reference_sheet_lines", force: :cascade do |t|
+    t.bigint "reference_sheet_id", null: false
+    t.string "section", null: false
+    t.string "label", null: false
+    t.string "quantity_text"
+    t.decimal "quantity", precision: 10, scale: 3
+    t.string "unit"
+    t.integer "position", default: 0, null: false
+    t.index ["reference_sheet_id"], name: "index_reference_sheet_lines_on_reference_sheet_id"
+  end
+
+  create_table "reference_sheets", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "kind", null: false
+    t.date "date", null: false
+    t.string "filename"
+    t.string "tab_name"
+    t.bigint "imported_by_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "kind", "date"], name: "index_reference_sheets_on_company_id_and_kind_and_date", unique: true
+    t.index ["company_id"], name: "index_reference_sheets_on_company_id"
+    t.index ["imported_by_id"], name: "index_reference_sheets_on_imported_by_id"
+  end
+
   create_table "sessions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "ip_address"
@@ -284,6 +309,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_050000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "sheet_aliases", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.string "target", null: false
+    t.string "name", null: false
+    t.string "label", null: false
+    t.bigint "product_id"
+    t.bigint "raw_material_id"
+    t.boolean "ignored", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "target", "name"], name: "index_sheet_aliases_on_company_id_and_target_and_name", unique: true
+    t.index ["company_id"], name: "index_sheet_aliases_on_company_id"
+    t.index ["product_id"], name: "index_sheet_aliases_on_product_id"
+    t.index ["raw_material_id"], name: "index_sheet_aliases_on_raw_material_id"
   end
 
   create_table "stock_counts", force: :cascade do |t|
@@ -355,7 +396,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_050000) do
   add_foreign_key "purchase_plans", "companies"
   add_foreign_key "raw_materials", "companies"
   add_foreign_key "raw_materials", "suppliers"
+  add_foreign_key "reference_sheet_lines", "reference_sheets", on_delete: :cascade
+  add_foreign_key "reference_sheets", "companies"
+  add_foreign_key "reference_sheets", "users", column: "imported_by_id"
   add_foreign_key "sessions", "users"
+  add_foreign_key "sheet_aliases", "companies"
+  add_foreign_key "sheet_aliases", "products"
+  add_foreign_key "sheet_aliases", "raw_materials"
   add_foreign_key "stock_counts", "companies"
   add_foreign_key "stock_counts", "raw_materials"
   add_foreign_key "suppliers", "companies"

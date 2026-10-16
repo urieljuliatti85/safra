@@ -69,4 +69,7 @@ Rails.application.routes.draw do
 
   get "conference", to: "conferences#show"
   get "conference/sheets", to: "conferences#sheets", as: :conference_sheets
+  get "conference/sheets/import", to: "reference_sheets#new", as: :new_reference_sheets
+  post "conference/sheets/import", to: "reference_sheets#create", as: :reference_sheets
+  post "conference/sheets/aliases", to: "sheet_aliases#create", as: :sheet_aliases
 end

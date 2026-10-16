@@ -10,7 +10,7 @@
 <%= render "catalog/tabs" %>
 
 <% if @scores && @scores[1].positive? %>
-  <p class="panel mb-4 p-3 num">Compras iguais à planilha de 13 e 15/10: <strong><%= @scores[0] %> de <%= @scores[1] %></strong>. Quanto mais completo o cadastro, mais esse número sobe (veja o detalhe em <%= link_to "Conferência", conference_sheets_path, class: "underline" %>).</p>
+  <p class="panel mb-4 p-3 num">Compras iguais às planilhas importadas: <strong><%= @scores[0] %> de <%= @scores[1] %></strong>. Quanto mais completo o cadastro, mais esse número sobe (veja o detalhe em <%= link_to "Conferência", conference_sheets_path, class: "underline" %>).</p>
 <% end %>
 
 <% if @errors.present? %>
