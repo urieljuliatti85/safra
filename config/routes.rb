@@ -27,6 +27,7 @@ Rails.application.routes.draw do
 
   root "home#show"
   get "painel", to: "dashboards#show", as: :dashboard
+  get "bi", to: "indicators#show", as: :indicators
 
   get "orders", to: "orders#index"
   patch "orders", to: "orders#update"

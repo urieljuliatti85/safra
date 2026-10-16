@@ -1,0 +1,136 @@
+<% content_for :title, "BI · Safra" %>
+<% content_for :body_class, "bi-page" %>
+<% content_for :wide, true %>
+<% s = @summary %>
+<% sector_total = s.sectors.sum(&:kg) %>
+<% sector_tones = %w[t1 t2 t3 t4 t5 t5 t5 t5] %>
+<header class="bi-head">
+  <div>
+    <h1 class="page-title">BI</h1>
+    <p class="bi-sub">Semana de <%= short_date(s.week_start) %> a <%= short_date(s.week_end) %>. Calculado dos pedidos, com os mesmos números da API de BI.</p>
+  </div>
+  <nav class="bi-weeknav" aria-label="Semana">
+    <%= link_to icon(:chevron_left), indicators_path(week: s.week_start - 7), class: "bi-btn", "aria-label": "Semana anterior" %>
+    <strong class="num"><%= short_date(s.week_start) %> a <%= short_date(s.week_end) %></strong>
+    <%= link_to icon(:chevron_right), indicators_path(week: s.week_start + 7), class: "bi-btn", "aria-label": "Próxima semana" %>
+    <% unless s.week_start == Date.current.beginning_of_week %><%= link_to "Esta semana", indicators_path, class: "bi-btn bi-btn-text" %><% end %>
+  </nav>
+</header>
+
+<% if s.empty %>
+  <section class="bi-panel bi-empty">
+    <h2>Sem pedidos nesta semana</h2>
+    <p>Lance os pedidos para ver volume, perdas e compras.</p>
+    <%= link_to "Abrir pedidos", orders_path, class: "bi-btn bi-btn-text" %>
+  </section>
+<% else %>
+  <div class="bi-grid">
+    <section class="bi-panel bi-hero" aria-labelledby="bi-days">
+      <div class="bi-hero-top">
+        <div>
+          <h2 id="bi-days">Produção da semana</h2>
+          <p class="bi-big"><span class="num"><%= kg_text(s.production_kg) %></span><small>kg</small></p>
+        </div>
+        <dl class="bi-facts">
+          <div><dt>Perda no preparo</dt><dd><%= kg_text(s.loss_kg) %> <small>kg</small> <span class="bi-pct"><%= kg_text(s.loss_pct) %>%</span></dd></div>
+          <div><dt>Compra líquida</dt><dd class="is-buy"><%= kg_text(s.net_purchase_kg) %> <small>kg</small></dd></div>
+          <div><dt>Clientes com entrega</dt><dd><%= s.customer_count %></dd></div>
+        </dl>
+      </div>
+      <ol class="bi-cols" aria-label="Produção por dia, em kg">
+        <% s.days.each do |day| %>
+          <li class="<%= 'is-sunday' if day.date.sunday? %> <%= 'is-today' if day.date == Date.current %>">
+            <span class="bi-col-value"><%= day.kg.positive? ? kg_text(day.kg) : "-" %></span>
+            <span class="bi-col-track" aria-hidden="true"><span class="bi-col" style="height: <%= (day.share * 100).round(1) %>%"></span></span>
+            <span class="bi-col-label"><%= Formatting::WEEKDAYS[day.date.wday] %> <span class="num"><%= day.date.strftime("%d") %></span><% if day.date == Date.current %><span class="sr-only"> (hoje)</span><% end %></span>
+          </li>
+        <% end %>
+      </ol>
+    </section>
+
+    <section class="bi-panel bi-sectors" aria-labelledby="bi-sectors">
+      <h2 id="bi-sectors">Por setor</h2>
+      <% if s.sectors.any? %>
+        <div class="bi-stack" aria-hidden="true">
+          <% s.sectors.each_with_index do |bar, i| %><span class="bi-seg <%= sector_tones[i] %>" style="flex-grow: <%= bar.kg.round(2) %>"></span><% end %>
+        </div>
+        <ul class="bi-legend">
+          <% s.sectors.each_with_index do |bar, i| %>
+            <li><span class="bi-swatch <%= sector_tones[i] %>" aria-hidden="true"></span><span class="bi-legend-name"><%= bar.label %></span><span class="bi-legend-value"><%= kg_text(bar.kg) %> <small>kg</small></span><span class="bi-legend-pct num"><%= (bar.kg / sector_total * 100).round %>%</span></li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="bi-muted">Nada para produzir nesta semana.</p>
+      <% end %>
+    </section>
+
+    <section class="bi-panel bi-loss" aria-labelledby="bi-loss">
+      <div class="bi-panel-head">
+        <h2 id="bi-loss">Perdas por matéria-prima</h2>
+        <p class="bi-key" aria-hidden="true"><span class="key-made"></span>vira produto <span class="key-lost"></span>perda</p>
+      </div>
+      <% if s.losses.any? %>
+        <ul class="bi-rows">
+          <% s.losses.each do |row| %>
+            <li>
+              <span class="bi-row-name"><%= row.name %></span>
+              <span class="bi-bullet" style="width: <%= (row.share * 100).round(1) %>%" role="img" aria-label="<%= kg_text(row.processed_kg) %> kg viram produto e <%= kg_text(row.loss_kg) %> kg são perda">
+                <span class="bi-made" style="flex-grow: <%= row.processed_kg.round(2) %>"></span><span class="bi-lost" style="flex-grow: <%= row.loss_kg.round(2) %>"></span>
+              </span>
+              <span class="bi-row-value"><%= kg_text(row.loss_kg) %> <small>kg</small></span>
+              <span class="bi-row-pct num"><%= kg_text(row.pct) %>%</span>
+            </li>
+          <% end %>
+        </ul>
+        <p class="bi-note">Comprimento = kg in natura; a parte hachurada é a perda, em kg e em % do in natura.</p>
+      <% else %>
+        <p class="bi-muted">Nenhum produto em kg com fator cadastrado nesta semana.</p>
+      <% end %>
+      <% if s.without_factor.positive? %>
+        <p class="bi-warn"><%= icon :info %><span><%= plural(s.without_factor, "produto fica", "produtos ficam") %> fora desta conta por falta de fator da matéria-prima. <%= link_to "Completar os fatores", raw_materials_path %></span></p>
+      <% end %>
+    </section>
+
+    <section class="bi-panel bi-buy" aria-labelledby="bi-buy">
+      <h2 id="bi-buy">Compras por fornecedor</h2>
+      <% if s.suppliers.any? %>
+        <ul class="bi-rows bi-rows-buy">
+          <% s.suppliers.each do |row| %>
+            <li>
+              <span class="bi-row-name"><%= row.name %></span>
+              <span class="bi-track" aria-hidden="true"><span class="bi-fill-buy" style="width: <%= (row.share * 100).round(1) %>%"></span></span>
+              <span class="bi-row-value"><%= kg_text(row.net_kg) %> <small>kg</small></span>
+              <% if row.stock_kg.positive? %><span class="bi-row-extra"><%= kg_text(row.gross_kg) %> kg necessários, <%= kg_text(row.stock_kg) %> kg vêm da câmara fria</span><% end %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="bi-muted">Nenhuma compra em kg nesta semana. Confira os <%= link_to "dias de compra", rules_path %>.</p>
+      <% end %>
+    </section>
+
+    <section class="bi-panel bi-rank" aria-labelledby="bi-customers">
+      <h2 id="bi-customers">Clientes que mais pedem</h2>
+      <ul class="bi-rows">
+        <% s.customers.each do |bar| %>
+          <li><span class="bi-row-name"><%= bar.label %></span><span class="bi-track" aria-hidden="true"><span class="bi-fill" style="width: <%= (bar.share * 100).round(1) %>%"></span></span><span class="bi-row-value"><%= kg_text(bar.kg) %> <small>kg</small></span></li>
+        <% end %>
+        <% if s.customers.empty? %><li class="bi-muted">Sem entregas em kg.</li><% end %>
+      </ul>
+    </section>
+
+    <section class="bi-panel bi-rank" aria-labelledby="bi-products">
+      <h2 id="bi-products">Produtos mais pedidos</h2>
+      <ul class="bi-rows">
+        <% s.products.each do |bar| %>
+          <li><span class="bi-row-name"><%= bar.label %></span><span class="bi-track" aria-hidden="true"><span class="bi-fill" style="width: <%= (bar.share * 100).round(1) %>%"></span></span><span class="bi-row-value"><%= kg_text(bar.kg) %> <small>kg</small></span></li>
+        <% end %>
+        <% if s.products.empty? %><li class="bi-muted">Sem entregas em kg.</li><% end %>
+      </ul>
+    </section>
+  </div>
+
+  <% if s.other_unit_lines.positive? %>
+    <p class="bi-foot">Os totais são só em kg. <%= s.other_unit_lines == 1 ? "1 item em un, cx ou mç fica fora das somas e continua" : "#{s.other_unit_lines} itens em un, cx ou mç ficam fora das somas e continuam" %> na programação.</p>
+  <% end %>
+<% end %>

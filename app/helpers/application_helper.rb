@@ -2,6 +2,9 @@ module ApplicationHelper
   def qty(value) = Formatting.qty(value)
   def short_date(date) = Formatting.short_date(date)
   def weekday_date(date) = Formatting.weekday_date(date)
+  # 3919.4 -> "3.919,4"; 198.0 -> "198"
+  def kg_text(value) = number_with_precision(value, precision: 1, strip_insignificant_zeros: true, delimiter: ".", separator: ",")
+
   def need_text(need) = Formatting.need_text(need)
 
   def plural(count, singular, plural_form)

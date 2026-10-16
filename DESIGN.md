@@ -243,6 +243,11 @@ Cantos suaves em três degraus: 4px para etiquetas e foco, 8px (0.5rem) para bot
 ### Navegação
 - Abas de texto 600 em tinta suave; hover tinta; atual com tinta e sublinhado de 3px em Verde de Lavoura. Marca em Verde Fundo, 800, 1.375rem, com o duplo broto.
 
+### BI (painel escuro)
+- Exceção deliberada e só desta tela (`/bi`, menu "BI", admin e escritório): painel escuro de sala de controle, escolhido pelo usuário para análise no computador do escritório. Fundo verde-quase-preto (#0c1810), painéis #12251a, linha #274533, tinta #eaf3e4, tinta suave #a3bba8; a nav fica escura nesta tela. Mesma fonte (Bricolage), mesmos verdes (Broto como cor de dado), sol só para "hoje" (coluna do dia), terra clara (#d9b27a) só para compra. No papel (`@media print`) volta à base clara com os mesmos tokens.
+- Papéis: uma exceção de tamanho, o número da semana em 3,5 a 6rem, 800, tabular, só nesta tela. O resto usa os cinco papéis.
+- Gráficos em HTML e CSS puros (sem biblioteca): colunas verticais por dia, barra empilhada por setor em cinco tons de verde com legenda de valores, barra "bullet" de perda (comprimento = kg in natura; verde = vira produto; hachurada = perda) e barras horizontais para compras (terra) e rankings (verde). Totais só em kg; outras unidades são contadas em nota.
+
 ### Faixa da Semana (assinatura)
 - Oito colunas de dia (abreviação e número), uma raia por setor de produção e uma raia de compra CEASA. Em cada célula com trabalho, uma barra-cápsula com a contagem de itens em três níveis de verde: 1 a 2 (broto, texto tinta), 3 a 5 (broto médio, texto tinta), 6 ou mais (verde de lavoura, texto branco). Hoje é o dia em sol; o dia aberto é verde de lavoura com a coluna em lavagem. A compra é uma barra contínua de terra de 10px que cobre os dias até a véspera da próxima compra. Toda barra é um link para o dia, com rótulo acessível, e a legenda embaixo explica níveis, terra e sol.
 
