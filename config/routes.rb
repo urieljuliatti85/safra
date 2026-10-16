@@ -18,6 +18,7 @@ Rails.application.routes.draw do
       get "schedule", to: "plans#schedule"
       get "production", to: "plans#production"
       get "purchases", to: "plans#purchases"
+      get "deliveries", to: "deliveries#index"
       get "stock", to: "stocks#show"
       put "stock", to: "stocks#update"
       # Tabelas planas para BI (JSON ou .csv).

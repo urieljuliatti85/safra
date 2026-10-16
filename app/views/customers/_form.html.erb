@@ -14,6 +14,58 @@
     <%= form.text_field :order_source, class: "field w-full" %>
     <p class="muted mt-1 text-sm">Ex.: planilha em xlsx, PDF, print de tela. É só uma lembrança para a equipe.</p>
   </div>
+  <fieldset class="grid gap-4 border-t border-line pt-4">
+    <legend class="font-bold">Entrega</legend>
+    <p class="muted -mt-2 text-sm">Usado pela logística e pela roteirização (API de entregas). Rua, número e cidade bastam; latitude e longitude são opcionais.</p>
+    <div>
+      <%= form.label :address, "Endereço (rua e número)", class: "mb-1 block font-bold" %>
+      <%= form.text_field :address, autocomplete: "street-address", class: "field w-full" %>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :district, "Bairro", class: "mb-1 block font-bold" %>
+        <%= form.text_field :district, class: "field w-full" %>
+      </div>
+      <div>
+        <%= form.label :postal_code, "CEP", class: "mb-1 block font-bold" %>
+        <%= form.text_field :postal_code, inputmode: "numeric", autocomplete: "postal-code", placeholder: "29010-000", class: "field w-full" %>
+      </div>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-[1fr_6rem]">
+      <div>
+        <%= form.label :city, "Cidade", class: "mb-1 block font-bold" %>
+        <%= form.text_field :city, autocomplete: "address-level2", class: "field w-full" %>
+      </div>
+      <div>
+        <%= form.label :state, "UF", class: "mb-1 block font-bold" %>
+        <%= form.text_field :state, maxlength: 2, autocomplete: "address-level1", placeholder: "ES", class: "field w-full uppercase" %>
+      </div>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :delivery_from, "Recebe a partir de", class: "mb-1 block font-bold" %>
+        <%= form.time_field :delivery_from, value: customer.delivery_from&.strftime("%H:%M"), class: "field w-full" %>
+      </div>
+      <div>
+        <%= form.label :delivery_until, "Recebe até", class: "mb-1 block font-bold" %>
+        <%= form.time_field :delivery_until, value: customer.delivery_until&.strftime("%H:%M"), class: "field w-full" %>
+      </div>
+    </div>
+    <div>
+      <%= form.label :delivery_notes, "Instruções de entrega", class: "mb-1 block font-bold" %>
+      <%= form.text_area :delivery_notes, rows: 2, class: "field w-full", placeholder: "Ex.: entrar pela doca 2, procurar a nutricionista" %>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <%= form.label :latitude, "Latitude (opcional)", class: "mb-1 block font-bold" %>
+        <%= form.text_field :latitude, inputmode: "decimal", placeholder: "-20.319", class: "field w-full" %>
+      </div>
+      <div>
+        <%= form.label :longitude, "Longitude (opcional)", class: "mb-1 block font-bold" %>
+        <%= form.text_field :longitude, inputmode: "decimal", placeholder: "-40.338", class: "field w-full" %>
+      </div>
+    </div>
+  </fieldset>
   <div class="flex flex-wrap items-center gap-3">
     <%= form.button type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar<% end %>
     <%= link_to "Cancelar", customers_path, class: "btn" %>

@@ -9,12 +9,16 @@
 <%= render "catalog/tabs" %>
 <section class="panel">
   <div class="overflow-x-auto">
-    <table class="ops-table" style="min-width: 36rem; table-layout: auto">
-      <thead><tr><th>Cliente</th><th>Como o pedido chega</th><th class="col-num">Apelidos</th><th></th></tr></thead>
+    <table class="ops-table" style="min-width: 48rem; table-layout: auto">
+      <thead><tr><th>Cliente</th><th>Entrega</th><th>Como o pedido chega</th><th class="col-num">Apelidos</th><th></th></tr></thead>
       <tbody>
         <% @customers.each do |customer| %>
           <tr>
             <td class="name"><strong><%= customer.name %></strong><br><span class="muted text-sm"><%= customer.short_name %></span></td>
+            <td class="who">
+              <% if customer.address_complete? %><%= customer.full_address %><% if customer.delivery_window_text %><br><span class="text-sm"><%= customer.delivery_window_text %></span><% end %>
+              <% else %><span class="line-note"><%= icon :info %><span>Sem endereço de entrega</span></span><% end %>
+            </td>
             <td class="who"><%= customer.order_source.presence || "-" %></td>
             <td class="num-col"><%= @alias_counts[customer.id].to_i %></td>
             <td class="whitespace-nowrap text-right">

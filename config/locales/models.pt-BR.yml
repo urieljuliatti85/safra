@@ -40,6 +40,16 @@ pt-BR:
         short_name: Nome curto
         code: Código
         order_source: Como o pedido chega
+        address: Endereço
+        district: Bairro
+        city: Cidade
+        state: UF
+        postal_code: CEP
+        latitude: Latitude
+        longitude: Longitude
+        delivery_from: Recebe a partir de
+        delivery_until: Recebe até
+        delivery_notes: Instruções de entrega
       customer_alias:
         name_in_order: Nome no pedido
         product: Produto

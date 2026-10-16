@@ -170,6 +170,24 @@ class CatalogTest < ActionDispatch::IntegrationTest
     assert_redirected_to edit_customer_path(customer)
   end
 
+  test "endereço de entrega do cliente: grava normalizado, valida e aparece na lista" do
+    customer = Customer.find_by!(code: "hbp")
+    patch customer_path(customer), params: { customer: { address: " Rua das Flores, 120 ", city: "Vitória", state: "es", postal_code: "29010-000",
+                                                         delivery_from: "06:00", delivery_until: "09:00" } }
+    customer.reload
+    assert_equal [ "Rua das Flores, 120", "ES", "29010000" ], [ customer.address, customer.state, customer.postal_code ]
+    assert_equal "06:00 às 09:00", customer.delivery_window_text
+    get customers_path
+    assert_match "Rua das Flores, 120, Vitória/ES, CEP 29010-000", response.body
+    assert_match "Sem endereço de entrega", response.body
+
+    patch customer_path(customer), params: { customer: { state: "XX", postal_code: "123", delivery_from: "10:00", delivery_until: "08:00" } }
+    assert_response :unprocessable_entity
+    assert_match "sigla de um estado", response.body
+    assert_match "8 dígitos", response.body
+    assert_match "depois do início da janela", response.body
+  end
+
   test "apelidos: adicionar, repetido dá erro e remover" do
     customer = Customer.find_by!(code: "hbp")
     product = Product.find_by!(code: "cenoura_ralada")

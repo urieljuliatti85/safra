@@ -6,6 +6,32 @@ module ApiPresenter
 
   def customer(customer) = { code: customer.code, name: customer.name, short_name: customer.short_name }
 
+  def address(customer)
+    { line: customer.address, district: customer.district, city: customer.city, state: customer.state,
+      postal_code: customer.postal_code, full: customer.full_address,
+      latitude: number(customer.latitude), longitude: number(customer.longitude) }
+  end
+
+  def delivery_window(customer)
+    { from: customer.delivery_from&.strftime("%H:%M"), until: customer.delivery_until&.strftime("%H:%M") }
+  end
+
+  # Cliente com o endereço de entrega (catálogo e entregas).
+  def customer_with_address(customer)
+    customer(customer).merge(address: address(customer), delivery_window: delivery_window(customer), delivery_notes: customer.delivery_notes)
+  end
+
+  def deliveries(date, stops)
+    { date: date.iso8601,
+      missing_address: stops.reject { |stop| stop.customer.address_complete? }.map { |stop| stop.customer.code },
+      stops: stops.map do |stop|
+        customer_with_address(stop.customer).merge(
+          kg_total: number(stop.kg_total), other_units: stop.other_units.map { |unit, quantity| { unit: unit, quantity: number(quantity) } },
+          lines: stop.lines.map { |line| { product: line.product.code, name: line.product.name, quantity: number(line.quantity), unit: line.unit, note: line.note } }
+        )
+      end }
+  end
+
   def supplier(supplier) = { id: supplier.id, name: supplier.name }
 
   def cut(cut) = { code: cut.code, name: cut.name, sector: cut.sector, sector_name: cut.sector_name, lead_days: cut.lead_days }

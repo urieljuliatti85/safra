@@ -2,7 +2,7 @@
 module Api
   module V1
     class CatalogController < BaseController
-      def customers = render(json: { data: Customer.order(:name).map { |record| ApiPresenter.customer(record) } })
+      def customers = render(json: { data: Customer.order(:name).map { |record| ApiPresenter.customer_with_address(record) } })
 
       def suppliers = render(json: { data: Supplier.order(:name).map { |record| ApiPresenter.supplier(record) } })
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_050000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -104,6 +104,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_040000) do
     t.string "order_source"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "address"
+    t.string "district"
+    t.string "city"
+    t.string "state", limit: 2
+    t.string "postal_code", limit: 8
+    t.decimal "latitude", precision: 9, scale: 6
+    t.decimal "longitude", precision: 9, scale: 6
+    t.time "delivery_from"
+    t.time "delivery_until"
+    t.text "delivery_notes"
     t.index ["company_id", "code"], name: "index_customers_on_company_id_and_code", unique: true
     t.index ["company_id"], name: "index_customers_on_company_id"
   end
