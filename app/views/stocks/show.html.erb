@@ -1,0 +1,75 @@
+<% content_for :title, "Estoque · Safra" %>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Estoque da câmara fria</h1>
+    <p class="page-sub">Conte o que há na câmara e digite em kg. A compra da CEASA abate o que está contado; o que sobra segue para a compra seguinte, até uma contagem nova. <strong>Campo vazio</strong> é não contado (nada é abatido), <strong>0</strong> é câmara vazia.</p>
+  </div>
+  <%= day_nav(@date, :stock_path) %>
+</div>
+
+<% if @errors.present? %>
+  <div class="flash flash-alert" role="alert">
+    <%= icon :alert %>
+    <div><p class="font-bold">Nada foi salvo. Corrija:</p><ul class="list-disc ml-5"><% @errors.each do |error| %><li><%= error %></li><% end %></ul></div>
+  </div>
+<% end %>
+
+<div class="mb-4 flex flex-wrap items-center gap-3">
+  <p class="num">
+    <% if @purchase_date %>Próxima compra a partir desta contagem: <strong><%= weekday_date(@purchase_date) %></strong>. <%= link_to "Ver compra", purchases_path(date: @purchase_date), class: "underline" %>
+    <% else %>Não há dia de compra a partir de <%= short_date(@date) %>. <%= link_to "Cadastrar em Regras", rules_path(anchor: "compras"), class: "underline" %>
+    <% end %>
+  </p>
+  <%= form_with url: stock_path, method: :get, class: "ml-auto flex flex-wrap items-center gap-2", data: { turbo: false } do %>
+    <%= hidden_field_tag :date, @date.iso8601 %>
+    <%= label_tag :q, "Buscar", class: "sr-only" %>
+    <%= search_field_tag :q, @query, placeholder: "Buscar matéria-prima", class: "field" %>
+    <label class="flex items-center gap-2"><%= check_box_tag :todas, "1", @all, class: "size-5" %>Mostrar todas (<%= @total %>)</label>
+    <%= button_tag "Filtrar", type: "submit", class: "btn" %>
+  <% end %>
+</div>
+
+<%= form_with url: stock_path, method: :patch, data: { turbo: false } do %>
+  <%= hidden_field_tag :date, @date.iso8601 %>
+  <%= hidden_field_tag :q, @query if @query.present? %>
+  <%= hidden_field_tag :todas, "1" if @all %>
+  <div class="sheet-wrap">
+    <table class="sheet">
+      <thead>
+        <tr>
+          <th class="sticky-col">Matéria-prima</th>
+          <th scope="col" class="px-2 text-right">Contagem de <%= short_date(@date) %> (kg)</th>
+          <th scope="col" class="px-2 text-right">Contagem anterior</th>
+          <% if @purchase_date %>
+            <th scope="col" class="px-2 text-right">Precisa em <%= short_date(@purchase_date) %></th>
+            <th scope="col" class="px-2 text-right">Abate do estoque</th>
+            <th scope="col" class="px-2 text-right">Comprar</th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @raw_materials.each do |rm| %>
+          <% need = @needs[rm.id] %>
+          <% previous = @previous[rm.id] %>
+          <tr>
+            <th scope="row" class="sticky-col font-medium"><%= rm.name %></th>
+            <td class="px-1 text-right"><%= text_field_tag "counts[#{rm.id}]", (qty(@today[rm.id].kg) if @today[rm.id]), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Contagem de #{rm.name}" %></td>
+            <td class="num px-2 text-right muted"><%= previous ? "#{qty(previous.kg)} kg em #{short_date(previous.date)}" : "-" %></td>
+            <% if @purchase_date %>
+              <td class="num px-2 text-right"><%= need ? "#{qty(need.kg)} kg" : "-" %></td>
+              <td class="num px-2 text-right"><%= need && need.stock_kg.positive? ? "#{qty(need.stock_kg)} kg" : "-" %></td>
+              <td class="num px-2 text-right font-bold"><%= need ? need_text(need) : "-" %></td>
+            <% end %>
+          </tr>
+        <% end %>
+        <% if @raw_materials.empty? %>
+          <tr><td colspan="6" class="muted p-6 text-center">Nenhuma matéria-prima para mostrar. Marque "Mostrar todas" para contar qualquer uma.</td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <div class="savebar">
+    <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar contagem<% end %>
+    <span class="muted text-sm">Use vírgula para decimais. A lista mostra o que a próxima compra precisa e o que já tem contagem.</span>
+  </div>
+<% end %>

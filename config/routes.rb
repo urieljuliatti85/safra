@@ -38,6 +38,9 @@ Rails.application.routes.draw do
     end
   end
 
+  get "estoque", to: "stocks#show", as: :stock
+  patch "estoque", to: "stocks#update"
+
   get "conference", to: "conferences#show"
   get "conference/sheets", to: "conferences#sheets", as: :conference_sheets
 end

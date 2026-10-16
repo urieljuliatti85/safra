@@ -76,11 +76,18 @@ class PurchasePlanner
     end
   end
 
+  # O estoque da câmara fria abate a compra: a contagem mais recente até o dia da compra vale para ela, e o que
+  # sobra depois de abater vai para a compra seguinte, a não ser que uma contagem nova (feita depois da compra
+  # anterior) o substitua. Só abate o que é pedido em kg.
   def finalize(raw_needs, purchase_dates)
-    stock = initial_stock(purchase_dates.first)
+    counts = StockCount.order(:date, :id).to_a
+    stock = Hash.new(0)
+    previous_date = nil
     purchase_dates.index_with do |date|
+      apply_counts(stock, counts, previous_date, date)
+      previous_date = date
       raw_needs[date].map do |(raw_material, unit), need|
-        stock_kg = unit == "kg" ? [ stock.fetch(raw_material.id, 0), need[:kg] ].min : 0
+        stock_kg = unit == "kg" ? [ stock[raw_material.id], need[:kg] ].min : 0
         stock[raw_material.id] -= stock_kg if stock_kg.positive?
         net_kg = [ need[:kg] - stock_kg, 0 ].max
         Need.new(
@@ -95,11 +102,11 @@ class PurchasePlanner
     end
   end
 
-  # Última contagem de cada matéria-prima até o primeiro dia de compra.
-  def initial_stock(first_purchase_date)
-    return {} unless first_purchase_date
+  # Contagens feitas depois da compra anterior (ou até a primeira compra) substituem o que sobrou.
+  def apply_counts(stock, counts, previous_date, date)
+    counts.each do |count|
+      next if count.date > date || (previous_date && count.date <= previous_date)
 
-    StockCount.where(date: ..first_purchase_date).order(:date).each_with_object(Hash.new(0)) do |count, stock|
       stock[count.raw_material_id] = count.kg
     end
   end

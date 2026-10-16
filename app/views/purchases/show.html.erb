@@ -8,7 +8,10 @@
     <% end %>
   </div>
   <% if @date %>
+    <div class="flex flex-wrap gap-2">
+    <%= link_to stock_path(date: @date), class: "btn" do %><%= icon :plus %>Contar estoque<% end %>
     <%= link_to purchases_path(date: @date, format: :pdf), class: "btn", target: "_blank", rel: "noopener" do %><%= icon :printer %>PDF<% end %>
+    </div>
   <% end %>
 </div>
 
