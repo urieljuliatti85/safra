@@ -24,6 +24,9 @@ Rails.application.routes.draw do
   post "production/publish", to: "productions#publish", as: :publish_production
   get "purchases", to: "purchases#show"
   post "purchases/publish", to: "purchases#publish", as: :publish_purchase
+  resource :rules, only: %i[show update], path: "regras"
+  resources :purchase_days, only: %i[create destroy], path: "dias-de-compra"
+
   get "conference", to: "conferences#show"
   get "conference/sheets", to: "conferences#sheets", as: :conference_sheets
 end

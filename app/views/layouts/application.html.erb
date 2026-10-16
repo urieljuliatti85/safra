@@ -36,6 +36,7 @@
             <%= nav_link "Produção", production_path, "productions" if policy(:production).show? %>
             <%= nav_link "Compras", purchases_path, "purchases" if policy(:purchase).show? %>
             <%= nav_link "Conferência", conference_path, "conferences" if policy(:conference).show? %>
+            <%= nav_link "Regras", rules_path, "rules" if policy(:rule).show? %>
             <%= nav_link "Usuários", users_path, "users" if policy(:user).index? %>
           </nav>
           <details class="user-menu">

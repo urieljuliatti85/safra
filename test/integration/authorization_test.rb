@@ -1,7 +1,7 @@
 require "test_helper"
 
 class AuthorizationTest < ActionDispatch::IntegrationTest
-  FULL = [ "/orders", "/schedule", "/production", "/purchases", "/conference", "/conference/sheets", "/order_imports/new" ].freeze
+  FULL = [ "/orders", "/schedule", "/production", "/purchases", "/conference", "/conference/sheets", "/order_imports/new", "/regras" ].freeze
 
   test "admin e escritório abrem todas as telas de trabalho" do
     %i[admin office].each do |role|
@@ -44,7 +44,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
 
   test "produção é barrada em pedidos, compras, conferência, importação e usuários" do
     sign_in_as(user_for(:production))
-    [ "/orders", "/purchases", "/purchases.pdf?date=2026-10-13", "/conference", "/conference/sheets", "/order_imports/new", "/users" ].each do |path|
+    [ "/orders", "/purchases", "/purchases.pdf?date=2026-10-13", "/conference", "/conference/sheets", "/order_imports/new", "/regras", "/users" ].each do |path|
       get path
       assert_redirected_to production_path, path
     end

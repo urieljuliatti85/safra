@@ -52,6 +52,12 @@ class SheetComparison
     end
   end
 
+  # Placar: [iguais, total]. O total é o que a planilha tem e dá para comparar (não muda com as regras);
+  # itens que só o sistema calcula e textos que não são número não entram.
+  def scores
+    { production: score(production_rows), purchase: score(purchase_rows) }
+  end
+
   def summary
     prod = production_rows.group_by(&:status).transform_values(&:size)
     purch = purchase_rows.group_by(&:status).transform_values(&:size)
@@ -88,6 +94,11 @@ class SheetComparison
   end
 
   private
+
+  def score(rows)
+    comparable = rows.select { |r| r.planilha }
+    [ comparable.count { |r| r.status == "ok" }, comparable.size ]
+  end
 
   def status(expected, got)
     return "só no sistema" if expected.nil?

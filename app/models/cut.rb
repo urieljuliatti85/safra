@@ -8,5 +8,5 @@ class Cut < ApplicationRecord
   validates :code, :name, :sector_name, presence: true
   validates :code, uniqueness: { scope: :company_id }
   validates :sector, inclusion: { in: SECTORS }
-  validates :lead_days, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :lead_days, numericality: { only_integer: true, in: 0..5 }
 end

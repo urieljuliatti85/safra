@@ -1,8 +1,6 @@
 class Product < ApplicationRecord
   GROUPS = %w[processed raw fruit].freeze
   GROUP_LABELS = { "processed" => "Processados", "fruit" => "Frutas embaladas ou descascadas", "raw" => "In natura" }.freeze
-  # Hipótese (a confirmar): in natura é separado e comprado para a véspera da entrega.
-  RAW_LEAD_DAYS = 1
 
   acts_as_tenant :company
 
@@ -25,9 +23,9 @@ class Product < ApplicationRecord
     cut&.sector
   end
 
-  # Dias de antecedência: exceção por produto, senão o do corte (in natura: RAW_LEAD_DAYS).
+  # Dias de antecedência: exceção por produto, senão o do corte; in natura segue a regra da empresa.
   def lead_days
-    production_rule&.lead_days || cut&.lead_days || (raw? ? RAW_LEAD_DAYS : 0)
+    production_rule&.lead_days || cut&.lead_days || (raw? ? (ActsAsTenant.current_tenant&.raw_lead_days || 1) : 0)
   end
 
   # Data em que o item precisa estar pronto para a entrega. Domingo não tem produção: cai para sábado.

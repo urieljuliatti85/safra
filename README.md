@@ -45,6 +45,7 @@ bin/rails db:reset         # apaga o banco e recomeça do zero
 | Produção | Lista do dia por setor, aprontes, envio aos setores em versões e diferença depois do envio. |
 | Compras | Compra da CEASA por fornecedor, texto para WhatsApp e envio em versões. |
 | Conferência | Alertas de fator, unidade, data e observações, e comparação com as planilhas de 13 e 15/10. |
+| Regras | Antecedência da produção por corte e por produto, do in natura e os dias de compra na CEASA. **Ver efeito sem salvar** mostra o placar contra as planilhas antes e depois, item por item. |
 
 Programação, Produção e Compras têm PDF (botão "PDF" ou `/production.pdf?date=2026-10-13`).
 
@@ -56,7 +57,7 @@ O sistema exige login. Cada usuário pertence a uma empresa e só enxerga os dad
 | Papel | O que pode |
 |---|---|
 | Administrador | Tudo, mais gerenciar usuários (menu "Usuários"). |
-| Escritório | Pedidos, importação, programação, produção, compras, conferência e envio aos setores. |
+| Escritório | Pedidos, importação, programação, produção, compras, conferência, regras e envio aos setores. |
 | Produção | Só vê Programação, Produção e os PDFs. Não altera nada e não vê o botão de enviar. |
 
 **Usuários de desenvolvimento** (criados por `bin/setup` ou `bin/rails db:seed`, só em desenvolvimento e teste), todos com a senha `safra-dev-123`:

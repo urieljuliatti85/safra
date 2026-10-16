@@ -1,0 +1,150 @@
+<% content_for :title, "Regras · Safra" %>
+<% current_cut_lead = ->(cut) { @changes&.cut_leads&.fetch(cut.id, nil) || cut.lead_days } %>
+<div class="mb-5">
+  <h1 class="page-title">Regras de produção</h1>
+  <p class="page-sub">Quantos dias antes da entrega cada item é produzido e em que dias se compra na CEASA. Mude, clique em <strong>Ver efeito</strong> para comparar com as planilhas sem gravar nada, e só então salve. Domingo não tem produção: ela cai para sábado (regra fixa).</p>
+</div>
+
+<% if @errors.present? %>
+  <div class="flash flash-alert" role="alert">
+    <%= icon :alert %>
+    <div><p class="font-bold">Nada foi salvo.</p><ul class="list-disc ml-5"><% @errors.each do |error| %><li><%= error %></li><% end %></ul></div>
+  </div>
+<% end %>
+
+<section class="panel mb-4" aria-label="Placar contra as planilhas">
+  <div class="panel-head">
+    <h2>Placar contra as planilhas de 13 e 15/10</h2>
+    <%= link_to "Ver item por item", conference_sheets_path, class: "meta underline" %>
+  </div>
+  <p class="p-3 num">
+    Produção: <strong><%= @scores[:production][0] %> de <%= @scores[:production][1] %></strong> itens iguais ·
+    Compras: <strong><%= @scores[:purchase][0] %> de <%= @scores[:purchase][1] %></strong> itens iguais
+  </p>
+</section>
+
+<% if @simulation && @simulation.errors.empty? %>
+  <% sim = @simulation %>
+  <section class="panel mb-4" aria-label="Efeito das regras sem salvar">
+    <div class="panel-head">
+      <h2>Efeito sem salvar</h2>
+      <span class="meta">Nada foi gravado</span>
+    </div>
+    <p class="p-3 num">
+      Produção: <strong><%= sim.before_score[:production][0] %> → <%= sim.after_score[:production][0] %></strong> de <%= sim.after_score[:production][1] %> ·
+      Compras: <strong><%= sim.before_score[:purchase][0] %> → <%= sim.after_score[:purchase][0] %></strong> de <%= sim.after_score[:purchase][1] %> ·
+      <span class="text-field-deep font-bold"><%= sim.improved %> passam a bater</span>,
+      <span class="<%= 'text-change font-bold' if sim.worsened.positive? %>"><%= sim.worsened %> deixam de bater</span>
+    </p>
+    <% if sim.deltas.any? %>
+      <div class="overflow-x-auto">
+        <table class="ops-table" style="min-width: 36rem; table-layout: auto">
+          <thead><tr><th>Item</th><th>Dia</th><th class="col-num">Planilha</th><th class="col-num">Antes</th><th class="col-num">Depois</th><th>Situação</th></tr></thead>
+          <tbody>
+            <% sim.deltas.first(80).each do |delta| %>
+              <tr class="<%= 'is-changed' if delta.before_ok && !delta.after_ok %>">
+                <td class="name"><%= delta.label %> <span class="muted text-sm">(<%= delta.kind == :production ? "produção" : "compra" %>)</span></td>
+                <td class="num"><%= short_date(delta.date) %></td>
+                <td class="num-col"><%= delta.planilha.is_a?(Numeric) ? qty(delta.planilha) : (delta.planilha || "-") %></td>
+                <td class="num-col"><%= delta.before ? qty(delta.before) : "-" %></td>
+                <td class="num-col"><%= delta.after ? qty(delta.after) : "-" %></td>
+                <td><%= delta.after_ok ? "bate" : (delta.before_ok ? "deixa de bater" : "não bate") %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      <% if sim.deltas.size > 80 %><p class="muted p-3 text-sm">Mostrando 80 de <%= sim.deltas.size %> itens que mudaram.</p><% end %>
+    <% else %>
+      <p class="muted p-3">Essas regras não mudam nenhum número.</p>
+    <% end %>
+  </section>
+<% end %>
+
+<%= form_with url: rules_path, method: :patch, data: { turbo: false } do %>
+  <section class="panel mb-4" aria-label="Antecedência por corte">
+    <div class="panel-head"><h2>Antecedência por corte</h2><span class="meta">vale para todos os produtos do corte, salvo exceção</span></div>
+    <div class="overflow-x-auto">
+      <table class="ops-table" style="min-width: 32rem; table-layout: auto">
+        <thead><tr><th>Corte</th><th>Setor</th><th class="col-num">Produtos</th><th>Produz</th></tr></thead>
+        <tbody>
+          <% @cuts.each do |cut| %>
+            <tr>
+              <td class="name"><label for="cut_<%= cut.id %>"><%= cut.name %></label></td>
+              <td class="who"><%= cut.sector_name %></td>
+              <td class="num-col"><%= @products_per_cut[cut.id].to_i %></td>
+              <td><%= select_tag "cut_leads[#{cut.id}]", options_for_select(lead_options, current_cut_lead.call(cut)), id: "cut_#{cut.id}", class: "field" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel mb-4" aria-label="Exceções por produto">
+    <div class="panel-head"><h2>Exceções por produto</h2><span class="meta">o produto ignora o corte e usa a sua própria antecedência</span></div>
+    <% if @exceptions.any? %>
+      <table class="ops-table" style="table-layout: auto">
+        <thead><tr><th>Produto</th><th>Produz</th></tr></thead>
+        <tbody>
+          <% @exceptions.each do |rule| %>
+            <% value = @changes&.exceptions&.key?(rule.product_id) ? @changes.exceptions[rule.product_id] : rule.lead_days %>
+            <tr>
+              <td class="name"><label for="exception_<%= rule.product_id %>"><%= rule.product.name %></label></td>
+              <td><%= select_tag "exceptions[#{rule.product_id}]", options_for_select(lead_options, value), id: "exception_#{rule.product_id}", include_blank: "Voltar a usar a do corte", class: "field" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p class="muted p-3">Nenhuma exceção: todos os produtos seguem o corte.</p>
+    <% end %>
+    <div class="flex flex-wrap items-end gap-3 border-t border-line-soft p-3">
+      <div>
+        <label for="new_exception_product" class="mb-1 block text-sm font-bold">Nova exceção</label>
+        <%= select_tag "new_exception[product_id]", options_for_select(@exception_candidates.map { |p| [ p.name, p.id ] }, @changes&.new_exception&.dig(:product_id)), id: "new_exception_product", include_blank: "Escolha o produto", class: "field" %>
+      </div>
+      <div>
+        <label for="new_exception_lead" class="mb-1 block text-sm font-bold">Produz</label>
+        <%= select_tag "new_exception[lead_days]", options_for_select(lead_options, @changes&.new_exception&.dig(:lead_days) || 1), id: "new_exception_lead", class: "field" %>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel mb-4" aria-label="In natura">
+    <div class="panel-head"><h2>In natura</h2><span class="meta">o que não é processado só entra na compra</span></div>
+    <div class="flex flex-wrap items-center gap-3 p-3">
+      <label for="raw_lead_days" class="font-bold">Compra para entrega</label>
+      <%= select_tag :raw_lead_days, options_for_select(lead_options, (@changes&.raw_lead_days || current_company.raw_lead_days).to_i), class: "field" %>
+    </div>
+  </section>
+
+  <div class="savebar">
+    <%= button_tag type: "submit", name: "commit_action", value: "simulate", class: "btn" do %><%= icon :info %>Ver efeito sem salvar<% end %>
+    <%= button_tag type: "submit", name: "commit_action", value: "save", class: "btn btn-primary" do %><%= icon :check %>Salvar regras<% end %>
+    <span class="muted text-sm">Planos já enviados não mudam sozinhos: a produção e a compra avisam o que mudou depois do envio.</span>
+  </div>
+<% end %>
+
+<section id="compras" class="panel mt-6" aria-label="Dias de compra na CEASA">
+  <div class="panel-head"><h2>Dias de compra na CEASA</h2><span class="meta">cada compra abastece a produção até a véspera da seguinte</span></div>
+  <% if @purchase_days.any? %>
+    <ul class="grid gap-1 p-3">
+      <% @purchase_days.each do |day| %>
+        <li class="flex items-center gap-3">
+          <span class="num min-w-32 font-bold"><%= weekday_date(day.date) %>/<%= day.date.year %></span>
+          <%= button_to "Remover", purchase_day_path(day), method: :delete, class: "btn", form: { data: { turbo_confirm: "Remover o dia de compra #{weekday_date(day.date)}? As compras e a produção que dependem dele são recalculadas." } } %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="muted p-3">Nenhum dia de compra cadastrado.</p>
+  <% end %>
+  <%= form_with url: purchase_days_path, method: :post, class: "flex flex-wrap items-end gap-3 border-t border-line-soft p-3", data: { turbo: false } do %>
+    <div>
+      <label for="date" class="mb-1 block text-sm font-bold">Novo dia de compra</label>
+      <input id="date" type="date" name="date" required class="field">
+    </div>
+    <%= button_tag type: "submit", class: "btn" do %><%= icon :plus %>Adicionar<% end %>
+  <% end %>
+</section>

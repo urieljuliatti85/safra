@@ -8,6 +8,11 @@ module ApplicationHelper
     "#{count} #{count == 1 ? singular : plural_form}"
   end
 
+  # Antecedência da produção em relação à entrega, em linguagem de cozinha.
+  def lead_options
+    (0..5).map { |days| [ days.zero? ? "No dia da entrega" : (days == 1 ? "1 dia antes" : "#{days} dias antes"), days ] }
+  end
+
   def nav_link(label, path, controller)
     current = controller_name == controller
     link_to label, path, class: "nav-link", "aria-current": (current ? "page" : nil), data: { reveal_target: ("current" if current) }.compact
