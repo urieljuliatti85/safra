@@ -4,7 +4,7 @@
 class DashboardSummary
   # state: :ok (em ordem), :pending (falta fazer), :changed (mudou depois do envio), :idle (nada a fazer)
   Stage = Data.define(:key, :title, :state, :status, :facts, :action_label, :action_path, :secondary)
-  Result = Data.define(:date, :stages, :week, :alerts, :stale_production, :stale_purchase)
+  Result = Data.define(:date, :stages, :alerts, :stale_production, :stale_purchase)
 
   def initialize(company:, date: Date.current)
     @company = company
@@ -14,28 +14,36 @@ class DashboardSummary
   def call
     ActsAsTenant.with_tenant(@company) do
       purchase_result = PurchasePlanner.new(company: @company).call
-      stages = [ orders_stage, schedule_stage, production_stage, purchase_stage(purchase_result) ]
-      Result.new(date: @date, stages: stages, week: WeekOverview.new(company: @company, date: @date).call,
-                 alerts: ConferenceChecker.new(company: @company).call.count { |alert| alert.level == :warn },
+      alerts = ConferenceChecker.new(company: @company).call.count { |alert| alert.level == :warn }
+      stages = [ orders_stage(alerts), schedule_stage, production_stage, purchase_stage(purchase_result) ]
+      Result.new(date: @date, stages: stages, alerts: alerts,
                  stale_production: StalePlans.dates(@company), stale_purchase: stale_purchase_dates(purchase_result))
     end
   end
 
   private
 
-  def orders_stage
+  # Os alertas da conferência são sobre os pedidos: ficam na própria etapa, como segundo caminho.
+  def orders_stage(alerts)
     week_start = @date.beginning_of_week
     total = Customer.count
-    with_orders = OrderLine.joins(:order).where(orders: { week_start: week_start }).where("quantity > 0").distinct.count("orders.customer_id")
+    launched_ids = OrderLine.joins(:order).where(orders: { week_start: week_start }).where("quantity > 0").distinct.pluck("orders.customer_id")
+    with_orders = launched_ids.size
     missing = total - with_orders
     state = total.zero? || missing.positive? ? :pending : :ok
     status = if total.zero? then "Sem clientes cadastrados"
     elsif missing.positive? then "#{missing == 1 ? 'Falta 1 cliente' : "Faltam #{missing} clientes"} na semana"
     else "Todos os clientes lançados"
     end
-    Stage.new(key: :orders, title: "Pedidos", state: state, status: status,
-              facts: [ "#{with_orders} de #{total} clientes com pedido na semana de #{Formatting.short_date(week_start)}" ],
-              action_label: "Lançar pedidos", action_path: Rails.application.routes.url_helpers.orders_path, secondary: nil)
+    helpers = Rails.application.routes.url_helpers
+    return Stage.new(key: :orders, title: "Pedidos", state: state, status: status, facts: [ "Cadastre os clientes antes de lançar pedidos" ],
+                     action_label: "Cadastrar clientes", action_path: helpers.customers_path, secondary: nil) if total.zero?
+
+    facts = [ "Semana de #{Formatting.short_date(week_start)}: #{with_orders} de #{total} clientes lançados" ]
+    facts << "Falta: #{missing_names(launched_ids)}" if missing.positive?
+    Stage.new(key: :orders, title: "Pedidos", state: state, status: status, facts: facts,
+              action_label: "Lançar pedidos", action_path: helpers.orders_path,
+              secondary: alerts.positive? ? { label: "#{plural(alerts, 'alerta', 'alertas')} para conferir", path: helpers.conference_path } : nil)
   end
 
   def schedule_stage
@@ -44,7 +52,7 @@ class DashboardSummary
     state = today[:items].zero? && tomorrow[:items].zero? ? :idle : :ok
     status = today[:items].zero? ? "Sem entregas hoje" : "#{plural(today[:customers], 'cliente recebe', 'clientes recebem')} hoje"
     Stage.new(key: :schedule, title: "Programação", state: state, status: status,
-              facts: [ "Hoje: #{plural(today[:items], 'item', 'itens')}", "Amanhã: #{plural(tomorrow[:items], 'item', 'itens')} para #{plural(tomorrow[:customers], 'cliente', 'clientes')}" ],
+              facts: [ "#{plural(today[:items], 'item', 'itens')} para entregar hoje", "Amanhã: #{plural(tomorrow[:items], 'item', 'itens')} para #{plural(tomorrow[:customers], 'cliente', 'clientes')}" ],
               action_label: "Ver programação", action_path: Rails.application.routes.url_helpers.schedule_path(date: @date), secondary: nil)
   end
 
@@ -54,9 +62,9 @@ class DashboardSummary
     changes = sent ? PlanDiff.production(sent, result) : []
     state, status = plan_state(result.items.any?, sent, changes, "Sem produção hoje", "Falta enviar aos setores")
     facts = result.items.any? ? [ "#{plural(result.items.size, 'item', 'itens')} em #{plural(result.items.map { |item| item.product.sector }.uniq.size, 'setor', 'setores')}" ] : []
-    facts << "Mudou: #{plural(changes.size, 'item', 'itens')} diferente#{'s' unless changes.size == 1} da versão enviada" if changes.any?
+    facts << "Os setores estão com a versão #{sent.version}; reenvie" if changes.any?
     Stage.new(key: :production, title: "Produção", state: state, status: status, facts: facts,
-              action_label: state == :pending ? "Revisar e enviar" : "Abrir produção",
+              action_label: action_label(state, "Abrir produção"),
               action_path: Rails.application.routes.url_helpers.production_path(date: @date), secondary: nil)
   end
 
@@ -64,7 +72,7 @@ class DashboardSummary
     date = PurchaseDay.where(date: @date..).order(:date).pick(:date)
     helpers = Rails.application.routes.url_helpers
     return Stage.new(key: :purchase, title: "Compras", state: :idle, status: "Sem dia de compra cadastrado",
-                     facts: [ "Cadastre os dias da CEASA em Regras" ], action_label: "Abrir Regras",
+                     facts: [ "Sem os dias da CEASA, a compra não é calculada" ], action_label: "Cadastrar dias de compra",
                      action_path: helpers.rules_path(anchor: "compras"), secondary: nil) unless date
 
     needs = result.purchases.fetch(date, [])
@@ -75,19 +83,32 @@ class DashboardSummary
     uncounted = needs.select { |need| need.unit == "kg" && !counted.include?(need.raw_material.id) }.size
     facts = [ "Próxima compra: #{Formatting.weekday_date(date)}" ]
     facts << "#{plural(needs.size, 'matéria-prima', 'matérias-primas')} a comprar" if needs.any?
-    facts << "#{uncounted} sem contagem de estoque hoje" if uncounted.positive?
-    facts << "Mudou: #{plural(changes.size, 'item', 'itens')} diferente#{'s' unless changes.size == 1} da versão enviada" if changes.any?
+    facts << "Estoque de hoje sem contagem: #{plural(uncounted, 'matéria-prima', 'matérias-primas')}" if uncounted.positive?
+    facts << "Os fornecedores estão com a versão #{sent.version}; reenvie" if changes.any?
     Stage.new(key: :purchase, title: "Compras", state: state, status: status, facts: facts,
-              action_label: "Abrir compra", action_path: helpers.purchases_path(date: date),
+              action_label: action_label(state, "Abrir compra"), action_path: helpers.purchases_path(date: date),
               secondary: uncounted.positive? ? { label: "Contar estoque", path: helpers.stock_path(date: @date) } : nil)
   end
 
   def plan_state(any_items, sent, changes, idle_text, unsent_text)
     return [ :idle, idle_text ] if !any_items && sent.nil?
     return [ :pending, unsent_text ] if sent.nil?
-    return [ :changed, "Mudou desde a versão #{sent.version} enviada" ] if changes.any?
+    return [ :changed, "#{plural(changes.size, 'item mudou', 'itens mudaram')} depois do envio" ] if changes.any?
 
     [ :ok, "Enviada, versão #{sent.version}" ]
+  end
+
+  # A ação diz o que fazer: enviar o que falta, reenviar o que mudou, ou só abrir.
+  def action_label(state, open_label)
+    { pending: "Revisar e enviar", changed: "Ver diferença e reenviar" }.fetch(state, open_label)
+  end
+
+  # "Aurora Hotel e Bom Pastor"; mais de três vira "A, B, C e mais 2".
+  def missing_names(launched_ids)
+    names = Customer.where.not(id: launched_ids).order(:short_name).pluck(:short_name)
+    shown = names.first(3)
+    shown << "mais #{names.size - 3}" if names.size > 3
+    shown.to_sentence
   end
 
   def deliveries(date)

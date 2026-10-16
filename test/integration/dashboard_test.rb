@@ -16,7 +16,10 @@ class DashboardTest < ActionDispatch::IntegrationTest
     assert_select ".flow-step h2", count: 4
     assert_equal %w[Pedidos Programação Produção Compras], css_select(".flow-step h2").map(&:text)
     assert_select "nav a[aria-current=page]", text: "Painel"
-    assert_select ".week"
+    assert_select ".week", count: 0
+    assert_select ".flow-step[data-state=ok] a.btn", count: 0
+    assert_select ".flow-step:first-child a[href='/conference']", /alertas? para conferir/
+    assert_select ".flash-notice", count: 0
   end
 
   test "produção continua caindo na própria tela e não abre o painel" do
@@ -49,7 +52,8 @@ class DashboardTest < ActionDispatch::IntegrationTest
       product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_ralada") }
       patch orders_path(customer: "hnorte", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-13" => "99" } } }
       get dashboard_path
-      assert_select ".flow-step[data-state=changed] .flow-status", /Mudou desde a versão 1 enviada/
+      assert_select ".flow-step[data-state=changed] .flow-status", /1 item mudou depois do envio/
+      assert_select ".flow-step[data-state=changed] a.btn-primary", text: "Ver diferença e reenviar"
       assert_select ".flash-alert", /Mudou depois do envio:.*produção de 13\/10/
     end
   end
@@ -62,5 +66,13 @@ class DashboardTest < ActionDispatch::IntegrationTest
       assert_select ".flow-facts li", /Próxima compra: /
       assert_select ".flow-step a", text: "Contar estoque"
     end
+  end
+
+  test "pedidos dizem quais clientes faltam lançar" do
+    ActsAsTenant.with_tenant(company) { Customer.create!(code: "novo", name: "Cliente Novo", short_name: "Novo") }
+    sign_in_as(user_for(:office))
+    get dashboard_path
+    assert_select ".flow-step[data-state=pending] .flow-status", /Falta 1 cliente na semana/
+    assert_select ".flow-facts li", /Falta: Novo/
   end
 end
