@@ -398,6 +398,25 @@ components:
                 type: string
               missing_factor:
                 type: boolean
+    BiTable:
+      type: object
+      required:
+      - from
+      - to
+      - rows
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+          description: Uma linha por fato; as colunas dependem da tabela
     Stock:
       type: object
       required:
@@ -460,6 +479,327 @@ components:
 security:
 - bearerAuth: []
 paths:
+  "/api/v1/bi/schedule":
+    get:
+      summary: Programação (uma linha por item entregue)
+      tags:
+      - BI
+      description: 'Tabela plana para Metabase, Power BI e Looker Studio, calculada
+        pelo sistema. Padrão: de segunda-feira desta semana até 14 dias. No máximo
+        92 dias por chamada. Acrescente `.csv` à URL para receber CSV (UTF-8, ponto
+        decimal). Perda = kg in natura − kg processado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        format: date
+        required: false
+        description: Primeiro dia (AAAA-MM-DD)
+        schema:
+          type: string
+      - name: to
+        in: query
+        format: date
+        required: false
+        description: Último dia (AAAA-MM-DD)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: linhas do período
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/BiTable"
+        '400':
+          description: período inválido
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/bi/schedule.csv":
+    get:
+      summary: Programação (uma linha por item entregue), em CSV
+      tags:
+      - BI
+      description: Mesma tabela em CSV, para carregar direto em planilhas e ferramentas
+        de BI. Envie a chave no cabeçalho `Authorization`.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        format: date
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        format: date
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CSV com cabeçalho
+  "/api/v1/bi/production":
+    get:
+      summary: Produção (uma linha por produto, cliente e entrega)
+      tags:
+      - BI
+      description: 'Tabela plana para Metabase, Power BI e Looker Studio, calculada
+        pelo sistema. Padrão: de segunda-feira desta semana até 14 dias. No máximo
+        92 dias por chamada. Acrescente `.csv` à URL para receber CSV (UTF-8, ponto
+        decimal). Perda = kg in natura − kg processado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        format: date
+        required: false
+        description: Primeiro dia (AAAA-MM-DD)
+        schema:
+          type: string
+      - name: to
+        in: query
+        format: date
+        required: false
+        description: Último dia (AAAA-MM-DD)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: linhas do período
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/BiTable"
+        '400':
+          description: período inválido
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/bi/production.csv":
+    get:
+      summary: Produção (uma linha por produto, cliente e entrega), em CSV
+      tags:
+      - BI
+      description: Mesma tabela em CSV, para carregar direto em planilhas e ferramentas
+        de BI. Envie a chave no cabeçalho `Authorization`.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        format: date
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        format: date
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CSV com cabeçalho
+  "/api/v1/bi/purchases":
+    get:
+      summary: Compras (uma linha por dia de compra e matéria-prima)
+      tags:
+      - BI
+      description: 'Tabela plana para Metabase, Power BI e Looker Studio, calculada
+        pelo sistema. Padrão: de segunda-feira desta semana até 14 dias. No máximo
+        92 dias por chamada. Acrescente `.csv` à URL para receber CSV (UTF-8, ponto
+        decimal). Perda = kg in natura − kg processado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        format: date
+        required: false
+        description: Primeiro dia (AAAA-MM-DD)
+        schema:
+          type: string
+      - name: to
+        in: query
+        format: date
+        required: false
+        description: Último dia (AAAA-MM-DD)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: linhas do período
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/BiTable"
+        '400':
+          description: período inválido
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/bi/purchases.csv":
+    get:
+      summary: Compras (uma linha por dia de compra e matéria-prima), em CSV
+      tags:
+      - BI
+      description: Mesma tabela em CSV, para carregar direto em planilhas e ferramentas
+        de BI. Envie a chave no cabeçalho `Authorization`.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        format: date
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        format: date
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CSV com cabeçalho
+  "/api/v1/bi/losses":
+    get:
+      summary: Perdas (kg processado, kg in natura e perda por produto e dia)
+      tags:
+      - BI
+      description: 'Tabela plana para Metabase, Power BI e Looker Studio, calculada
+        pelo sistema. Padrão: de segunda-feira desta semana até 14 dias. No máximo
+        92 dias por chamada. Acrescente `.csv` à URL para receber CSV (UTF-8, ponto
+        decimal). Perda = kg in natura − kg processado.'
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        format: date
+        required: false
+        description: Primeiro dia (AAAA-MM-DD)
+        schema:
+          type: string
+      - name: to
+        in: query
+        format: date
+        required: false
+        description: Último dia (AAAA-MM-DD)
+        schema:
+          type: string
+      responses:
+        '200':
+          description: linhas do período
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/BiTable"
+        '400':
+          description: período inválido
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        '401':
+          description: token ausente, inválido ou revogado
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+  "/api/v1/bi/losses.csv":
+    get:
+      summary: Perdas (kg processado, kg in natura e perda por produto e dia), em
+        CSV
+      tags:
+      - BI
+      description: Mesma tabela em CSV, para carregar direto em planilhas e ferramentas
+        de BI. Envie a chave no cabeçalho `Authorization`.
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        format: date
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        format: date
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CSV com cabeçalho
   "/api/v1/customers":
     get:
       summary: 'Lista: clientes'

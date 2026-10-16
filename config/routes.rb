@@ -20,6 +20,8 @@ Rails.application.routes.draw do
       get "purchases", to: "plans#purchases"
       get "stock", to: "stocks#show"
       put "stock", to: "stocks#update"
+      # Tabelas planas para BI (JSON ou .csv).
+      %w[schedule production purchases losses].each { |name| get "bi/#{name}", to: "bi##{name}" }
     end
   end
 
