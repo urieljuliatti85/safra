@@ -58,7 +58,7 @@ O sistema exige login. Cada usuário pertence a uma empresa e só enxerga os dad
 
 | Papel | O que pode |
 |---|---|
-| Administrador | Tudo, mais gerenciar usuários (menu "Usuários"). |
+| Administrador | Tudo, mais gerenciar usuários e ver o histórico (no menu da conta, ao lado do nome). |
 | Escritório | Pedidos, importação, programação, produção, compras, conferência, estoque, regras, cadastros e envio aos setores. |
 | Produção | Só vê Programação, Produção e os PDFs. Não altera nada e não vê o botão de enviar. |
 
@@ -84,6 +84,17 @@ Em **Cadastros** a equipe mantém o que antes só vinha por seed:
 - **Fornecedores.**
 
 O código de cada cadastro é gerado do nome (`Batata roxa` vira `batata_roxa`) e não muda depois, porque seeds, planilhas de referência e apelidos apontam para ele. Decimais aceitam vírgula (`1,35`), e campo vazio fica sem valor. Excluir é barrado quando há dependências (matéria-prima com produtos, produto ou cliente com pedidos, fornecedor com matérias-primas). As mensagens do sistema estão em português.
+
+## Histórico (quem alterou o quê)
+
+O sistema registra, com a pessoa, a data, o IP e o **antes e o depois** de cada campo: cadastros (matérias-primas, produtos, clientes, apelidos, fornecedores, cortes), regras de antecedência e dias de compra, contagens de estoque, linhas de pedido, importações, envios de produção e compra, usuários (papel, ativo, senha redefinida, sem nunca guardar a senha) e as entradas, saídas e tentativas erradas de login.
+
+- **Só o administrador vê**, em **Histórico** (menu da conta). Dá para filtrar por pessoa, por tipo, por nome e por data, e abrir o histórico de um cadastro só pelo link "Histórico deste cadastro" na tela de edição.
+- O que veio de uma mesma ação (um "Salvar tudo", uma importação) aparece junto, como uma linha que se abre.
+- O histórico **só se lê**: ninguém edita nem apaga, e o próprio código recusa.
+- **"Ver efeito sem salvar"** (simulação de regras) não deixa registro, porque o registro é desfeito junto com a simulação.
+- Só entra o que passa pelo sistema com alguém logado. Seed, console e alterações direto no banco **não** são registrados, e tentativa de login com e-mail que não existe também não (não há empresa para atribuir).
+- Os registros não são apagados sozinhos: a tabela `audit_logs` só cresce. Se um dia pesar, o caminho é arquivar por data.
 
 ## Importar pedidos de planilhas
 
@@ -146,6 +157,7 @@ Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde ant
 ## Estrutura
 
 - `app/models`: modelos multiempresa (`acts_as_tenant` por `Company`), `User` e `Session`.
+- `app/models/concerns/auditable.rb` e `AuditLog`: histórico de alterações.
 - `app/policies`: autorização com Pundit, negada por padrão e liberada por papel (`allow :admin, :office, to: ...`).
 - `app/services`: `ProductionPlanner`, `PurchasePlanner`, `WeekOverview`, `PlanPublisher`, `PlanDiff`, `ConferenceChecker`, `OrderGridSaver` e, em `order_imports/`, a leitura de planilhas (`SheetReader`), o reconhecimento de nomes (`Matcher`), a prévia (`Preview`) e a gravação (`Applier`).
 - `app/pdfs`: PDFs com Prawn (fonte Bricolage Grotesque embutida).

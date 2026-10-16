@@ -1,5 +1,5 @@
 <% content_for :title, "Editar cliente · Safra" %>
-<div class="mb-5"><h1 class="page-title"><%= @customer.name %></h1><p class="page-sub">Código <code><%= @customer.code %></code> (não muda).</p></div>
+<div class="mb-5"><h1 class="page-title"><%= @customer.name %></h1><p class="page-sub">Código <code><%= @customer.code %></code> (não muda). <%= link_to "Histórico deste cadastro", audit_logs_path(type: @customer.class.name, id: @customer.id), class: "underline" if policy(:audit_log).index? %></p></div>
 <%= render "form", customer: @customer %>
 
 <section id="apelidos" class="panel mt-6" aria-label="Apelidos dos produtos">

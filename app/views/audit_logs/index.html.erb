@@ -1,0 +1,77 @@
+<% content_for :title, "Histórico · Safra" %>
+<div class="mb-5">
+  <h1 class="page-title">Histórico</h1>
+  <p class="page-sub">Quem alterou o quê, com o antes e o depois. O que veio de uma mesma ação (por exemplo, um "Salvar tudo") aparece junto. O histórico só se lê: ninguém edita nem apaga. Alterações feitas direto no servidor, fora do sistema, não entram.</p>
+</div>
+
+<%= form_with url: audit_logs_path, method: :get, class: "panel mb-4 flex flex-wrap items-end gap-3 p-3", data: { turbo: false } do %>
+  <% if @filters[:type] && @filters[:id] %>
+    <%= hidden_field_tag :type, @filters[:type] %>
+    <%= hidden_field_tag :id, @filters[:id] %>
+    <p class="basis-full text-sm font-bold">Só deste cadastro. <%= link_to "Ver tudo", audit_logs_path, class: "underline" %></p>
+  <% end %>
+  <div>
+    <label for="user_id" class="mb-1 block text-sm font-bold">Quem</label>
+    <%= select_tag :user_id, options_for_select(@users.map { |u| [ u.name, u.id ] }, @filters[:user_id]), include_blank: "Todos", class: "field" %>
+  </div>
+  <div>
+    <label for="type" class="mb-1 block text-sm font-bold">O quê</label>
+    <%= select_tag :type, options_for_select(@types, @filters[:type]), include_blank: "Tudo", class: "field", disabled: (@filters[:type] && @filters[:id]).present? %>
+  </div>
+  <div>
+    <label for="q" class="mb-1 block text-sm font-bold">Nome</label>
+    <%= search_field_tag :q, @filters[:q], placeholder: "Ex.: Cenoura", class: "field" %>
+  </div>
+  <div>
+    <label for="from" class="mb-1 block text-sm font-bold">De</label>
+    <%= date_field_tag :from, @filters[:from]&.iso8601, class: "field" %>
+  </div>
+  <div>
+    <label for="to" class="mb-1 block text-sm font-bold">Até</label>
+    <%= date_field_tag :to, @filters[:to]&.iso8601, class: "field" %>
+  </div>
+  <%= button_tag "Filtrar", type: "submit", class: "btn" %>
+<% end %>
+
+<p class="muted mb-3 text-sm num"><%= plural(@result.total, "ação encontrada", "ações encontradas") %>. Página <%= @result.page %> de <%= @result.pages %>.</p>
+
+<% if @result.events.empty? %>
+  <p class="panel p-8 text-center muted">Nada no histórico com esses filtros.</p>
+<% end %>
+<div class="space-y-2">
+  <% @result.events.each do |event| %>
+    <details class="panel">
+      <summary class="flex cursor-pointer flex-wrap items-baseline gap-x-3 gap-y-1 p-3">
+        <span class="num muted min-w-32 text-sm"><%= l(event.at, format: "%d/%m/%Y %H:%M") %></span>
+        <strong><%= event.user_name %></strong>
+        <span><%= audit_headline(event) %></span>
+        <% if event.logs.size > 1 %><span class="muted text-sm">(<%= plural(event.logs.size, "mudança", "mudanças") %>)</span><% end %>
+      </summary>
+      <ul class="grid gap-3 border-t border-line-soft p-3 text-sm">
+        <% event.logs.each do |log| %>
+          <li>
+            <% unless %w[login logout login_failed password_changed].include?(log.action) %>
+              <p>
+                <% if event.logs.size > 1 %><strong><%= audit_log_headline(log) %></strong><% end %>
+                <%= link_to "histórico deste cadastro", audit_logs_path(type: log.auditable_type, id: log.auditable_id), class: "muted underline" if log.auditable_id %>
+              </p>
+            <% end %>
+            <% if log.details.any? %>
+              <ul class="ml-4 list-disc">
+                <% log.details.each do |attribute, (before, after)| %><li><%= audit_change_text(attribute, before, after) %></li><% end %>
+              </ul>
+            <% end %>
+          </li>
+        <% end %>
+        <li class="muted">IP <%= event.ip_address || "-" %></li>
+      </ul>
+    </details>
+  <% end %>
+</div>
+
+<% if @result.pages > 1 %>
+  <nav class="mt-4 flex flex-wrap items-center gap-2" aria-label="Páginas">
+    <% if @result.page > 1 %><%= link_to "Anterior", audit_logs_path(request.query_parameters.merge(page: @result.page - 1)), class: "btn" %><% end %>
+    <% if @result.page < @result.pages %><%= link_to "Próxima", audit_logs_path(request.query_parameters.merge(page: @result.page + 1)), class: "btn" %><% end %>
+  </nav>
+<% end %>

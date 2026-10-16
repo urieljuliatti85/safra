@@ -2,6 +2,7 @@ class Cut < ApplicationRecord
   SECTORS = %w[descasc manual ralpic palito cubinho frutas].freeze
 
   acts_as_tenant :company
+  include Auditable
 
   has_many :products, dependent: :restrict_with_error
 

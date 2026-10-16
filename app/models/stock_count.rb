@@ -1,5 +1,8 @@
 class StockCount < ApplicationRecord
   acts_as_tenant :company
+  include Auditable
+
+  def audit_label = "Contagem de #{raw_material&.name} em #{date.strftime('%d/%m/%Y')}"
 
   belongs_to :raw_material
 

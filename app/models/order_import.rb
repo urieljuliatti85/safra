@@ -5,6 +5,10 @@ class OrderImport < ApplicationRecord
   IMAGE_TYPES = %w[image/png image/jpeg image/webp image/gif].freeze
 
   acts_as_tenant :company
+  include Auditable
+  audited except: %w[payload]
+
+  def audit_label = "Importação #{filename}"
 
   belongs_to :customer
   has_one_attached :image

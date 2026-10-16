@@ -39,12 +39,13 @@
             <%= nav_link "Conferência", conference_path, "conferences" if policy(:conference).show? %>
             <%= nav_link "Regras", rules_path, "rules" if policy(:rule).show? %>
             <%= nav_link "Cadastros", raw_materials_path, %w[raw_materials products customers suppliers customer_aliases] if policy(:raw_material).index? %>
-            <%= nav_link "Usuários", users_path, "users" if policy(:user).index? %>
           </nav>
           <details class="user-menu">
             <summary><span class="user-name"><%= current_user.name %></span><span class="sr-only">Menu da conta</span><%= icon :chevron_right, class: "icon user-chevron" %></summary>
             <div class="user-menu-panel">
               <p class="muted text-sm"><%= current_user.role_label %> · <%= current_company.name %></p>
+              <% if policy(:user).index? %><%= link_to "Usuários", users_path, class: "user-menu-item" %><% end %>
+              <% if policy(:audit_log).index? %><%= link_to "Histórico", audit_logs_path, class: "user-menu-item" %><% end %>
               <%= link_to "Trocar senha", edit_account_password_path, class: "user-menu-item" %>
               <%= button_to "Sair", session_path, method: :delete, class: "user-menu-item", form: { class: "contents" } %>
             </div>

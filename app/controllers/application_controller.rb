@@ -11,6 +11,7 @@ class ApplicationController < ActionController::Base
   set_current_tenant_through_filter
   before_action :set_tenant
   before_action :require_password_change
+  before_action :set_audit_context
   after_action :verify_authorized
 
   rescue_from Pundit::NotAuthorizedError, with: :forbidden
@@ -30,6 +31,12 @@ class ApplicationController < ActionController::Base
 
   def current_company
     Current.user.company
+  end
+
+  # Quem está agindo e de onde, para o histórico; o request_id agrupa o que veio de uma mesma ação.
+  def set_audit_context
+    Current.request_id = request.request_id
+    Current.ip_address = request.remote_ip
   end
 
   def set_tenant

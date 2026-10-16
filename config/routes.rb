@@ -41,6 +41,8 @@ Rails.application.routes.draw do
   get "estoque", to: "stocks#show", as: :stock
   patch "estoque", to: "stocks#update"
 
+  get "historico", to: "audit_logs#index", as: :audit_logs
+
   get "conference", to: "conferences#show"
   get "conference/sheets", to: "conferences#sheets", as: :conference_sheets
 end

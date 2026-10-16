@@ -40,4 +40,33 @@ module ApplicationHelper
     else "#{qty(change.before)} → #{qty(change.after)} #{change.unit}"
     end
   end
+
+  AUDIT_VERBS = {
+    "create" => "criou", "update" => "alterou", "destroy" => "excluiu", "login" => "entrou no sistema",
+    "logout" => "saiu do sistema", "login_failed" => "tentou entrar sem sucesso", "password_changed" => "trocou a própria senha"
+  }.freeze
+
+  # Uma mudança só: "alterou matéria-prima: Cenoura". Várias: "alterou 12 linhas de pedido".
+  def audit_headline(event)
+    return audit_log_headline(event.logs.first) if event.logs.one?
+
+    event.logs.group_by { |l| [ l.action, l.auditable_type ] }.map do |(action, type), group|
+      "#{AUDIT_VERBS.fetch(action)} #{group.size} #{type.constantize.model_name.human(count: group.size)}"
+    end.to_sentence
+  end
+
+  def audit_log_headline(log)
+    return AUDIT_VERBS.fetch(log.action) if %w[login logout login_failed password_changed].include?(log.action)
+
+    "#{AUDIT_VERBS.fetch(log.action)} #{log.auditable_type.constantize.model_name.human}: #{log.auditable_label}"
+  end
+
+  # "Fator: 1,35 → 1,4" / "Nome: Cenoura" (criação ou exclusão mostra só um lado).
+  def audit_change_text(attribute, before, after)
+    if before.nil? && after.nil? then attribute
+    elsif before.nil? then "#{attribute}: #{after}"
+    elsif after.nil? then "#{attribute}: era #{before}"
+    else "#{attribute}: #{before} → #{after}"
+    end
+  end
 end

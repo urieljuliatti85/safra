@@ -4,6 +4,10 @@ class User < ApplicationRecord
   ROLE_LABELS = { "admin" => "Administrador", "office" => "Escritório", "production" => "Produção" }.freeze
 
   has_secure_password
+  include Auditable
+  audited except: %w[must_change_password]
+
+  def audit_label = "#{name} (#{email_address})"
   has_many :sessions, dependent: :destroy
   belongs_to :company
 

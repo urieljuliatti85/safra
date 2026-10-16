@@ -44,7 +44,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
 
   test "produção é barrada em pedidos, compras, conferência, importação e usuários" do
     sign_in_as(user_for(:production))
-    [ "/orders", "/purchases", "/purchases.pdf?date=2026-10-13", "/conference", "/conference/sheets", "/order_imports/new", "/regras", "/estoque", "/users" ].each do |path|
+    [ "/orders", "/purchases", "/purchases.pdf?date=2026-10-13", "/conference", "/conference/sheets", "/order_imports/new", "/regras", "/estoque", "/users", "/historico" ].each do |path|
       get path
       assert_redirected_to production_path, path
     end
@@ -59,10 +59,11 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     get production_path
     assert_select "nav[aria-label='Principal'] a", text: "Programação"
     assert_select "nav[aria-label='Principal'] a", text: "Compras", count: 0
-    assert_select "nav[aria-label='Principal'] a", text: "Usuários", count: 0
+    assert_select ".user-menu a", text: "Usuários", count: 0
     sign_in_as(user_for(:admin))
     get orders_path
-    assert_select "nav[aria-label='Principal'] a", text: "Usuários"
+    assert_select ".user-menu a", text: "Usuários"
+    assert_select ".user-menu a", text: "Histórico"
   end
 
   test "importação de outra empresa não existe para esta empresa" do

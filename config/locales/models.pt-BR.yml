@@ -1,13 +1,21 @@
 pt-BR:
   activerecord:
     models:
-      supplier: Fornecedor
-      raw_material: Matéria-prima
-      product: Produto
-      customer: Cliente
-      customer_alias: Apelido
-      user: Usuário
-      cut: Corte
+      supplier: { one: fornecedor, other: fornecedores }
+      raw_material: { one: matéria-prima, other: matérias-primas }
+      product: { one: produto, other: produtos }
+      customer: { one: cliente, other: clientes }
+      customer_alias: { one: apelido, other: apelidos }
+      user: { one: usuário, other: usuários }
+      cut: { one: corte, other: cortes }
+      production_rule: { one: exceção de antecedência, other: exceções de antecedência }
+      company: { one: empresa, other: empresas }
+      purchase_day: { one: dia de compra, other: dias de compra }
+      stock_count: { one: contagem de estoque, other: contagens de estoque }
+      order_line: { one: linha de pedido, other: linhas de pedido }
+      order_import: { one: importação, other: importações }
+      production_plan: { one: envio da produção, other: envios da produção }
+      purchase_plan: { one: envio da compra, other: envios da compra }
     attributes:
       supplier:
         name: Nome
@@ -40,9 +48,40 @@ pt-BR:
         email_address: E-mail
         role: Papel
         password: Senha
+        active: Pode entrar
+        company: Empresa
       cut:
         lead_days: Antecedência
       company:
+        name: Nome
         raw_lead_days: Antecedência do in natura
       production_rule:
         lead_days: Antecedência
+        product: Produto
+      purchase_day:
+        date: Data
+      stock_count:
+        kg: Kg
+        date: Data
+        raw_material: Matéria-prima
+      order_line:
+        quantity: Quantidade
+        unit: Unidade
+        delivery_date: Entrega
+        note: Observação
+        product: Produto
+      order_import:
+        filename: Arquivo
+        status: Situação
+        kind: Tipo
+        week_start: Semana de
+        customer: Cliente
+        applied_at: Aplicada em
+      production_plan:
+        date: Dia
+        version: Versão
+        sent_at: Enviada em
+      purchase_plan:
+        date: Dia
+        version: Versão
+        sent_at: Enviada em

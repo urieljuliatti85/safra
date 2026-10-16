@@ -20,6 +20,7 @@ class AccountPasswordsController < ApplicationController
 
     user.update!(password: params[:password], password_confirmation: params[:password_confirmation], must_change_password: false)
     user.sessions.where.not(id: Current.session.id).destroy_all # derruba os outros aparelhos
+    AuditLog.record_event("password_changed", user: user, request: request)
     redirect_to home_path_for(user), notice: "Senha alterada."
   end
 end

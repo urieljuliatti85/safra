@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_010000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "audit_logs", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "user_id"
+    t.string "user_name", null: false
+    t.string "action", null: false
+    t.string "auditable_type"
+    t.bigint "auditable_id"
+    t.string "auditable_label"
+    t.jsonb "details", default: {}, null: false
+    t.string "request_id"
+    t.string "ip_address"
+    t.datetime "created_at", null: false
+    t.index ["auditable_type", "auditable_id"], name: "index_audit_logs_on_auditable_type_and_auditable_id"
+    t.index ["company_id", "created_at"], name: "index_audit_logs_on_company_id_and_created_at"
+    t.index ["company_id"], name: "index_audit_logs_on_company_id"
+    t.index ["request_id"], name: "index_audit_logs_on_request_id"
+    t.index ["user_id"], name: "index_audit_logs_on_user_id"
   end
 
   create_table "companies", force: :cascade do |t|
@@ -279,6 +298,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_010000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "audit_logs", "companies"
+  add_foreign_key "audit_logs", "users"
   add_foreign_key "customer_aliases", "companies"
   add_foreign_key "customer_aliases", "customers"
   add_foreign_key "customer_aliases", "products"

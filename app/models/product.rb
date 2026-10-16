@@ -3,6 +3,7 @@ class Product < ApplicationRecord
   GROUP_LABELS = { "processed" => "Processados", "fruit" => "Frutas embaladas ou descascadas", "raw" => "In natura" }.freeze
 
   acts_as_tenant :company
+  include Auditable
 
   belongs_to :raw_material
   belongs_to :cut, optional: true

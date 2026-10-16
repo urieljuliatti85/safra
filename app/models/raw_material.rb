@@ -2,6 +2,7 @@ class RawMaterial < ApplicationRecord
   PACKAGES = %w[cx sc kg un].freeze
 
   acts_as_tenant :company
+  include Auditable
 
   belongs_to :supplier, optional: true
   has_many :products, dependent: :restrict_with_error
