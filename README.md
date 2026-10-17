@@ -241,7 +241,13 @@ Segredos (`SECRET_KEY_BASE`, `SAFRA_ADMIN_PASSWORD`) entram só no painel da Rai
 
 **Primeiro deploy.** O container roda `db:prepare` ao subir: cria os bancos, carrega os esquemas e roda o seed, que cria a empresa, os cadastros e o primeiro administrador. Entre com `SAFRA_ADMIN_EMAIL` e a senha provisória; o sistema pede para trocá-la. Depois, cadastre os demais em **Usuários**. As variáveis `SAFRA_ADMIN_*` podem ser removidas depois que o administrador existe.
 
-**Atualizações.** Cada merge na `main` com o CI verde publica sozinho. Migrations rodam no `db:prepare` da subida. Para rodar um comando no servidor (por exemplo `bin/rails db:seed` ou o console): `railway ssh` ou o painel da Railway.
+**Atualizações.** Cada merge na `main` publica sozinho. A Railway **não espera o CI** hoje (a opção de aguardar as verificações do GitHub, `checkSuites`, está desligada no serviço `safra`; conferido em 17/10/2026), e o GitHub não bloqueia o merge por conta do plano. Por isso só mergeie com o CI verde. Para trancar de vez, ligue essa opção na origem do serviço `safra`. Migrations rodam no `db:prepare` da subida. Para rodar um comando no servidor (por exemplo `bin/rails db:seed` ou o console): `railway ssh` ou o painel da Railway.
+
+**Migrations sem pausa.** A migration roda no início do container novo, enquanto a versão anterior ainda atende. Toda migration precisa, portanto, funcionar com o código antigo: primeiro um PR que adiciona (coluna, tabela, índice) e, com ele no ar, outro que passa a usar ou que remove o que ficou sem uso. Não renomeie nem apague coluna no mesmo PR que muda o código que a lê. Preencher dados na migration é aceitável se for rápido: ela roda antes do app responder e conta no tempo do healthcheck (120 s).
+
+**Saúde do app.** `/up` diz só que o Rails subiu. `/ready` responde 200 quando o banco responde e 503 quando não, sem login e sem detalhes. O healthcheck da Railway usa `/ready` (`railway.json`): uma versão que não alcança o banco não entra no ar, e a anterior segue atendendo.
+
+**Voltar atrás.** No painel da Railway: projeto `safra` > serviço `safra` > Deployments > o último deploy que funcionava > Rollback (ou Redeploy). O código volta; o banco não, porque migrations não são desfeitas. Com a regra acima o código antigo funciona com o banco novo, então voltar é seguro, exceto depois de uma migration que removeu algo. Os dados do banco e do volume não mudam. O rollback vale até o próximo merge: ele publica a `main` de novo, então corrija o problema na `main` antes de mergear qualquer coisa.
 
 **Limite conhecido.** O volume só pode ser montado em uma instância: não escale o app para mais de uma réplica enquanto as imagens estiverem em disco local. Para várias réplicas, mover o Active Storage para um bucket S3.
 

@@ -6,6 +6,7 @@ Rails.application.routes.draw do
     post :reset_password, on: :member
   end
   get "up" => "rails/health#show", as: :rails_health_check
+  get "ready" => "readiness#show", as: :readiness_check
 
   # API v1 (JSON, token por empresa) e a documentação OpenAPI gerada pelos specs (rswag).
   mount Rswag::Ui::Engine => "/api-docs"
