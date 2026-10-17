@@ -5,6 +5,12 @@ on:
   push:
     branches: [ main ]
 
+# Um push novo no mesmo PR cancela a execução anterior, que já não interessa. Na main nada é cancelado:
+# cada merge precisa ter a sua verificação completa.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   scan_ruby:
     runs-on: ubuntu-latest
@@ -117,6 +123,19 @@ jobs:
         run: |
           bundle exec rake rswag:specs:swaggerize
           git diff --exit-code swagger/ || { echo "swagger/v1/swagger.yaml desatualizado: rode bundle exec rake rswag:specs:swaggerize e commite." >&2; exit 1; }
+
+      # Os testes carregam o db/schema.rb e nunca rodam as migrations. Aqui elas rodam do zero, num banco só para isso,
+      # e o schema.rb gerado precisa ser igual ao commitado.
+      - name: Check migrations run from scratch and db/schema.rb is up to date
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/safra_migrate_check
+        run: |
+          bin/rails db:create
+          # db:migrate num banco vazio carrega o schema.rb em vez de rodar as migrations; por isso o contexto de migrations direto.
+          bin/rails runner 'ActiveRecord::Base.connection_pool.migration_context.migrate'
+          bin/rails db:schema:dump
+          git diff --exit-code db/schema.rb || { echo "db/schema.rb desatualizado em relação às migrations: rode bin/rails db:migrate e commite o schema.rb." >&2; exit 1; }
 
   system-test:
     runs-on: ubuntu-latest
