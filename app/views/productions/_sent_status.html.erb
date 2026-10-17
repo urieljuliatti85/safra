@@ -1,0 +1,33 @@
+<%# locals: plan (última versão enviada ou nil), date, pending (o escritório já mudou algo depois do envio) %>
+<%# Visão dos setores: só o que foi enviado. Mudança ainda não enviada vira aviso, sem números. %>
+<section class="panel" aria-label="Estado do envio">
+  <div class="status">
+    <% if plan %>
+      <span class="pill pill-sent"><%= icon :check %>v<%= plan.version %> enviada</span>
+      <span class="muted num"><%= l(plan.sent_at, format: "%d/%m às %H:%M") %></span>
+    <% else %>
+      <span class="pill pill-draft">Não enviada</span>
+      <span class="muted">O escritório ainda não enviou a produção de <%= weekday_date(date) %>.</span>
+    <% end %>
+  </div>
+  <% if plan && pending %>
+    <div class="change-box" role="alert">
+      <%= icon :alert %>
+      <div>
+        <p class="font-bold">O escritório tem alterações ainda não enviadas</p>
+        <p>Esta lista é a versão <%= plan.version %>. Confira se saiu a versão <%= plan.version + 1 %> antes de produzir.</p>
+      </div>
+    </div>
+  <% end %>
+  <% if plan&.changes_from_previous&.any? %>
+    <div class="change-box">
+      <%= icon :alert %>
+      <div>
+        <p class="font-bold">O que mudou da v<%= plan.previous.version %> para a v<%= plan.version %></p>
+        <ul>
+          <% plan.changes_from_previous.each do |change| %><li><strong><%= change.label %></strong>: <%= change_text(change) %></li><% end %>
+        </ul>
+      </div>
+    </div>
+  <% end %>
+</section>

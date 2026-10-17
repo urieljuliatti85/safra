@@ -200,8 +200,8 @@
   .cmp-reasons { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: .25rem 1.5rem; padding: .75rem 1rem 1rem; border-top: 1px solid var(--color-line-soft); }
   .cmp-reasons li { display: flex; justify-content: space-between; gap: 1rem; padding: .25rem 0; font-size: var(--text-dense); border-bottom: 1px dashed var(--color-line-soft); }
   .cmp-reasons li.is-open { color: var(--color-change); }
-  .cmp-unmatched li, .cmp-imports li { padding: .75rem 1rem; border-top: 1px solid var(--color-line-soft); }
-  .cmp-unmatched li:first-child, .cmp-imports li:first-child { border-top: 0; }
+  .cmp-unmatched li, .cmp-imports li, .version-list li { padding: .75rem 1rem; border-top: 1px solid var(--color-line-soft); }
+  .cmp-unmatched li:first-child, .cmp-imports li:first-child, .version-list li:first-child { border-top: 0; }
   .cmp-unmatched-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 16rem) auto; gap: .5rem 1rem; align-items: center; }
   .cmp-table td.reason { color: var(--color-ink-soft); font-size: var(--text-dense); }
   .cmp-table td.reason strong { color: var(--color-ink); font-weight: 700; }

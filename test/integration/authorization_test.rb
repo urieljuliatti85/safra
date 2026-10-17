@@ -42,6 +42,65 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_redirected_to production_path
   end
 
+  test "produção vê a versão enviada, não o cálculo que o escritório ainda não enviou" do
+    sign_in_as(user_for(:production))
+    get production_path(date: "2026-10-13")
+    assert_select "td", text: "Cenoura ralada", count: 0
+    assert_match "O escritório ainda não enviou a produção", response.body
+
+    ActsAsTenant.with_tenant(company) do
+      PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call)
+      OrderLine.joins(:product).find_by!(products: { code: "cenoura_ralada" }, delivery_date: Date.new(2026, 10, 13)).increment!(:quantity, 4)
+    end
+    get production_path(date: "2026-10-13")
+    assert_select "tr", text: /Cenoura ralada/ do
+      assert_select "td.qty", "3"
+    end
+    assert_select ".tag-change", count: 0
+    assert_match "O escritório tem alterações ainda não enviadas", response.body
+    get production_path(date: "2026-10-13", format: :pdf)
+    assert_response :success
+
+    sign_in_as(user_for(:office))
+    get production_path(date: "2026-10-13")
+    assert_select "tr", text: /Cenoura ralada/ do
+      assert_select "td.qty", "7"
+    end
+    assert_match "Mudou depois do envio", response.body
+  end
+
+  test "histórico de envios: setores veem cada versão, o que mudou e a que vale" do
+    date = Date.new(2026, 10, 13)
+    sign_in_as(user_for(:office))
+    post publish_production_path(date: date)
+    ActsAsTenant.with_tenant(company) do
+      OrderLine.joins(:product).find_by!(products: { code: "cenoura_ralada" }, delivery_date: date).increment!(:quantity, 4)
+    end
+    post publish_production_path(date: date)
+    first, second = ActsAsTenant.with_tenant(company) { ProductionPlan.where(date: date).order(:version).to_a }
+    assert_equal user_for(:office), second.sent_by
+
+    sign_in_as(user_for(:production))
+    get production_path(date: date)
+    assert_select "#envios a", text: "v2"
+    assert_select "#envios a", text: "v1"
+    assert_match "1 mudança em relação à v1", response.body
+    assert_match "O que mudou da v1 para a v2", response.body
+    assert_select "tr.is-changed", text: /Cenoura ralada/
+
+    get production_version_path(first)
+    assert_response :success
+    assert_match "Substituída", response.body
+    assert_select "tr", text: /Cenoura ralada/ do
+      assert_select "td.qty", "3"
+    end
+    get production_version_path(second)
+    assert_match "Vale esta versão", response.body
+    assert_match "Cenoura ralada</strong>: 3 → 7", response.body
+    get production_version_path(first, format: :pdf)
+    assert_equal "application/pdf", response.media_type
+  end
+
   test "produção é barrada em pedidos, compras, conferência, importação e usuários" do
     sign_in_as(user_for(:production))
     [ "/orders", "/purchases", "/purchases.pdf?date=2026-10-13", "/conference", "/conference/sheets", "/conference/sheets/import", "/order_imports/new", "/regras", "/painel", "/users", "/historico" ].each do |path|

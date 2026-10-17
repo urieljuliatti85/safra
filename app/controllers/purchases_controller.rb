@@ -6,7 +6,7 @@ class PurchasesController < ApplicationController
     respond_to do |format|
       format.html
       format.pdf do
-        send_data PurchasePdf.new(date: @date, suppliers: @suppliers, version: @latest_sent).render,
+        send_data PurchasePdf.new(date: @date, suppliers: @suppliers, version: @latest_sent, changed: @changes.any?).render,
                   filename: "compras-#{@date.iso8601}.pdf", type: "application/pdf", disposition: "inline"
       end
     end

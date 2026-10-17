@@ -22,12 +22,13 @@ module ApplicationHelper
   end
 
   # Navegação de um dia para o anterior/seguinte, mantendo a página.
-  def day_nav(date, path_helper)
+  # params: o que a navegação mantém de um dia para o outro (ex.: o setor escolhido na produção).
+  def day_nav(date, path_helper, **params)
     tag.div(class: "flex items-center gap-2") do
       safe_join([
-        link_to(icon(:chevron_left), send(path_helper, date: date - 1), class: "icon-btn", "aria-label": "Dia anterior"),
+        link_to(icon(:chevron_left), send(path_helper, date: date - 1, **params), class: "icon-btn", "aria-label": "Dia anterior"),
         tag.strong("#{weekday_date(date)}/#{date.year}", class: "num min-w-32 text-center"),
-        link_to(icon(:chevron_right), send(path_helper, date: date + 1), class: "icon-btn", "aria-label": "Próximo dia")
+        link_to(icon(:chevron_right), send(path_helper, date: date + 1, **params), class: "icon-btn", "aria-label": "Próximo dia")
       ])
     end
   end

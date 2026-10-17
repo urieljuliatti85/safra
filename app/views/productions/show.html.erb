@@ -8,69 +8,31 @@
     </p>
   </div>
   <div class="flex items-center gap-3">
-    <%= day_nav(@date, :production_path) %>
-    <%= link_to production_path(date: @date, format: :pdf), class: "btn", target: "_blank", rel: "noopener" do %><%= icon :printer %>PDF<% end %>
+    <%= day_nav(@date, :production_path, sector: @sector) %>
+    <%= link_to production_path(date: @date, sector: @sector, format: :pdf), class: "btn", target: "_blank", rel: "noopener" do %><%= icon :printer %>PDF<% end %>
   </div>
 </div>
 
 <div class="space-y-4">
   <%= render "shared/week", week: @week, open_date: @date, path: :production_path %>
-  <%= render "shared/plan_status", plan: @latest_sent, changes: @changes, publish_path: publish_production_path(date: @date),
-                                                 draft_text: "Ainda não enviada aos setores", send_label: "Enviar aos setores", can_publish: policy(:production).publish? %>
-
-  <% changed_labels = @changes.map(&:label) %>
-  <% Cut::SECTORS.each do |sector| %>
-    <% items = @by_sector[sector] %>
-    <% next if items.blank? %>
-    <% sector_dates = items.flat_map { |i| i.breakdown.map(&:delivery_date) }.uniq.sort %>
-    <% single_date = sector_dates.size == 1 %>
-    <section class="panel">
-      <div class="panel-head">
-        <h2><%= items.first.product.cut.sector_name %></h2>
-        <span class="meta num">
-          <%= @date == sector_dates.first && single_date ? "produz hoje, entrega hoje" : "produz hoje, entrega #{sector_dates.map { |d| weekday_date(d) }.to_sentence(two_words_connector: ' e ', last_word_connector: ' e ')}" %>
-          · <%= items.size %> <%= items.size == 1 ? "item" : "itens" %>
-        </span>
-      </div>
-      <table class="ops-table">
-        <thead><tr><th>Produto</th><th class="col-qty">Qtd.</th><th class="col-unit">Un.</th><th>Quem pediu</th></tr></thead>
-        <tbody>
-          <% items.each do |item| %>
-            <% changed = changed_labels.include?(item.product.name) %>
-            <tr class="<%= 'is-changed' if changed %>">
-              <td class="name"><%= item.product.name %><% if changed %><span class="tag-change">mudou</span><% end %></td>
-              <td class="qty" data-unit="<%= item.unit %>"><%= qty(item.quantity) %></td>
-              <td class="unit"><%= item.unit %></td>
-              <td class="who"><%= item.breakdown.map { |b| single_date ? "#{b.customer.short_name} #{qty(b.quantity)}" : "#{b.customer.short_name} #{qty(b.quantity)} (#{short_date(b.delivery_date)})" }.join(" · ") %></td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </section>
-  <% end %>
-  <% if @result.items.empty? %>
-    <p class="panel p-8 text-center muted">Sem produção em <%= weekday_date(@date) %>.</p>
+  <% if @draft %>
+    <%= render "shared/plan_status", plan: @latest_sent, changes: @changes, publish_path: publish_production_path(date: @date),
+                                                   draft_text: "Ainda não enviada aos setores", send_label: "Enviar aos setores", can_publish: policy(:production).publish? %>
+  <% else %>
+    <%= render "sent_status", plan: @latest_sent, date: @date, pending: @changes.any? %>
   <% end %>
 
-  <% if @result.aprontes.any? %>
-    <section class="panel">
-      <div class="panel-head">
-        <h2>Aprontes</h2>
-        <span class="meta">caixas para descascar</span>
-      </div>
-      <table class="ops-table">
-        <thead><tr><th>Matéria-prima</th><th class="col-qty">kg processado</th><th class="col-qty">Caixas</th></tr></thead>
-        <tbody>
-          <% @result.aprontes.each do |apronte| %>
-            <tr>
-              <td class="name"><%= apronte.raw_material.name %></td>
-              <td class="qty only-desktop"><%= qty(apronte.kg) %></td>
-              <td class="qty boxes" data-unit="cx"><%= apronte.boxes %></td>
-              <td class="who only-mobile"><%= qty(apronte.kg) %> kg processados</td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    </section>
+  <% if @day.sectors.size > 1 %>
+    <nav class="chips" aria-label="Setores">
+      <%= link_to "Todos", production_path(date: @date), class: "chip", "aria-current": (@sector.nil? ? "true" : nil) %>
+      <% @day.sectors.each do |sector| %>
+        <%= link_to production_sector_label(@day, sector), production_path(date: @date, sector: sector), class: "chip",
+                    "aria-current": (sector == @sector ? "true" : nil) %>
+      <% end %>
+    </nav>
   <% end %>
+
+  <%= render "sectors", result: @result, changed_labels: @draft ? @changes.map(&:label) : @latest_sent&.changes_from_previous.to_a.map(&:label),
+                       show_empty: @draft || @latest_sent %>
+  <%= render "versions", versions: @versions if @versions.any? %>
 </div>

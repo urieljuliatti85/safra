@@ -10,7 +10,7 @@ module Api
       def production
         date = date_param(:date, Date.current)
         result = ProductionPlanner.new(company: current_company, date: date).call
-        sent = ProductionPlan.where(date: date).where.not(sent_at: nil).order(:version).last
+        sent = ProductionPlan.latest_sent(date)
         render json: ApiPresenter.production(result, sent, sent ? PlanDiff.production(sent, result) : [])
       end
 

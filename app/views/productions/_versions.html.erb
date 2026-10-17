@@ -1,0 +1,17 @@
+<%# locals: versions (versões enviadas do dia, da mais nova para a mais antiga) %>
+<section class="panel" id="envios">
+  <div class="panel-head">
+    <h2>Envios aos setores</h2>
+    <span class="meta">Cada envio fica guardado; vale o mais recente</span>
+  </div>
+  <ul class="version-list">
+    <% versions.each do |plan| %>
+      <li>
+        <p><%= link_to "v#{plan.version}", production_version_path(plan), class: "font-bold underline" %>
+          <span class="muted num"><%= production_version_text(plan) %></span>
+          <% if plan == versions.first %><span class="pill pill-sent">vale esta</span><% end %></p>
+        <p class="muted text-sm"><%= production_version_summary(plan) %></p>
+      </li>
+    <% end %>
+  </ul>
+</section>

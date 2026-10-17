@@ -2,7 +2,7 @@
 # Mesmas regras do ProductionPlanner e do PurchasePlanner, calculadas numa só consulta.
 class WeekOverview
   Cell = Data.define(:date, :count, :first, :last)
-  Lane = Data.define(:label, :kind, :cells) # kind: :production | :purchase
+  Lane = Data.define(:label, :kind, :cells, :sector) # kind: :production | :purchase; sector: código do setor na produção
   Result = Data.define(:dates, :lanes)
 
   DAYS = 8 # segunda a segunda, como a grade de pedidos
@@ -40,7 +40,7 @@ class WeekOverview
       next unless sector_names.key?(sector)
 
       cells = dates.map { |date| Cell.new(date: date, count: counts[[ sector, date ]].size, first: false, last: false) }
-      Lane.new(label: sector_names[sector], kind: :production, cells: cells)
+      Lane.new(label: sector_names[sector], kind: :production, cells: cells, sector: sector)
     end
   end
 
@@ -55,6 +55,6 @@ class WeekOverview
       following = purchase_dates.find { |purchase_date| purchase_date > date }
       Cell.new(date: date, count: 1, first: covering == date, last: following.nil? ? date == dates.last : following == date + 1)
     end
-    Lane.new(label: "Compra CEASA", kind: :purchase, cells: cells)
+    Lane.new(label: "Compra CEASA", kind: :purchase, cells: cells, sector: nil)
   end
 end

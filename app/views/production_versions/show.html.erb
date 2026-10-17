@@ -1,0 +1,42 @@
+<% content_for :title, "Produção v#{@plan.version} · Safra" %>
+<% result = @plan.to_result %>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Produção · <%= weekday_date(@plan.date) %> · v<%= @plan.version %></h1>
+    <p class="page-sub">Enviada aos setores em <%= production_version_text(@plan) %>.</p>
+  </div>
+  <div class="flex items-center gap-3">
+    <%= link_to production_path(date: @plan.date, anchor: "envios"), class: "btn" do %><%= icon :chevron_left %>Produção do dia<% end %>
+    <%= link_to production_version_path(@plan, format: :pdf), class: "btn", target: "_blank", rel: "noopener" do %><%= icon :printer %>PDF<% end %>
+  </div>
+</div>
+
+<div class="space-y-4">
+  <section class="panel" aria-label="Estado da versão">
+    <div class="status">
+      <% if @plan == @latest %>
+        <span class="pill pill-sent"><%= icon :check %>Vale esta versão</span>
+      <% else %>
+        <span class="pill pill-draft">Substituída</span>
+        <span class="muted">A que vale é a <%= link_to "v#{@latest.version}", production_version_path(@latest), class: "underline" %>. Não use esta lista para produzir.</span>
+      <% end %>
+    </div>
+    <% if @plan.previous.nil? %>
+      <p class="p-4 muted">Primeiro envio deste dia.</p>
+    <% elsif @plan.changes_from_previous.empty? %>
+      <p class="cmp-all-equal"><%= icon :check %>Igual à v<%= @plan.previous.version %>.</p>
+    <% else %>
+      <div class="change-box">
+        <%= icon :alert %>
+        <div>
+          <p class="font-bold">O que mudou da v<%= @plan.previous.version %> para a v<%= @plan.version %></p>
+          <ul>
+            <% @plan.changes_from_previous.each do |change| %><li><strong><%= change.label %></strong>: <%= change_text(change) %></li><% end %>
+          </ul>
+        </div>
+      </div>
+    <% end %>
+  </section>
+
+  <%= render "productions/sectors", result: result, changed_labels: @plan.changes_from_previous.map(&:label), show_empty: true %>
+</div>

@@ -40,6 +40,37 @@ class PlanPublisherTest < ActiveSupport::TestCase
     assert_equal [ :removed ], changes.map(&:kind)
   end
 
+  test "versão enviada se monta igual ao cálculo e não muda quando o pedido muda" do
+    result = ProductionPlanner.new(company: company, date: @date).call
+    plan = PlanPublisher.production(company: company, result: result)
+    OrderLine.joins(:product).find_by!(products: { code: "cenoura_ralada" }, delivery_date: @date).increment!(:quantity, 4)
+
+    sent = plan.to_result
+    assert_equal result.delivery_dates, sent.delivery_dates
+    assert_equal result.items.map { |i| [ i.product.code, i.unit, i.quantity ] }, sent.items.map { |i| [ i.product.code, i.unit, i.quantity ] }
+    assert_equal result.aprontes.map { |a| [ a.raw_material.code, a.kg, a.boxes ] }, sent.aprontes.map { |a| [ a.raw_material.code, a.kg, a.boxes ] }
+    ralada = sent.item_for("cenoura_ralada")
+    assert_equal result.item_for("cenoura_ralada").breakdown.map { |b| [ b.customer.short_name, b.delivery_date, b.quantity ] },
+                 ralada.breakdown.map { |b| [ b.customer.short_name, b.delivery_date, b.quantity ] }
+  end
+
+  test "cada versão guarda quem enviou e o que mudou em relação à anterior" do
+    user = user_for(:office)
+    first = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: @date).call, user: user)
+    OrderLine.joins(:product).find_by!(products: { code: "cenoura_ralada" }, delivery_date: @date).increment!(:quantity, 4)
+    second = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: @date).call)
+    third = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: @date).call)
+
+    assert_equal user, first.sent_by
+    assert_nil first.previous
+    assert_empty first.changes_from_previous
+    assert_equal first, second.previous
+    assert_equal [ [ "Cenoura ralada", 3, 7 ] ], second.changes_from_previous.map { |c| [ c.label, c.before, c.after ] }
+    assert_empty third.changes_from_previous
+    assert third.latest?
+    assert_not second.latest?
+  end
+
   test "enviar compra guarda quantidade líquida, unidade e abertura por cliente" do
     needs = PurchasePlanner.new(company: company).call.purchases.fetch(@date)
     plan = PlanPublisher.purchase(company: company, date: @date, needs: needs)

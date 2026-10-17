@@ -37,14 +37,17 @@ class BasePdf
   attr_reader :pdf
 
   # Título da folha + selo de versão (verde = enviada, contorno = rascunho).
-  def header(title, subtitle, version)
+  # changed: o conteúdo é o cálculo atual, que já difere da versão enviada; a folha não pode levar o selo dela.
+  def header(title, subtitle, version, changed: false)
+    draft_note = version && changed ? "difere da v#{version.version}" : "não enviado"
+    version = nil if changed
     @running_title = "#{title} · #{version ? "v#{version.version} enviada" : 'rascunho'}"
     top = pdf.cursor
     pdf.fill_color DEEP
     pdf.text_box "Safra", at: [ 0, top ], size: 10, style: :bold, width: 120
     pdf.fill_color INK
     pdf.text_box title, at: [ 0, top - 14 ], size: 22, style: :bold, width: pdf.bounds.width - 130
-    stamp(version, top)
+    stamp(version, top, draft_note)
     pdf.move_down 44
     pdf.fill_color SOFT
     pdf.text subtitle, size: 10 if subtitle.present?
@@ -52,9 +55,9 @@ class BasePdf
     pdf.move_down 8
   end
 
-  def stamp(version, top)
+  def stamp(version, top, draft_note)
     label = version ? "v#{version.version} enviada" : "RASCUNHO"
-    sub = version ? version.sent_at.strftime("%d/%m às %H:%M") : "não enviado"
+    sub = version ? version.sent_at.strftime("%d/%m às %H:%M") : draft_note
     width = 112
     left = pdf.bounds.width - width
     pdf.save_graphics_state do

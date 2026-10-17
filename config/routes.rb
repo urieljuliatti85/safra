@@ -44,6 +44,7 @@ Rails.application.routes.draw do
   get "schedule", to: "schedules#show"
   get "production", to: "productions#show"
   post "production/publish", to: "productions#publish", as: :publish_production
+  get "production/versions/:id", to: "production_versions#show", as: :production_version
   get "purchases", to: "purchases#show"
   post "purchases/publish", to: "purchases#publish", as: :publish_purchase
   resource :rules, only: %i[show update], path: "regras"

@@ -1,10 +1,10 @@
 # Salva o plano calculado como uma nova versão ("enviar aos setores").
 # Versões enviadas ficam congeladas: alterações de pedido depois disso aparecem como diferença (PlanDiff).
 class PlanPublisher
-  def self.production(company:, result:)
+  def self.production(company:, result:, user: nil)
     ActsAsTenant.with_tenant(company) do
       ProductionPlan.transaction do
-        plan = ProductionPlan.create!(date: result.date, version: next_version(ProductionPlan, result.date), sent_at: Time.current)
+        plan = ProductionPlan.create!(date: result.date, version: next_version(ProductionPlan, result.date), sent_at: Time.current, sent_by: user)
         result.items.each do |item|
           plan.items.create!(
             product: item.product, quantity: item.quantity, unit: item.unit,

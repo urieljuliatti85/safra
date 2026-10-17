@@ -16,6 +16,22 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     assert_equal [ Date.new(2026, 10, 14) ], plan.item_for("baroa_cubinhos").breakdown.map(&:delivery_date).uniq
   end
 
+  test "lista de um setor só tem os itens dele; a dos aprontes, só as caixas" do
+    plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
+    assert_equal Cut::SECTORS.select { |s| plan.items.any? { |i| i.product.sector == s } } + [ "aprontes" ], plan.sectors
+
+    ralpic = plan.for_sector("ralpic")
+    assert ralpic.items.any?
+    assert ralpic.items.all? { |item| item.product.sector == "ralpic" }
+    assert_empty ralpic.aprontes
+    assert_equal [ Date.new(2026, 10, 13) ], ralpic.delivery_dates
+
+    aprontes = plan.for_sector("aprontes")
+    assert_empty aprontes.items
+    assert_equal plan.aprontes, aprontes.aprontes
+    assert_same plan, plan.for_sector(nil)
+  end
+
   test "aprontes: caixas = ROUND(kg processado / kg por caixa descascada)" do
     plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
     batata = plan.aprontes.find { |a| a.raw_material.code == "batata" }

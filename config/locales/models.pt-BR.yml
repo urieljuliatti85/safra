@@ -101,6 +101,7 @@ pt-BR:
         date: Dia
         version: Versão
         sent_at: Enviada em
+        sent_by: Enviada por
       purchase_plan:
         date: Dia
         version: Versão

@@ -24,7 +24,7 @@
                       "aria-label": "Compra CEASA, #{weekday_date(cell.date)}#{', dia da compra' if cell.first}" %>
               <% else %>
                 <% level = cell.count >= 6 ? 3 : (cell.count >= 3 ? 2 : 1) %>
-                <%= link_to cell.count, production_path(date: cell.date), class: "bar num", data: { level: level },
+                <%= link_to cell.count, production_path(date: cell.date, sector: lane.sector), class: "bar num", data: { level: level },
                       "aria-label": "#{lane.label}, #{weekday_date(cell.date)}: #{cell.count} #{cell.count == 1 ? 'item' : 'itens'}" %>
               <% end %>
             <% end %>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_010000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -212,8 +212,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_080000) do
     t.datetime "sent_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "sent_by_id"
     t.index ["company_id", "date", "version"], name: "index_production_plans_on_company_id_and_date_and_version", unique: true
     t.index ["company_id"], name: "index_production_plans_on_company_id"
+    t.index ["sent_by_id"], name: "index_production_plans_on_sent_by_id"
   end
 
   create_table "production_rules", force: :cascade do |t|
@@ -436,6 +438,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_080000) do
   add_foreign_key "production_plan_items", "production_plans"
   add_foreign_key "production_plan_items", "products"
   add_foreign_key "production_plans", "companies"
+  add_foreign_key "production_plans", "users", column: "sent_by_id"
   add_foreign_key "production_rules", "companies"
   add_foreign_key "production_rules", "products"
   add_foreign_key "products", "companies"

@@ -1,18 +1,31 @@
+# Duas leituras do mesmo dia: o escritório imprime o cálculo atual (com o que mudou desde o envio marcado em vermelho);
+# os setores imprimem a versão enviada (notice: aviso em vermelho, como alteração ainda não enviada ou versão substituída).
 class ProductionPdf < BasePdf
-  def initialize(result:, version:, changes: [])
+  # sector: visão dos setores (só o enviado); sector_label: a folha é de um setor só (ou só os aprontes).
+  def initialize(result:, version:, changes: [], sector: false, notice: nil, sector_label: nil)
     super()
     @result = result
+    @sector_label = sector_label
     @version = version
     @changed = changes.map(&:label)
+    @sector = sector
+    @notice = notice
   end
 
   private
 
   def build
     date = @result.date
-    subtitle = @result.delivery_dates.any? ? "Entregas: #{@result.delivery_dates.map { |d| Formatting.weekday_date(d) }.join(', ')}" : nil
-    header "Produção · #{Formatting.weekday_date(date)}/#{date.year}", subtitle, @version
-    pdf.text "Sem produção neste dia." if @result.items.empty?
+    deliveries = "Entregas: #{@result.delivery_dates.map { |d| Formatting.weekday_date(d) }.join(', ')}" if @result.delivery_dates.any?
+    subtitle = [ @sector_label && "Setor: #{@sector_label}", deliveries ].compact.join(" · ").presence
+    header "Produção · #{Formatting.weekday_date(date)}/#{date.year}", subtitle, @version, changed: @changed.any?
+    pdf.text(@sector && @version.nil? ? "O escritório ainda não enviou a produção deste dia." : "Sem produção neste dia.") if @result.items.empty? && @result.aprontes.empty?
+    if @notice
+      pdf.fill_color CHANGE
+      pdf.text @notice, size: 10, style: :bold
+      pdf.fill_color INK
+      pdf.move_down 4
+    end
     if @changed.any?
       pdf.fill_color CHANGE
       pdf.text "Mudou depois do envio: #{@changed.join(', ')}", size: 10, style: :bold

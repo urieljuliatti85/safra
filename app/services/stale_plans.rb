@@ -5,7 +5,7 @@ module StalePlans
   def dates(company)
     ActsAsTenant.with_tenant(company) do
       ProductionPlan.where.not(sent_at: nil).distinct.pluck(:date).sort.select do |date|
-        latest = ProductionPlan.where(date: date).where.not(sent_at: nil).order(:version).last
+        latest = ProductionPlan.latest_sent(date)
         PlanDiff.production(latest, ProductionPlanner.new(company: company, date: date).call).any?
       end
     end

@@ -51,6 +51,27 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_select "td", "Cenoura ralada"
   end
 
+  test "produção filtrada por setor mostra só a lista daquela bancada, na tela e no PDF" do
+    get production_path(date: "2026-10-13", sector: "ralpic")
+    assert_select "nav[aria-label='Setores'] a[aria-current='true']", "Ralados, picados e rodelas"
+    assert_select "h2", "Ralados, picados e rodelas"
+    assert_select "h2", text: "Cortes manuais", count: 0
+    assert_select "h2", text: "Aprontes", count: 0
+    assert_select "a[aria-label='Próximo dia'][href*='sector=ralpic']"
+
+    get production_path(date: "2026-10-13", sector: "aprontes")
+    assert_select "h2", "Aprontes"
+    assert_select "h2", text: "Ralados, picados e rodelas", count: 0
+
+    get production_path(date: "2026-10-13", sector: "lixo")
+    assert_select "nav[aria-label='Setores'] a[aria-current='true']", "Todos"
+    assert_select "h2", "Cortes manuais"
+
+    get production_path(date: "2026-10-13", sector: "ralpic", format: :pdf)
+    assert_equal "application/pdf", response.media_type
+    assert_match "producao-2026-10-13-ralpic.pdf", response.headers["Content-Disposition"]
+  end
+
   test "enviar aos setores cria a versão e a tela passa a mostrar igual" do
     assert_difference -> { ActsAsTenant.with_tenant(company) { ProductionPlan.count } }, 1 do
       post publish_production_path(date: "2026-10-13")
