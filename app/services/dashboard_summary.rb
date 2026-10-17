@@ -14,14 +14,27 @@ class DashboardSummary
   def call
     ActsAsTenant.with_tenant(@company) do
       purchase_result = PurchasePlanner.new(company: @company).call
-      alerts = ConferenceChecker.new(company: @company).call.count { |alert| alert.level == :warn }
+      alerts = ConferenceChecker.new(company: @company, week: @date.beginning_of_week).call.select { |alert| alert.level == :warn }
       stages = [ orders_stage(alerts), schedule_stage, production_stage, purchase_stage(purchase_result) ]
-      Result.new(date: @date, stages: stages, alerts: alerts,
+      Result.new(date: @date, stages: stages, alerts: alerts.size,
                  stale_production: StalePlans.dates(@company), stale_purchase: stale_purchase_dates(purchase_result))
     end
   end
 
   private
+
+  # Tipos de alerta de atenção, do mais grave para o menos, com o texto que aparece no Painel.
+  ALERT_KINDS = {
+    "Sem fator" => [ "matéria-prima sem fator", "matérias-primas sem fator" ],
+    "Unidade" => [ "matéria-prima com unidades misturadas", "matérias-primas com unidades misturadas" ],
+    "Pedido" => [ "observação em pedido", "observações em pedidos" ]
+  }.freeze
+
+  # "2 matérias-primas sem fator, 1 observação em pedido": o que pesa nos alertas, sem abrir a Conferência.
+  def alert_breakdown(alerts)
+    counts = alerts.group_by(&:kind).transform_values(&:size)
+    ALERT_KINDS.filter_map { |kind, (one, many)| plural(counts[kind], one, many) if counts[kind] }.join(", ")
+  end
 
   # Os alertas da conferência são sobre os pedidos: ficam na própria etapa, como segundo caminho.
   def orders_stage(alerts)
@@ -41,9 +54,10 @@ class DashboardSummary
 
     facts = [ "Semana de #{Formatting.short_date(week_start)}: #{with_orders} de #{total} clientes lançados" ]
     facts << "Falta: #{missing_names(launched_ids)}" if missing.positive?
+    facts << "Alertas: #{alert_breakdown(alerts)}" if alerts.any?
     Stage.new(key: :orders, title: "Pedidos", state: state, status: status, facts: facts,
               action_label: "Lançar pedidos", action_path: helpers.orders_path,
-              secondary: alerts.positive? ? { label: "#{plural(alerts, 'alerta', 'alertas')} para conferir", path: helpers.conference_path } : nil)
+              secondary: alerts.any? ? { label: "#{plural(alerts.size, 'alerta', 'alertas')} para conferir", path: helpers.conference_path(week: week_start.iso8601), attention: true } : nil)
   end
 
   def schedule_stage

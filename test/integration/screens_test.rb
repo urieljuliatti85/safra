@@ -93,6 +93,52 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_select "h2", "Hospital Bom Pastor"
   end
 
+  test "conferência mostra o botão de cada alerta e ele abre o destino" do
+    get conference_path(week: "2026-10-12")
+    assert_response :success
+    item = css_select(".alert-item").find { |li| li.text.include?("Cebola: sem fator") }
+    assert item, "alerta de fator da Cebola"
+    link = item.css("a.alert-action").first
+    assert_equal "Completar o fator", link.text
+    get link["href"]
+    assert_response :success
+    assert_select "th a.underline", text: /Cebola/
+    assert_select "th a.underline", text: /Cenoura/, count: 0
+  end
+
+  test "conferência mostra a semana pedida, a atual por padrão e todas com ?week=todas" do
+    get conference_path(week: "2026-10-14")
+    assert_select "strong", "Semana de 12/10 a 18/10"
+    assert_select ".alert-item", minimum: 1
+
+    get conference_path(week: "2026-10-26")
+    assert_select "strong", "Semana de 26/10 a 01/11"
+    assert_select ".alert-item", count: 0
+    assert_match "Nada a conferir na semana de 26/10 a 01/11", response.body
+    assert_match "Há alertas de atenção em outras semanas", response.body
+    assert_select "a[aria-label='Semana anterior'][href='/conference?week=2026-10-19']"
+
+    travel_to(Time.zone.local(2026, 10, 14, 9)) do
+      get conference_path
+      assert_select "strong", "Semana de 12/10 a 18/10"
+      assert_select "a.chip[aria-current='true']", "Esta semana"
+    end
+
+    get conference_path(week: "todas")
+    assert_select "strong", "Todas as semanas"
+    assert_select "a.chip[aria-current='true']", /Todas as semanas \(\d+\)/
+    assert_select ".alert-item", minimum: 1
+  end
+
+  test "cadastro de matérias-primas filtra as que não têm fornecedor" do
+    ActsAsTenant.with_tenant(company) { RawMaterial.first.update_columns(supplier_id: nil) }
+    get raw_materials_path(filter: "no_supplier")
+    assert_response :success
+    assert_select "a.chip[aria-current='true']", /Sem fornecedor \(\d+\)/
+    get raw_materials_path(filter: "lixo")
+    assert_select "a.chip[aria-current='true']", /Todas/
+  end
+
   test "conferência e comparação com planilhas" do
     get conference_path
     assert_response :success

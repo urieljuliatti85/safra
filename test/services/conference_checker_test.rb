@@ -10,4 +10,75 @@ class ConferenceCheckerTest < ActiveSupport::TestCase
     assert(alerts.any? { |a| a.kind == "Unidade" })
     assert alerts.first.level == :warn
   end
+
+  test "a semana filtra pela data de entrega: a segunda 19/10 do pedido de 12/10 cai na semana seguinte" do
+    jilo = ->(week) { ConferenceChecker.new(company: company, week: week).call.any? { |a| a.kind == "Sem fator" && a.message.start_with?("Jiló:") } }
+    assert jilo.call(nil)
+    assert_not jilo.call(Date.new(2026, 10, 12))
+    assert jilo.call(Date.new(2026, 10, 19))
+    assert_empty ConferenceChecker.new(company: company, week: Date.new(2026, 10, 26)).call
+    assert_empty ConferenceChecker.new(company: company, week: Date.new(2026, 10, 5)).call
+  end
+
+  test "alerta de cadastro só aparece se a matéria-prima tem entrega na semana" do
+    ActsAsTenant.with_tenant(company) do
+      first_monday = Date.new(2026, 10, 12)
+      OrderLine.where(delivery_date: first_monday..(first_monday + 6)).joins(product: :raw_material).where(raw_materials: { code: "cebola" }).update_all(delivery_date: Date.new(2026, 10, 26))
+    end
+    assert(ConferenceChecker.new(company: company).call.any? { |a| a.kind == "Sem fator" && a.message.start_with?("Cebola:") })
+    assert_not ConferenceChecker.new(company: company, week: Date.new(2026, 10, 12)).call.any? { |a| a.kind == "Sem fator" && a.message.start_with?("Cebola:") }
+    assert(ConferenceChecker.new(company: company, week: Date.new(2026, 10, 26)).call.any? { |a| a.kind == "Sem fator" && a.message.start_with?("Cebola:") })
+  end
+
+  test "a ordem dos alertas é estável: gravidade, tipo e texto" do
+    alerts = ConferenceChecker.new(company: company).call
+    assert_equal alerts.sort_by { |a| [ a.level == :warn ? 0 : 1, a.kind, a.message ] }, alerts
+    assert_equal alerts.map(&:message), ConferenceChecker.new(company: company).call.map(&:message)
+  end
+
+  test "cada alerta com um lugar certo para corrigir leva até ele" do
+    alerts = ConferenceChecker.new(company: company).call
+    sem_fator = alerts.find { |a| a.kind == "Sem fator" && a.message.start_with?("Cebola") }
+    assert_equal "Completar o fator", sem_fator.action.label
+    assert_equal "/cadastros/materias-primas?q=Cebola", sem_fator.action.path
+
+    unidade = alerts.find { |a| a.kind == "Unidade" }
+    assert_match %r{\A/orders\?customer=\w+&week=\d{4}-\d{2}-\d{2}\z}, unidade.action.path
+    assert_match(/\AAbrir pedido de /, unidade.action.label)
+
+    pedido = alerts.find { |a| a.kind == "Pedido" }
+    assert_match %r{\A/orders\?customer=}, pedido.action.path
+  end
+
+  test "ação de pedido abre a semana da linha mais antiga do problema" do
+    ActsAsTenant.with_tenant(company) do
+      line = OrderLine.where("quantity > 0").joins(:order).order(:delivery_date).first
+      line.update!(note: "entregar até 7h")
+      alert = ConferenceChecker.new(company: company).call.find { |a| a.kind == "Pedido" && a.message.include?("entregar até 7h") }
+      assert_includes alert.action.path, "customer=#{line.order.customer.code}"
+      assert_includes alert.action.path, "week=#{line.order.week_start.iso8601}"
+    end
+  end
+
+  test "fornecedor aponta para o filtro do cadastro" do
+    ActsAsTenant.with_tenant(company) { Product.joins(:order_lines).distinct.first.raw_material.update_columns(supplier_id: nil) }
+    alert = ConferenceChecker.new(company: company).call.find { |a| a.kind == "Fornecedor" }
+    assert_equal "/cadastros/materias-primas?filter=no_supplier", alert.action.path
+  end
+
+  test "produção antes da primeira compra aponta para os dias de compra nas regras" do
+    ActsAsTenant.with_tenant(company) { PurchaseDay.where(date: ..Date.new(2026, 10, 13)).destroy_all }
+    alert = ConferenceChecker.new(company: company).call.find { |a| a.kind == "Compra" }
+    assert_equal "Cadastrar dia de compra", alert.action.label
+    assert_equal "/regras#compras", alert.action.path
+  end
+
+  test "entrega no domingo abre o pedido da semana dela" do
+    ActsAsTenant.with_tenant(company) do
+      line = OrderLine.where("quantity > 0").joins(:order).order(:delivery_date).first
+      line.update!(delivery_date: Date.new(2026, 10, 18))
+      alert = ConferenceChecker.new(company: company).call.find { |a| a.kind == "Data" }
+      assert_includes alert.action.path, "customer=#{line.order.customer.code}"
+    end
+  end
 end

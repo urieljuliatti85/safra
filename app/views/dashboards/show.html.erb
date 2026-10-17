@@ -27,7 +27,9 @@
       <% needs_action = %i[pending changed].include?(stage.state) %>
       <div class="flow-actions">
         <%= link_to stage.action_label, stage.action_path, class: needs_action ? "btn btn-primary" : "flow-link" %>
-        <% if stage.secondary %><%= link_to stage.secondary[:label], stage.secondary[:path], class: "flow-link" %><% end %>
+        <% if stage.secondary %>
+          <%= link_to stage.secondary[:path], class: "flow-link #{'flow-link-attention' if stage.secondary[:attention]}" do %><% if stage.secondary[:attention] %><%= icon :alert %><% end %><%= stage.secondary[:label] %><% end %>
+        <% end %>
       </div>
     </li>
   <% end %>

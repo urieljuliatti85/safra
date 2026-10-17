@@ -1,8 +1,12 @@
 class ConferencesController < ApplicationController
   authorize_resource :conference
 
+  # Uma semana por vez (a atual, se nenhuma for pedida) ou todas (?week=todas). A semana de um alerta é a da entrega.
   def show
-    @alerts = ConferenceChecker.new(company: current_company).call
+    @all_weeks = params[:week] == "todas"
+    @week = @all_weeks ? nil : (date_param(:week, nil)&.beginning_of_week || Date.current.beginning_of_week)
+    @alerts = ConferenceChecker.new(company: current_company, week: @week).call
+    @attention_total = @all_weeks ? @alerts.count { |a| a.level == :warn } : ConferenceChecker.new(company: current_company).call.count { |a| a.level == :warn }
     @groups = @alerts.group_by(&:kind).sort_by { |_, alerts| [ alerts.any? { |a| a.level == :warn } ? 0 : 1, -alerts.size ] }
   end
 

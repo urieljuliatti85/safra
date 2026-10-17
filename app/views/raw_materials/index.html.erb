@@ -25,6 +25,7 @@
     <%= link_to "Todas (#{@flags.size})", raw_materials_path(q: @query.presence), class: "chip", "aria-current": (@filter == "all" ? "true" : nil) %>
     <%= link_to "Incompletas (#{@incomplete_count})", raw_materials_path(filter: "incomplete", q: @query.presence), class: "chip", "aria-current": (@filter == "incomplete" ? "true" : nil) %>
     <%= link_to "Usadas nos pedidos (#{@used_ids.size})", raw_materials_path(filter: "used", q: @query.presence), class: "chip", "aria-current": (@filter == "used" ? "true" : nil) %>
+    <%= link_to "Sem fornecedor (#{@no_supplier_count})", raw_materials_path(filter: "no_supplier", q: @query.presence), class: "chip", "aria-current": (@filter == "no_supplier" ? "true" : nil) %>
   </nav>
   <%= form_with url: raw_materials_path, method: :get, class: "ml-auto flex items-center gap-2", data: { turbo: false } do %>
     <%= hidden_field_tag :filter, @filter unless @filter == "all" %>

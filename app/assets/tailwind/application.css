@@ -177,6 +177,7 @@
   .flow-step[data-state="pending"] .flow-node, .flow-step[data-state="changed"] .flow-node { background: #fff; border-color: #fff; color: var(--color-leaf); }
   .flow-step[data-state="pending"] .btn, .flow-step[data-state="changed"] .btn { background: #fff; border-color: #fff; color: var(--color-leaf); }
   .flow-link { display: inline-flex; align-items: center; min-height: 2.5rem; font-weight: 700; color: var(--color-ink); text-decoration: underline; text-decoration-color: var(--color-line); text-underline-offset: 4px; }
+  .flow-link-attention { gap: .375rem; }
   .flow-link:hover { text-decoration-color: var(--color-accent); }
   .flow-step[data-state="pending"] .flow-link, .flow-step[data-state="changed"] .flow-link { color: #fff; text-decoration-color: rgb(255 255 255 / .5); }
   .flow-step[data-state="pending"] .btn:hover, .flow-step[data-state="changed"] .btn:hover { background: var(--color-ink); border-color: var(--color-ink); }
@@ -316,6 +317,7 @@
   .alert-list { display: grid; gap: .5rem; }
   .alert-item { display: flex; gap: .75rem; align-items: flex-start; padding: .75rem 1rem; border: 1px solid var(--color-line); border-radius: .5rem; background: var(--color-surface); }
   .alert-item.is-warn { background: #2a2315; border-color: #5c4a2c; }
+  .alert-body { display: grid; gap: .125rem; justify-items: start; }
   .alert-item .kind { flex: none; min-width: 5.5rem; font-size: var(--text-small); font-weight: 800; color: var(--color-ink-soft); }
   .alert-item.is-warn .kind { color: #e6cfa6; }
 

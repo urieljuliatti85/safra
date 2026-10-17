@@ -2,12 +2,33 @@
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="page-title">Conferência</h1>
-    <p class="page-sub">Alertas sobre quantidades, unidades, fatores e datas. Alerta não bloqueia nada: aponta o que conferir.</p>
+    <p class="page-sub">Alertas sobre quantidades, unidades, fatores e datas, pela data de entrega. Alerta não bloqueia nada: aponta o que conferir.</p>
   </div>
-  <%= link_to "Comparar com as planilhas", conference_sheets_path, class: "btn" %>
+  <%= link_to "Comparar com as planilhas", conference_sheets_path(week: @week&.iso8601), class: "btn" %>
 </div>
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <% if @week %>
+    <div class="flex items-center gap-2">
+      <%= link_to icon(:chevron_left), conference_path(week: (@week - 7).iso8601), class: "icon-btn", "aria-label": "Semana anterior" %>
+      <strong class="num min-w-48 text-center">Semana de <%= comparison_week_text(@week) %></strong>
+      <%= link_to icon(:chevron_right), conference_path(week: (@week + 7).iso8601), class: "icon-btn", "aria-label": "Próxima semana" %>
+    </div>
+  <% else %>
+    <strong class="num">Todas as semanas</strong>
+  <% end %>
+  <nav class="chips" aria-label="Período">
+    <%= link_to "Esta semana", conference_path, class: "chip", "aria-current": (@week == Date.current.beginning_of_week ? "true" : nil) %>
+    <%= link_to "Todas as semanas (#{@attention_total})", conference_path(week: "todas"), class: "chip", "aria-current": (@all_weeks ? "true" : nil),
+                title: "Alertas de atenção em todas as semanas" %>
+  </nav>
+</div>
+
 <% if @alerts.empty? %>
-  <p class="flash flash-notice"><%= icon :check %><span>Nada a conferir.</span></p>
+  <p class="flash flash-notice"><%= icon :check %><span>Nada a conferir <%= @week ? "na semana de #{comparison_week_text(@week)}" : "em nenhuma semana" %>.</span></p>
+<% end %>
+<% if @week && @attention_total.positive? && @alerts.none? { |a| a.level == :warn } %>
+  <p class="muted mb-4">Há alertas de atenção em outras semanas. <%= link_to "Ver todas as semanas", conference_path(week: "todas"), class: "underline" %>.</p>
 <% end %>
 <div class="space-y-4">
   <% @groups.each do |kind, alerts| %>
@@ -20,7 +41,10 @@
         <% alerts.each do |alert| %>
           <li class="alert-item <%= 'is-warn' if alert.level == :warn %>">
             <%= icon(alert.level == :warn ? :alert : :info, class: "icon mt-0.5") %>
-            <span><%= alert.message %></span>
+            <div class="alert-body">
+              <span><%= alert.message %></span>
+              <% if alert.action %><%= link_to alert.action.label, alert.action.path, class: "flow-link alert-action" %><% end %>
+            </div>
           </li>
         <% end %>
       </ul>

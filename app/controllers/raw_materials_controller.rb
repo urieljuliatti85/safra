@@ -1,7 +1,7 @@
 # Matérias-primas e seus fatores. O índice é uma grade editável em lote: é onde se completa o que falta
 # (fator de perda, peso da embalagem, fornecedor) para a compra virar número de caixas e sacos.
 class RawMaterialsController < ApplicationController
-  FILTERS = %w[all incomplete used].freeze
+  FILTERS = %w[all incomplete used no_supplier].freeze
   BULK_FIELDS = %i[supplier_id purchase_package multiply_factor kg_per_package kg_per_peeled_box].freeze
 
   authorize_resource :raw_material
@@ -90,10 +90,12 @@ class RawMaterialsController < ApplicationController
     @used_ids = Product.joins(:order_lines).distinct.pluck(:raw_material_id).to_set
     all = RawMaterial.includes(:supplier).order(:name).to_a
     @incomplete_count = all.count { |rm| incomplete?(rm, processed_ids) }
+    @no_supplier_count = all.count { |rm| rm.supplier.nil? }
     @flags = all.to_h { |rm| [ rm.id, { factor: rm.missing_factor? && processed_ids.include?(rm.id), package: rm.missing_package_weight? } ] }
     @raw_materials = all.select do |rm|
       (@query.blank? || rm.name.downcase.include?(@query.downcase) || rm.code.include?(@query.downcase)) &&
-        (@filter == "all" || (@filter == "incomplete" && incomplete?(rm, processed_ids)) || (@filter == "used" && @used_ids.include?(rm.id)))
+        (@filter == "all" || (@filter == "incomplete" && incomplete?(rm, processed_ids)) || (@filter == "used" && @used_ids.include?(rm.id)) ||
+         (@filter == "no_supplier" && rm.supplier.nil?))
     end
     @suppliers = Supplier.order(:name)
     @scores = SheetComparison.new(current_company).scores[:purchase]

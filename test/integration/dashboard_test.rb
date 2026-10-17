@@ -11,15 +11,37 @@ class DashboardTest < ActionDispatch::IntegrationTest
     sign_in_as(user_for(:office))
     get root_path
     assert_redirected_to dashboard_path
-    follow_redirect!
+    travel_to(Time.zone.local(2026, 10, 13, 9)) { follow_redirect! }
     assert_select "h1", "Painel"
     assert_select ".flow-step h2", count: 4
     assert_equal %w[Pedidos Programação Produção Compras], css_select(".flow-step h2").map(&:text)
     assert_select "nav a[aria-current=page]", text: "Painel"
     assert_select ".week", count: 0
     assert_select ".flow-step[data-state=ok] a.btn", count: 0
-    assert_select ".flow-step:first-child a[href='/conference']", /alertas? para conferir/
+    link = css_select(".flow-step:first-child a").find { |a| a.text.match?(/alertas? para conferir/) }
+    assert_equal "/conference?week=2026-10-12", link["href"]
     assert_select ".flash-notice", count: 0
+  end
+
+  test "etapa de pedidos destaca os alertas de atenção da semana e diz o que pesa neles" do
+    sign_in_as(user_for(:office))
+    travel_to(Time.zone.local(2026, 10, 13, 9)) { get dashboard_path }
+    link = css_select(".flow-step:first-child a.flow-link-attention").first
+    assert_match(/\A\s*\d+ alertas para conferir\s*\z/, link.text)
+    assert_select ".flow-step:first-child a.flow-link-attention svg"
+    facts = css_select(".flow-step:first-child .flow-facts li").map(&:text)
+    breakdown = facts.find { |fact| fact.start_with?("Alertas:") }
+    assert_match(/matérias-primas sem fator/, breakdown)
+    assert_match(/matérias-primas com unidades misturadas/, breakdown)
+    assert_match(/observações em pedidos/, breakdown)
+    assert breakdown.index("sem fator") < breakdown.index("unidades misturadas"), "o mais grave vem primeiro"
+  end
+
+  test "semana sem alerta de atenção não mostra o link nem o resumo" do
+    sign_in_as(user_for(:office))
+    travel_to(Time.zone.local(2026, 10, 27, 9)) { get dashboard_path }
+    assert_select ".flow-step:first-child a.flow-link-attention", count: 0
+    assert_select ".flow-step:first-child .flow-facts li", text: /\AAlertas:/, count: 0
   end
 
   test "produção continua caindo na própria tela e não abre o painel" do
