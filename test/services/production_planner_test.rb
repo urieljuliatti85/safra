@@ -44,4 +44,18 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     assert_equal 4, plan.item_for("batata_cubos").quantity
     assert_equal %w[hbp], plan.item_for("batata_cubos").breakdown.map { |b| b.customer.code }
   end
+
+  test "os planejadores carregam clientes e matérias-primas de uma vez, sem uma consulta por linha" do
+    date = Date.new(2026, 10, 13)
+    count_queries = lambda do |&block|
+      queries = 0
+      counter = ->(*, payload) { queries += 1 unless payload[:name] == "SCHEMA" || payload[:cached] }
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") { ActiveRecord::Base.uncached(&block) }
+      queries
+    end
+
+    assert_operator count_queries.call { PurchasePlanner.new(company: company).call }, :<=, 11
+    assert_operator count_queries.call { ProductionPlanner.new(company: company, date: date).call }, :<=, 10
+    assert_operator count_queries.call { ScheduleBuilder.new(company: company, date: date).call }, :<=, 8
+  end
 end

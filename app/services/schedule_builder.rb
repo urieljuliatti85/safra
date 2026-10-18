@@ -11,7 +11,7 @@ class ScheduleBuilder
   def call
     ActsAsTenant.with_tenant(@company) do
       lines = OrderLine.where(delivery_date: @date).where("quantity > 0")
-                       .includes(:order, product: [ :cut, :production_rule ])
+                       .includes({ order: :customer }, product: [ :cut, :production_rule, :raw_material ])
       lines.group_by { |l| l.order.customer }.sort_by { |customer, _| customer.name }.map do |customer, customer_lines|
         entries = customer_lines.sort_by { |l| [ Product::GROUPS.index(l.product.product_group), l.product.name ] }.map do |l|
           Entry.new(product: l.product, quantity: l.quantity, unit: l.unit, note: l.note,

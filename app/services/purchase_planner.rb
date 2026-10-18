@@ -41,7 +41,7 @@ class PurchasePlanner
   def accumulate(purchase_dates)
     needs = purchase_dates.index_with { {} }
     uncovered = []
-    lines = OrderLine.where("quantity > 0").includes(:order, product: [ :cut, :production_rule, { raw_material: :supplier } ])
+    lines = OrderLine.where("quantity > 0").includes({ order: :customer }, product: [ :cut, :production_rule, { raw_material: :supplier } ])
 
     lines.each do |line|
       product = line.product

@@ -82,7 +82,7 @@ class ProductionPlanner
   def candidate_lines
     OrderLine.where("quantity > 0")
              .where(delivery_date: @date..(@date + 7))
-             .includes(:order, product: [ :cut, :production_rule ])
+             .includes({ order: :customer }, product: [ :cut, :production_rule, :raw_material ])
              .select { |line| !line.product.raw? && line.product.production_date_for(line.delivery_date) == @date }
   end
 end
