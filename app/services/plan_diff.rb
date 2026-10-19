@@ -1,6 +1,7 @@
 # Diferença entre a última versão enviada e o que o sistema calcula agora.
 class PlanDiff
-  Change = Data.define(:label, :unit, :before, :after) do
+  # sector: setor do produto na produção (nil nas compras); serve para avisar só quem acompanha aquele setor.
+  Change = Data.define(:label, :unit, :before, :after, :sector) do
     def kind
       if before.nil? then :added
       elsif after.nil? then :removed
@@ -10,8 +11,8 @@ class PlanDiff
   end
 
   def self.production(plan, result)
-    sent = plan.items.includes(:product).to_h { |i| [ [ i.product_id, i.unit ], [ i.product.name, i.quantity ] ] }
-    current = result.items.to_h { |i| [ [ i.product.id, i.unit ], [ i.product.name, i.quantity ] ] }
+    sent = plan.items.includes(:product).to_h { |i| [ [ i.product_id, i.unit ], [ i.product.name, i.quantity, i.product.sector ] ] }
+    current = result.items.to_h { |i| [ [ i.product.id, i.unit ], [ i.product.name, i.quantity, i.product.sector ] ] }
     compare(sent, current)
   end
 
@@ -24,11 +25,11 @@ class PlanDiff
 
   def self.compare(sent, current)
     (sent.keys | current.keys).filter_map do |key|
-      before = sent[key]&.last
-      after = current[key]&.last
+      before = sent[key]&.at(1)
+      after = current[key]&.at(1)
       next if before && after && (before - after).abs < 0.0005
 
-      Change.new(label: (sent[key] || current[key]).first, unit: key.last, before: before, after: after)
+      Change.new(label: (sent[key] || current[key]).first, unit: key.last, before: before, after: after, sector: (sent[key] || current[key]).at(2))
     end.sort_by(&:label)
   end
   private_class_method :compare

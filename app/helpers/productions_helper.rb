@@ -1,4 +1,10 @@
 module ProductionsHelper
+  # Setores que a pessoa pode acompanhar nos avisos, com o nome que a empresa usa.
+  def push_sector_options
+    names = Cut.distinct.pluck(:sector, :sector_name).to_h
+    Cut::SECTORS.map { |sector| [ names[sector] || Cut::SECTOR_NAMES[sector], sector ] } + [ [ "Aprontes", ProductionPlanner::APRONTES ] ]
+  end
+
   # Nome do setor como a empresa usa (do corte), ou "Aprontes".
   def production_sector_label(result, sector)
     return "Aprontes" if sector == ProductionPlanner::APRONTES

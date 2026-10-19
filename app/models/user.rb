@@ -9,6 +9,7 @@ class User < ApplicationRecord
 
   def audit_label = "#{name} (#{email_address})"
   has_many :sessions, dependent: :destroy
+  has_many :push_subscriptions, dependent: :destroy
   belongs_to :company
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }

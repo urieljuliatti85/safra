@@ -1,0 +1,26 @@
+<%# Avisos no celular: cada pessoa escolhe os setores que acompanha e só recebe aviso quando algum deles muda. %>
+<section class="panel" id="avisos" aria-label="Avisos no celular"
+         data-controller="push" data-push-key-value="<%= PushSender.public_key %>" data-push-url-value="<%= push_subscription_path %>">
+  <div class="panel-head">
+    <h2>Avisos no celular</h2>
+    <span class="meta">Quando sai uma versão nova, só dos setores que você acompanha</span>
+  </div>
+  <div class="p-4 space-y-3">
+    <p data-push-target="status" class="muted">Verificando este aparelho...</p>
+    <div data-push-target="form" hidden>
+      <fieldset class="chips">
+        <legend class="sr-only">Setores que você acompanha</legend>
+        <% push_sector_options.each do |name, sector| %>
+          <label class="chip">
+            <input type="checkbox" value="<%= sector %>" checked data-push-target="sectors" class="mr-2"><%= name %>
+          </label>
+        <% end %>
+      </fieldset>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="btn btn-primary" data-push-target="enable" data-action="push#enable" hidden><%= icon :send %>Ativar avisos neste aparelho</button>
+      <button type="button" class="btn btn-primary" data-push-target="save" data-action="push#save" hidden>Salvar setores</button>
+      <button type="button" class="btn" data-push-target="disable" data-action="push#disable" hidden>Desativar neste aparelho</button>
+    </div>
+  </div>
+</section>

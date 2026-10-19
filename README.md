@@ -43,7 +43,7 @@ bin/rails db:reset         # apaga o banco e recomeça do zero (precisa de nenhu
 | Painel | Página inicial do escritório e do administrador: as quatro etapas do dia (Pedidos, Programação, Produção, Compras) com o estado de cada uma em palavras, o que falta, o que mudou depois do envio, e a faixa da semana. Só lê o que as outras telas já calculam; cada etapa leva à sua tela. A Produção continua caindo na própria tela. |
 | Pedidos | Grade por cliente e semana. Quantidade vazia ou 0 apaga a linha. "Importar planilha" lê xlsx, xls, ods e csv e mostra o que muda antes de gravar; ODT ou imagem (pedido colado como print, como o da Aurora) abre a imagem ao lado da grade para digitar olhando. |
 | Programação | O que cada cliente pediu para um dia de entrega e quando cada item é produzido. |
-| Produção | Lista do dia por setor, aprontes, envio aos setores em versões e diferença depois do envio. |
+| Produção | Lista do dia por setor (filtro por setor e aprontes, na tela e no PDF), envio aos setores em versões, diferença depois do envio e histórico de envios. Quem trabalha na produção vê só a versão enviada. **Avisos no celular** (veja "Avisos de produção no celular") avisam, por setor, quando sai versão nova. |
 | Compras | Compra da CEASA por fornecedor, texto para WhatsApp e envio em versões. |
 | Estoque | Contagem da câmara fria por matéria-prima e dia, em kg. A compra da CEASA abate o que está contado; a sobra segue para a compra seguinte, até uma contagem nova. Campo vazio é não contado, 0 é câmara vazia. |
 | Conferência | Alertas de fator, unidade, data e observações. **Comparar com as planilhas** mostra, semana a semana, os números das planilhas feitas à mão ao lado do que o Safra calcula, com o motivo de cada diferença (veja "Validar o teste com as planilhas"). |
@@ -236,8 +236,18 @@ O app roda na Railway a partir do `Dockerfile`, com PostgreSQL da própria Railw
 | `RAILWAY_RUN_UID` | `0`, para o app conseguir gravar no volume (que a Railway monta como root). |
 | `SAFRA_ADMIN_EMAIL` | E-mail do primeiro administrador. |
 | `SAFRA_ADMIN_PASSWORD` | Senha provisória dele (vale até o primeiro acesso). |
+| `SOLID_QUEUE_IN_PUMA` | `true`. Sem ele nenhuma tarefa em segundo plano roda (os avisos de produção ficam parados na fila). |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Chaves dos avisos no celular (veja abaixo). Sem elas o painel de avisos não aparece. |
 
-Segredos (`SECRET_KEY_BASE`, `SAFRA_ADMIN_PASSWORD`) entram só no painel da Railway, nunca no git.
+Segredos (`SECRET_KEY_BASE`, `SAFRA_ADMIN_PASSWORD`, `VAPID_PRIVATE_KEY`) entram só no painel da Railway, nunca no git.
+
+**Avisos de produção no celular.** Quando o escritório envia uma versão aos setores, quem ativou os avisos recebe uma notificação só se algum dos setores que escolheu mudou (na v1, se tem itens nele). O texto traz o que mudou ("Cenoura ralada: 3 → 7 kg") e o toque abre a produção do dia. Quem enviou não recebe o próprio aviso. Para ligar:
+
+1. Gere o par de chaves uma vez: `ruby -e 'require "web-push"; k = WebPush.generate_key; puts k.public_key, k.private_key'`.
+2. Coloque `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT` (um `mailto:` de quem responde pelo sistema) e `SOLID_QUEUE_IN_PUMA=true` no serviço `safra`. Trocar o par de chaves depois obriga todo mundo a ativar de novo.
+3. Cada pessoa abre **Produção**, vai em "Avisos no celular", escolhe os setores e toca em "Ativar avisos neste aparelho". No iPhone o aviso só funciona com o Safra instalado na tela inicial (Compartilhar > Adicionar à Tela de Início, iOS 16.4 ou mais).
+
+O envio não tem confirmação de leitura: com o celular sem internet o aviso atrasa ou não chega, então a lista na tela continua sendo a fonte de verdade.
 
 **Primeiro deploy.** O container roda `db:prepare` ao subir: cria os bancos, carrega os esquemas e roda o seed, que cria a empresa, os cadastros e o primeiro administrador. Entre com `SAFRA_ADMIN_EMAIL` e a senha provisória; o sistema pede para trocá-la. Depois, cadastre os demais em **Usuários**. As variáveis `SAFRA_ADMIN_*` podem ser removidas depois que o administrador existe.
 

@@ -93,7 +93,7 @@ class DashboardTest < ActionDispatch::IntegrationTest
   test "pedidos dizem quais clientes faltam lançar" do
     ActsAsTenant.with_tenant(company) { Customer.create!(code: "novo", name: "Cliente Novo", short_name: "Novo") }
     sign_in_as(user_for(:office))
-    get dashboard_path
+    travel_to(Time.zone.local(2026, 10, 13, 9)) { get dashboard_path }
     assert_select ".flow-step[data-state=pending] .flow-status", /Falta 1 cliente na semana/
     assert_select ".flow-facts li", /Falta: Novo/
   end

@@ -2,9 +2,11 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 require_relative "test_helpers/session_test_helper"
+require_relative "test_helpers/push_test_helper"
 
 module ActiveSupport
   class TestCase
+    include PushTestHelper
     # Os testes dependem dos seeds carregados no banco; rodam em série para evitar bancos paralelos.
 
     # Recarrega db/seeds_data (cadastros e pedidos de 12/10/2026). O seed é idempotente.

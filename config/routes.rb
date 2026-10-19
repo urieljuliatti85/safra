@@ -8,6 +8,10 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
   get "ready" => "readiness#show", as: :readiness_check
 
+  # PWA: o manifesto deixa instalar na tela inicial e o service worker recebe os avisos de produção.
+  get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
+  get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+
   # API v1 (JSON, token por empresa) e a documentação OpenAPI gerada pelos specs (rswag).
   mount Rswag::Ui::Engine => "/api-docs"
   mount Rswag::Api::Engine => "/api-docs"
@@ -44,6 +48,7 @@ Rails.application.routes.draw do
 
   get "schedule", to: "schedules#show"
   get "production", to: "productions#show"
+  resource :push_subscription, only: %i[show create destroy], path: "avisos"
   post "production/publish", to: "productions#publish", as: :publish_production
   get "production/versions/:id", to: "production_versions#show", as: :production_version
   get "purchases", to: "purchases#show"

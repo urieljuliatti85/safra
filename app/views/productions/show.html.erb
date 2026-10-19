@@ -35,4 +35,5 @@
   <%= render "sectors", result: @result, changed_labels: @draft ? @changes.map(&:label) : @latest_sent&.changes_from_previous.to_a.map(&:label),
                        show_empty: @draft || @latest_sent %>
   <%= render "versions", versions: @versions if @versions.any? %>
+  <%= render "alerts" if PushSender.enabled? %>
 </div>

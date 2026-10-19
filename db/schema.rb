@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_010000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -279,6 +279,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_010000) do
     t.index ["company_id"], name: "index_purchase_plans_on_company_id"
   end
 
+  create_table "push_subscriptions", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "user_id", null: false
+    t.text "endpoint", null: false
+    t.string "p256dh", null: false
+    t.string "auth", null: false
+    t.string "sectors", default: [], null: false, array: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_push_subscriptions_on_company_id"
+    t.index ["endpoint"], name: "index_push_subscriptions_on_endpoint", unique: true
+    t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
+  end
+
   create_table "raw_materials", force: :cascade do |t|
     t.bigint "company_id", null: false
     t.bigint "supplier_id"
@@ -449,6 +463,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_010000) do
   add_foreign_key "purchase_plan_items", "purchase_plans"
   add_foreign_key "purchase_plan_items", "raw_materials"
   add_foreign_key "purchase_plans", "companies"
+  add_foreign_key "push_subscriptions", "companies"
+  add_foreign_key "push_subscriptions", "users"
   add_foreign_key "raw_materials", "companies"
   add_foreign_key "raw_materials", "suppliers"
   add_foreign_key "reference_sheet_lines", "reference_sheets", on_delete: :cascade
