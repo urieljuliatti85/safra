@@ -49,6 +49,7 @@ Rails.application.routes.draw do
   get "schedule", to: "schedules#show"
   get "production", to: "productions#show"
   resource :push_subscription, only: %i[show create destroy], path: "avisos"
+  resource :tour, only: :create
   post "production/publish", to: "productions#publish", as: :publish_production
   get "production/versions/:id", to: "production_versions#show", as: :production_version
   get "purchases", to: "purchases#show"

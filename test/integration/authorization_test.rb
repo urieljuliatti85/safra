@@ -146,4 +146,28 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Nenhum cliente cadastrado", response.body
   end
+
+  test "tour: escritório marca que já viu; produção não tem tour" do
+    office = user_for(:office)
+    office.update!(tour_seen_at: nil)
+    sign_in_as(office)
+    get orders_path
+    assert_select "body[data-tour-autostart-value='true']"
+    assert_no_difference -> { ActsAsTenant.with_tenant(company) { AuditLog.count } } do
+      post tour_path
+    end
+    assert_response :no_content
+    assert office.reload.tour_seen_at
+    get orders_path
+    assert_select "body[data-tour-autostart-value='false']"
+    assert_select "button.tour-tab", "Tour guiado"
+
+    production = user_for(:production)
+    production.update!(tour_seen_at: nil)
+    sign_in_as(production)
+    get production_path
+    assert_select "body[data-controller='tour']", count: 0
+    post tour_path
+    assert_nil production.reload.tour_seen_at
+  end
 end

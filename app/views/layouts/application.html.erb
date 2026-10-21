@@ -24,7 +24,8 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="<%= yield :body_class %>">
+  <% steps = tour_steps %>
+  <body class="<%= yield :body_class %>" <%= tag.attributes(data: { controller: "tour", tour_steps_value: steps.to_json, tour_autostart_value: tour_autostart?, tour_seen_url_value: tour_path }) if steps.any? %>>
     <header class="shell-nav">
       <div class="shell-nav-inner">
         <%= link_to (authenticated? ? root_path : new_session_path), class: "brand", "aria-label": "Safra, início" do %><%= brand_mark %>Safra<% end %>
@@ -56,10 +57,13 @@
         <% end %>
       </div>
     </header>
-    <main class="mx-auto <%= content_for?(:wide) ? 'max-w-[90rem]' : 'max-w-7xl' %> px-4 py-6">
+    <main class="mx-auto <%= content_for?(:wide) ? 'max-w-[90rem]' : 'max-w-7xl' %> px-4 pt-6 <%= steps.any? ? 'pb-20' : 'pb-6' %>">
       <% if notice %><p class="flash flash-notice" role="status"><%= icon :check %><span><%= notice %></span></p><% end %>
       <% if alert %><p class="flash flash-alert" role="alert"><%= icon :alert %><span><%= alert %></span></p><% end %>
       <%= yield %>
     </main>
+    <% if steps.any? %>
+      <button type="button" class="tour-tab" data-action="tour#start" data-tour="tab"><%= icon :info %>Tour guiado</button>
+    <% end %>
   </body>
 </html>

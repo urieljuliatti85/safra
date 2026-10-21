@@ -5,7 +5,7 @@ class User < ApplicationRecord
 
   has_secure_password
   include Auditable
-  audited except: %w[must_change_password]
+  audited except: %w[must_change_password tour_seen_at]
 
   def audit_label = "#{name} (#{email_address})"
   has_many :sessions, dependent: :destroy

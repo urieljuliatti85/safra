@@ -23,7 +23,7 @@
     <input id="date" type="date" name="date" class="field">
   </div>
   <div class="flex flex-wrap items-center gap-3">
-    <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Enviar arquivo<% end %>
+    <%= button_tag type: "submit", class: "btn btn-primary", data: { tour: "send-file" } do %><%= icon :check %>Enviar arquivo<% end %>
     <%= link_to "Cancelar", orders_path(customer: @customer.code), class: "btn" %>
   </div>
 <% end %>
