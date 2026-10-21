@@ -37,6 +37,16 @@ class ProductionPlanner
     ActsAsTenant.with_tenant(@company) { self.class.result(@date, build_items) }
   end
 
+  # Linhas in natura entregues neste dia ou que contariam para ele pela antecedência:
+  # não passam pela produção, vão direto para a compra.
+  def raw_lines
+    ActsAsTenant.with_tenant(@company) do
+      window_lines.select do |line|
+        line.product.raw? && (line.delivery_date == @date || line.product.production_date_for(line.delivery_date) == @date)
+      end
+    end
+  end
+
   # Também monta a versão enviada (ProductionPlan#to_result): entregas e aprontes saem dos itens, não do pedido.
   def self.result(date, items)
     items = items.sort_by { |item| [ item.product.sector.to_s, item.product.name ] }
@@ -78,11 +88,19 @@ class ProductionPlanner
     end
   end
 
-  # Só entregas dentro da janela possível: produção é no máximo `lead_days` + fim de semana antes da entrega.
   def candidate_lines
-    OrderLine.where("quantity > 0")
-             .where(delivery_date: @date..(@date + 7))
-             .includes({ order: :customer }, product: [ :cut, :production_rule, :raw_material ])
-             .select { |line| !line.product.raw? && line.product.production_date_for(line.delivery_date) == @date }
+    day_lines.reject { |line| line.product.raw? }
+  end
+
+  def day_lines
+    window_lines.select { |line| line.product.production_date_for(line.delivery_date) == @date }
+  end
+
+  # Só entregas dentro da janela possível: produção é no máximo `lead_days` + fim de semana antes da entrega.
+  def window_lines
+    @window_lines ||= OrderLine.where("quantity > 0")
+                               .where(delivery_date: @date..(@date + 7))
+                               .includes({ order: :customer }, product: [ :cut, :production_rule, :raw_material ])
+                               .to_a
   end
 end

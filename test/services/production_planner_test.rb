@@ -39,6 +39,19 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     assert_equal (36 / 30.0).round, batata.boxes
   end
 
+  test "in natura não entra na produção; as linhas in natura do dia somam a entrega do dia e a da antecedência" do
+    ActsAsTenant.with_tenant(company) do
+      order = Order.create!(customer: Customer.first, week_start: Date.new(2026, 11, 2))
+      raw = Product.find_by!(product_group: "raw")
+      [ 3, 4, 5 ].each { |day| order.lines.create!(product: raw, delivery_date: Date.new(2026, 11, day), quantity: 10, unit: "kg") }
+    end
+
+    planner = ProductionPlanner.new(company: company, date: Date.new(2026, 11, 3))
+    assert_empty planner.call.items
+    # 03/11 é entregue no dia; 04/11 conta para 03/11 pela antecedência de 1 dia; 05/11 é de outro dia.
+    assert_equal [ Date.new(2026, 11, 3), Date.new(2026, 11, 4) ], planner.raw_lines.map(&:delivery_date).sort
+  end
+
   test "breakdown guarda cliente e data de entrega" do
     plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
     assert_equal 4, plan.item_for("batata_cubos").quantity

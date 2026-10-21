@@ -19,6 +19,10 @@ class ProductionsController < ApplicationController
   end
 
   def publish
+    if @current.items.empty? && params[:empty] != "1"
+      return redirect_to production_path(date: @date), alert: "#{empty_message} Confirme para enviar mesmo assim."
+    end
+
     plan = PlanPublisher.production(company: current_company, result: @current, user: current_user)
     SendProductionVersionPushJob.perform_later(plan.id)
     redirect_to production_path(date: @date), notice: "Produção de #{Formatting.short_date(@date)} enviada aos setores (versão #{plan.version})."
@@ -30,7 +34,8 @@ class ProductionsController < ApplicationController
   # para não produzir números que o escritório ainda não confirmou.
   def load_plan
     @date = date_param(:date, Date.current)
-    @current = ProductionPlanner.new(company: current_company, date: @date).call
+    planner = ProductionPlanner.new(company: current_company, date: @date)
+    @current = planner.call
     @latest_sent = ProductionPlan.latest_sent(@date)
     @changes = @latest_sent ? PlanDiff.production(@latest_sent, @current) : []
     @draft = policy(:production).draft?
@@ -42,5 +47,28 @@ class ProductionsController < ApplicationController
     @result = @day.for_sector(@sector)
     @versions = ProductionPlan.sent.where(date: @date).includes(:sent_by).order(version: :desc)
     @week = WeekOverview.new(company: current_company, date: @date).call
+    return unless @draft
+
+    @raw_lines = planner.raw_lines
+    @purchase_date = PurchaseDay.where(date: ..@date).maximum(:date)
+    @raw_note = raw_note
+    @empty_message = empty_message if @current.items.empty?
+  end
+
+  # Por que a produção do dia está vazia, para o aviso da tela e a confirmação do envio.
+  def empty_message
+    [ "Nenhum item para produzir em #{Formatting.short_date(@date)}.", @raw_note ].compact.join(" ")
+  end
+
+  # "As 105 linhas in natura de Horizonte Norte (entregas de 19/10) vão direto para a compra."
+  def raw_note
+    return if @raw_lines.blank?
+
+    count = @raw_lines.size
+    customers = @raw_lines.map { |line| line.order.customer.short_name }.uniq.sort.to_sentence
+    deliveries = @raw_lines.map(&:delivery_date).uniq.sort.map { |d| Formatting.short_date(d) }.to_sentence
+    lines = count == 1 ? "A linha in natura" : "As #{count} linhas in natura"
+    "#{lines} de #{customers} (#{count == 1 ? 'entrega' : 'entregas'} de #{deliveries}) " \
+      "#{count == 1 ? 'vai' : 'vão'} direto para a compra."
   end
 end

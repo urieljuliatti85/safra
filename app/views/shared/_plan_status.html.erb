@@ -1,4 +1,5 @@
-<%# locals: plan (última versão enviada ou nil), changes, publish_path, draft_text, send_label, can_publish %>
+<%# locals: plan (última versão enviada ou nil), changes, publish_path, draft_text, send_label, can_publish,
+    confirm (opcional: pede confirmação antes de enviar, ex. produção vazia) %>
 <section class="panel" aria-label="Estado do envio">
   <div class="status">
     <% if plan %>
@@ -9,7 +10,9 @@
       <span class="muted"><%= draft_text %></span>
     <% end %>
     <% if can_publish && (plan.nil? || changes.any?) %>
-      <%= button_to publish_path, method: :post, class: "btn btn-primary push", form: { class: "push" } do %>
+      <% confirm = local_assigns[:confirm] %>
+      <%= button_to publish_path, method: :post, class: "btn btn-primary push", params: (confirm ? { empty: 1 } : {}),
+                                  form: { class: "push", data: { turbo_confirm: confirm }.compact } do %>
         <%= icon :send %><%= plan ? "Enviar versão #{plan.version + 1}" : send_label %>
       <% end %>
     <% elsif plan && changes.empty? %>

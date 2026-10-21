@@ -81,6 +81,33 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_match "Igual ao que foi enviado", response.body
   end
 
+  test "produção vazia explica as linhas in natura e só é enviada com confirmação" do
+    ActsAsTenant.with_tenant(company) do
+      order = Order.create!(customer: Customer.first, week_start: Date.new(2026, 11, 2))
+      order.lines.create!(product: Product.find_by!(product_group: "raw"), delivery_date: Date.new(2026, 11, 4), quantity: 10, unit: "kg")
+    end
+
+    customer = ActsAsTenant.with_tenant(company) { Customer.first.short_name }
+    get production_path(date: "2026-11-03")
+    assert_select "p[role='note']", /Nenhum item para produzir em 03\/11\. A linha in natura de #{customer} \(entrega de 04\/11\) vai direto para a compra/
+    assert_select "p[role='note'] a", "Abrir a compra"
+    assert_select "form[data-turbo-confirm*='Nenhum item para produzir em 03/11'] input[name='empty'][value='1']"
+
+    # No dia da entrega a produção também explica, mesmo sem nada para enviar.
+    get production_path(date: "2026-11-04")
+    assert_select "p[role='note']", /A linha in natura de #{customer} \(entrega de 04\/11\)/
+
+    assert_no_difference -> { ActsAsTenant.with_tenant(company) { ProductionPlan.count } } do
+      post publish_production_path(date: "2026-11-03")
+    end
+    follow_redirect!
+    assert_select ".flash-alert", /vai direto para a compra\. Confirme/
+
+    assert_difference -> { ActsAsTenant.with_tenant(company) { ProductionPlan.count } }, 1 do
+      post publish_production_path(date: "2026-11-03", empty: 1)
+    end
+  end
+
   test "compras têm texto para WhatsApp por fornecedor" do
     get purchases_path(date: "2026-10-13")
     assert_response :success

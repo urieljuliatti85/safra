@@ -17,7 +17,15 @@
   <%= render "shared/week", week: @week, open_date: @date, path: :production_path %>
   <% if @draft %>
     <%= render "shared/plan_status", plan: @latest_sent, changes: @changes, publish_path: publish_production_path(date: @date),
-                                                   draft_text: "Ainda não enviada aos setores", send_label: "Enviar aos setores", can_publish: policy(:production).publish? %>
+                                                   draft_text: "Ainda não enviada aos setores", send_label: "Enviar aos setores", can_publish: policy(:production).publish?,
+                                                   confirm: (@empty_message && "#{@empty_message} Enviar uma produção vazia aos setores?") %>
+    <% if @raw_note %>
+      <p class="muted" role="note">
+        <%= @empty_message || @raw_note %> <%= link_to "Abrir a compra", purchases_path(date: @purchase_date) %>.
+      </p>
+    <% elsif @empty_message %>
+      <p class="muted" role="note"><%= @empty_message %></p>
+    <% end %>
   <% else %>
     <%= render "sent_status", plan: @latest_sent, date: @date, pending: @changes.any? %>
   <% end %>
