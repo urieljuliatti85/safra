@@ -14,7 +14,7 @@ class DashboardSummary
   def call
     ActsAsTenant.with_tenant(@company) do
       purchase_result = PurchasePlanner.new(company: @company).call
-      alerts = ConferenceChecker.new(company: @company, week: @date.beginning_of_week).call.select { |alert| alert.level == :warn }
+      alerts = ConferenceChecker.new(company: @company, week: @date.beginning_of_week, purchase_result: purchase_result).call.select { |alert| alert.level == :warn }
       stages = [ orders_stage(alerts), schedule_stage, production_stage, purchase_stage(purchase_result) ]
       Result.new(date: @date, stages: stages, alerts: alerts.size,
                  stale_production: StalePlans.dates(@company), stale_purchase: StalePlans.purchase_dates(@company, purchase_result))

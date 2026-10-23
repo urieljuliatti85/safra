@@ -11,7 +11,7 @@ class PlanDiff
   end
 
   def self.production(plan, result)
-    sent = plan.items.includes(:product).to_h { |i| [ [ i.product_id, i.unit ], [ i.product.name, i.quantity, i.product.sector ] ] }
+    sent = plan.items.includes(product: :cut).to_h { |i| [ [ i.product_id, i.unit ], [ i.product.name, i.quantity, i.product.sector ] ] }
     current = result.items.to_h { |i| [ [ i.product.id, i.unit ], [ i.product.name, i.quantity, i.product.sector ] ] }
     compare(sent, current)
   end

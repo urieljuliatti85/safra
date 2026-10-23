@@ -8,9 +8,11 @@ class ConferenceChecker
   FACTOR_NOTE = /1,3|copiad|50 ou 25/
 
   # week: segunda-feira da semana a conferir (pela data de entrega das linhas); nil confere todas as semanas.
-  def initialize(company:, week: nil)
+  # purchase_result: o PurchasePlanner já calculado por quem chama (o Painel), para não refazer a compra inteira.
+  def initialize(company:, week: nil, purchase_result: nil)
     @company = company
     @week = week
+    @purchase_result = purchase_result
   end
 
   def call
@@ -71,7 +73,7 @@ class ConferenceChecker
 
   # Linhas cuja produção cai antes da primeira compra cadastrada: não entram em nenhuma compra.
   def uncovered_alerts
-    uncovered = PurchasePlanner.new(company: @company).call.uncovered
+    uncovered = (@purchase_result || PurchasePlanner.new(company: @company).call).uncovered
     uncovered = uncovered.select { |line| week_range.cover?(line.delivery_date) } if @week
     return [] if uncovered.empty?
 

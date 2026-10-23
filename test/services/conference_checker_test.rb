@@ -73,6 +73,39 @@ class ConferenceCheckerTest < ActiveSupport::TestCase
     assert_equal "/regras#compras", alert.action.path
   end
 
+  test "usa a compra já calculada por quem chama, sem refazer" do
+    ActsAsTenant.with_tenant(company) { PurchaseDay.where(date: ..Date.new(2026, 10, 13)).destroy_all }
+    calculated = PurchasePlanner::Result.new(purchases: {}, uncovered: [])
+    alerts = ConferenceChecker.new(company: company, purchase_result: calculated).call
+    assert_nil alerts.find { |a| a.kind == "Compra" }
+  end
+
+  test "com a compra do Painel, os alertas são os mesmos de calcular sozinho, em cada semana" do
+    result = ActsAsTenant.with_tenant(company) { PurchasePlanner.new(company: company).call }
+    assert result.uncovered.any?, "os seeds precisam ter linhas sem compra para o caso valer"
+    [ nil, Date.new(2026, 10, 12), Date.new(2026, 10, 19) ].each do |week|
+      alone = ConferenceChecker.new(company: company, week: week).call
+      shared = ConferenceChecker.new(company: company, week: week, purchase_result: result).call
+      assert_equal alone, shared, "semana #{week.inspect}"
+    end
+  end
+
+  test "linhas sem compra recebidas de fora continuam filtradas pela semana" do
+    lines = ActsAsTenant.with_tenant(company) { OrderLine.where("quantity > 0").order(:delivery_date).to_a }
+    week = Date.new(2026, 10, 12)
+    in_week = lines.select { |l| (week..week + 6).cover?(l.delivery_date) }.first(2)
+    other_week = lines.reject { |l| (week..week + 6).cover?(l.delivery_date) }.first(3)
+    assert_equal 2, in_week.size
+    assert other_week.any?
+
+    result = PurchasePlanner::Result.new(purchases: {}, uncovered: in_week + other_week)
+    alert = ConferenceChecker.new(company: company, week: week, purchase_result: result).call.find { |a| a.kind == "Compra" }
+    assert_match(/\A2 linhas de pedido/, alert.message)
+
+    only_other = PurchasePlanner::Result.new(purchases: {}, uncovered: other_week)
+    assert_nil ConferenceChecker.new(company: company, week: week, purchase_result: only_other).call.find { |a| a.kind == "Compra" }
+  end
+
   test "entrega no domingo abre o pedido da semana dela" do
     ActsAsTenant.with_tenant(company) do
       line = OrderLine.where("quantity > 0").joins(:order).order(:delivery_date).first

@@ -86,6 +86,51 @@ class StockTest < ActionDispatch::IntegrationTest
     assert_match "compra de 13/10 mudou desde a versão enviada", response.body
   end
 
+  def publish_purchase(date)
+    needs = PurchasePlanner.new(company: company).call.purchases.fetch(date)
+    PlanPublisher.purchase(company: company, date: date, needs: needs)
+  end
+
+  # Cenoura precisa de 268,65 kg em 13/10: 50 kg contados acabam nessa compra e não sobra nada para 15/10.
+  test "com duas compras enviadas, avisa só a que a contagem muda" do
+    publish_purchase(Date.new(2026, 10, 13))
+    publish_purchase(Date.new(2026, 10, 15))
+    patch stock_path, params: { date: "2026-10-12", counts: { raw_material("cenoura").id => "50" } }
+    follow_redirect!
+    assert_match "compra de 13/10 mudou desde a versão enviada", response.body
+    assert_no_match "15/10 mudou", response.body
+  end
+
+  test "sobra da contagem passa para a compra seguinte e as duas avisam, em ordem" do
+    publish_purchase(Date.new(2026, 10, 13))
+    publish_purchase(Date.new(2026, 10, 15))
+    patch stock_path, params: { date: "2026-10-12", counts: { raw_material("cenoura").id => "1000" } }
+    follow_redirect!
+    assert_match "compra de 13/10, 15/10 mudou desde a versão enviada", response.body
+  end
+
+  test "contagem que não muda a compra enviada não avisa" do
+    publish_purchase(Date.new(2026, 10, 13))
+    patch stock_path, params: { date: "2026-10-12", counts: { raw_material("abacate").id => "5" } }
+    follow_redirect!
+    assert_match "1 contagem salva", response.body
+    assert_no_match "mudou desde a versão enviada", response.body
+  end
+
+  test "compra enviada de outra empresa não entra no aviso" do
+    other = Company.create!(name: "Outra")
+    ActsAsTenant.with_tenant(other) do
+      rm = RawMaterial.create!(name: "Alheia", code: "alheia", purchase_package: "kg")
+      plan = PurchasePlan.create!(date: Date.new(2026, 10, 20), version: 1, sent_at: Time.current)
+      plan.items.create!(raw_material: rm, kg: 10, unit: "kg")
+    end
+    assert_equal [ Date.new(2026, 10, 20) ], StalePlans.purchase_dates(other) # para a outra empresa a compra mudou
+
+    patch stock_path, params: { date: "2026-10-12", counts: { raw_material("cenoura").id => "50" } }
+    follow_redirect!
+    assert_no_match "mudou desde a versão enviada", response.body
+  end
+
   test "a tela de compras leva à contagem do dia" do
     get purchases_path(date: "2026-10-13")
     assert_select "a[href='#{stock_path(date: '2026-10-13')}']", text: /Contar estoque/

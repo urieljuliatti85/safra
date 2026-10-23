@@ -80,6 +80,23 @@ class DashboardTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "compra enviada que muda com a contagem nova vira aviso no painel" do
+    travel_to Time.zone.local(2026, 10, 13, 9) do
+      date = Date.new(2026, 10, 13)
+      ActsAsTenant.with_tenant(company) do
+        PlanPublisher.purchase(company: company, date: date, needs: PurchasePlanner.new(company: company).call.purchases.fetch(date))
+      end
+      sign_in_as(user_for(:office))
+      get dashboard_path
+      assert_no_match "compra de 13/10", css_select(".flash-alert").text
+
+      cenoura = ActsAsTenant.with_tenant(company) { RawMaterial.find_by!(code: "cenoura") }
+      patch stock_path, params: { date: "2026-10-12", counts: { cenoura.id => "50" } }
+      get dashboard_path
+      assert_select ".flash-alert", /Mudou depois do envio:.*compra de 13\/10/
+    end
+  end
+
   test "compra mostra o próximo dia da CEASA e leva ao estoque quando falta contar" do
     travel_to Time.zone.local(2026, 10, 13, 9) do
       sign_in_as(user_for(:office))

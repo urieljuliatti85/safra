@@ -54,11 +54,7 @@ class StocksController < ApplicationController
   def stale_purchase_warning
     return nil unless purchase_visible?
 
-    sent = PurchasePlan.where.not(sent_at: nil).distinct.pluck(:date).sort.select do |date|
-      latest = PurchasePlan.where(date: date).where.not(sent_at: nil).order(:version).last
-      needs = PurchasePlanner.new(company: current_company).call.purchases.fetch(date, [])
-      PlanDiff.purchase(latest, needs).any?
-    end
+    sent = StalePlans.purchase_dates(current_company)
     return nil if sent.empty?
 
     "Atenção: a compra de #{sent.map { |d| Formatting.short_date(d) }.join(', ')} mudou desde a versão enviada."
