@@ -39,7 +39,7 @@
   <%= hidden_field_tag :filter, @filter unless @filter == "all" %>
   <%= hidden_field_tag :q, @query if @query.present? %>
   <div class="sheet-wrap">
-    <table class="sheet">
+    <table class="sheet rm-sheet">
       <thead>
         <tr>
           <th class="sticky-col">Matéria-prima</th>
@@ -59,15 +59,15 @@
               <% if flags[:factor] %><span class="tag-change">sem fator</span><% end %>
               <% if flags[:package] %><span class="tag-change">sem kg por embalagem</span><% end %>
             </th>
-            <td class="px-1"><%= select_tag "raw_materials[#{rm.id}][supplier_id]", options_for_select(@suppliers.map { |s| [ s.name, s.id ] }, rm.supplier_id), include_blank: "Sem fornecedor", class: "field", "aria-label": "Fornecedor de #{rm.name}" %></td>
-            <td class="px-1"><%= select_tag "raw_materials[#{rm.id}][purchase_package]", options_for_select(package_options, rm.purchase_package), class: "field", "aria-label": "Embalagem de compra de #{rm.name}" %></td>
-            <td class="px-1"><%= text_field_tag "raw_materials[#{rm.id}][kg_per_package]", (qty(rm.kg_per_package) if rm.kg_per_package), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Kg por embalagem de #{rm.name}" %></td>
-            <td class="px-1"><%= text_field_tag "raw_materials[#{rm.id}][multiply_factor]", (qty(rm.multiply_factor) if rm.multiply_factor), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Fator de #{rm.name}" %></td>
-            <td class="px-1"><%= text_field_tag "raw_materials[#{rm.id}][kg_per_peeled_box]", (qty(rm.kg_per_peeled_box) if rm.kg_per_peeled_box), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Kg por caixa descascada de #{rm.name}" %></td>
+            <td class="wide px-1" data-label="Fornecedor"><%= select_tag "raw_materials[#{rm.id}][supplier_id]", options_for_select(@suppliers.map { |s| [ s.name, s.id ] }, rm.supplier_id), include_blank: "Sem fornecedor", class: "field", "aria-label": "Fornecedor de #{rm.name}" %></td>
+            <td class="px-1" data-label="Compra em"><%= select_tag "raw_materials[#{rm.id}][purchase_package]", options_for_select(package_options, rm.purchase_package), class: "field", "aria-label": "Embalagem de compra de #{rm.name}" %></td>
+            <td class="px-1" data-label="Kg por embalagem"><%= text_field_tag "raw_materials[#{rm.id}][kg_per_package]", (qty(rm.kg_per_package) if rm.kg_per_package), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Kg por embalagem de #{rm.name}" %></td>
+            <td class="px-1" data-label="Fator"><%= text_field_tag "raw_materials[#{rm.id}][multiply_factor]", (qty(rm.multiply_factor) if rm.multiply_factor), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Fator de #{rm.name}" %></td>
+            <td class="px-1" data-label="Kg por caixa descascada"><%= text_field_tag "raw_materials[#{rm.id}][kg_per_peeled_box]", (qty(rm.kg_per_peeled_box) if rm.kg_per_peeled_box), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Kg por caixa descascada de #{rm.name}" %></td>
           </tr>
         <% end %>
         <% if @raw_materials.empty? %>
-          <tr><td colspan="6" class="muted p-6 text-center">Nenhuma matéria-prima neste filtro.</td></tr>
+          <tr><td colspan="6" class="wide muted p-6 text-center">Nenhuma matéria-prima neste filtro.</td></tr>
         <% end %>
       </tbody>
     </table>

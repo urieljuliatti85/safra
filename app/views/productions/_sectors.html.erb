@@ -5,7 +5,7 @@
   <% next if items.blank? %>
   <% sector_dates = items.flat_map { |i| i.breakdown.map(&:delivery_date) }.uniq.sort %>
   <% single_date = sector_dates.size == 1 %>
-  <section class="panel">
+  <section class="panel scroll-mt-4" id="setor-<%= sector %>">
     <div class="panel-head">
       <h2><%= items.first.product.cut.sector_name %></h2>
       <span class="meta num">

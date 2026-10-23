@@ -1,14 +1,37 @@
 <%# locals: grid (OrderGrid), form_url, add_url, add_hidden (hash de campos ocultos do formulário de adicionar produto) %>
-<%= form_with url: form_url, method: :patch, data: { turbo: false } do %>
+<%# No celular a grade mostra um dia de entrega por vez (sem rolar para o lado), com filtro "Só com pedido".
+    Os outros dias continuam no formulário, escondidos, e são salvos juntos. %>
+<% start_day = grid.dates.index(Date.current) || grid.dates.index { |date| grid.cells.values.flatten.any? { |line| line.delivery_date == date } } || 0 %>
+<%= form_with url: form_url, method: :patch, data: { turbo: false, controller: "order-day", order_day_index_value: start_day,
+                                                     action: "input->order-day#count" } do %>
+  <div class="only-mobile mb-3">
+    <div class="day-picks" role="group" aria-label="Dia de entrega">
+      <% grid.dates.each_with_index do |date, index| %>
+        <button type="button" class="day-pick <%= 'is-sunday' if date.sunday? %>" data-order-day-target="day"
+                data-action="order-day#pick" data-order-day-index-param="<%= index %>">
+          <span><%= Formatting::WEEKDAYS[date.wday] %> <span class="num"><%= date.strftime("%d/%m") %></span></span>
+          <span class="day-count num" data-order-day-target="count"></span>
+        </button>
+      <% end %>
+    </div>
+    <div class="chips mt-2" role="group" aria-label="Produtos">
+      <button type="button" class="chip" data-order-day-target="filter" data-action="order-day#showAll">Todos</button>
+      <button type="button" class="chip" data-order-day-target="filter" data-action="order-day#showFilled">Só com pedido</button>
+    </div>
+    <ul class="mt-2 space-y-1 text-sm muted">
+      <li><strong>Todos</strong>: todos os produtos do cliente, para digitar um item novo no dia.</li>
+      <li><strong>Só com pedido</strong>: só os produtos com quantidade no dia escolhido, para conferir.</li>
+    </ul>
+  </div>
   <div class="sheet-wrap">
-    <table class="sheet">
+    <table class="sheet order-sheet">
       <thead>
         <tr>
           <th class="sticky-col">Produto</th>
           <th scope="col">Un.</th>
-          <% grid.dates.each do |date| %>
+          <% grid.dates.each_with_index do |date, index| %>
             <% classes = [ ("is-today" if date == Date.current), ("is-sunday" if date.sunday?) ].compact.join(" ") %>
-            <th scope="col" class="day <%= classes %>"><span class="block"><%= Formatting::WEEKDAYS[date.wday] %></span><span class="num"><%= date.strftime("%d/%m") %></span></th>
+            <th scope="col" class="day <%= classes %>" data-col="<%= index %>"><span class="block"><%= Formatting::WEEKDAYS[date.wday] %></span><span class="num"><%= date.strftime("%d/%m") %></span></th>
           <% end %>
           <th scope="col" class="text-right pr-3">Total</th>
         </tr>
@@ -16,20 +39,20 @@
       <% Product::GROUPS.each do |group| %>
         <% rows = grid.sections[group] %>
         <% next if rows.blank? %>
-        <tbody>
+        <tbody data-order-day-target="group">
           <tr><th colspan="<%= grid.dates.size + 3 %>" class="group" scope="colgroup"><%= Product::GROUP_LABELS[group] %></th></tr>
           <% rows.each do |product, unit| %>
             <% lines = grid.cells[[product.id, unit]] || [] %>
             <% by_date = lines.group_by(&:delivery_date).transform_values { |ls| ls.sum(&:quantity) } %>
-            <tr>
+            <tr data-order-day-target="row">
               <th scope="row" class="sticky-col font-medium">
                 <%= product.name %>
                 <% note = lines.map(&:note).compact.first %>
                 <% if note %><span class="line-note is-clamped" title="Observação do pedido: <%= note %>"><%= icon :note %><span><span class="sr-only">Observação: </span><%= note %></span></span><% end %>
               </th>
               <td class="unit"><%= unit %></td>
-              <% grid.dates.each do |date| %>
-                <td class="<%= 'is-sunday' if date.sunday? %>">
+              <% grid.dates.each_with_index do |date, index| %>
+                <td class="<%= 'is-sunday' if date.sunday? %>" data-col="<%= index %>">
                   <input type="text" inputmode="decimal" autocomplete="off" class="cell" placeholder="·"
                          name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]"
                          value="<%= qty(by_date[date]) if by_date[date] %>"
@@ -45,6 +68,7 @@
         <tbody><tr><td colspan="<%= grid.dates.size + 3 %>" class="p-8 text-center muted">Nenhum produto nesta semana. Adicione uma linha abaixo.</td></tr></tbody>
       <% end %>
     </table>
+    <p class="only-mobile off-filter p-6 text-center muted" data-order-day-target="empty">Nenhum produto com pedido neste dia. Toque em Todos para digitar.</p>
   </div>
   <div class="savebar">
     <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar pedido<% end %>

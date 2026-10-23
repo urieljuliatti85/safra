@@ -11,6 +11,28 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_select "input[aria-label^='Cenoura em cubinhos']"
   end
 
+  test "no celular a grade abre no dia de hoje quando ele está na semana" do
+    travel_to(Time.zone.local(2026, 10, 15, 9)) { get orders_path(customer: "ahotel", week: "2026-10-12") }
+    assert_select "form[data-controller='order-day'][data-order-day-index-value='3']" # Qui 15/10
+  end
+
+  test "no celular, fora da semana de hoje, a grade abre no primeiro dia com pedido" do
+    travel_to(Time.zone.local(2026, 11, 1, 9)) { get orders_path(customer: "ahotel", week: "2026-10-12") }
+    assert_select "form[data-controller='order-day'][data-order-day-index-value='1']" # Ter 13/10, não a segunda vazia
+  end
+
+  test "número da faixa da semana leva à produção do setor e à lista dele na página" do
+    get production_path(date: "2026-10-13")
+    link = css_select("a.bar[aria-label='Cortes manuais, Ter 13/10: 8 itens']").first
+    assert link, "número de Cortes manuais em 13/10 na faixa"
+    path, anchor = link["href"].split("#")
+    assert_equal "setor-manual", anchor
+
+    get path
+    assert_response :success
+    assert_select "section##{anchor} h2", "Cortes manuais"
+  end
+
   test "observação da linha aparece por extenso na grade e na programação" do
     ActsAsTenant.with_tenant(company) do
       OrderLine.joins(order: :customer).where(customers: { code: "hbp" }).where(delivery_date: Date.new(2026, 10, 14)).first
