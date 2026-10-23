@@ -7,6 +7,9 @@ class MobileTest < ApplicationSystemTestCase
     sign_in_through_form(:admin)
   end
 
+  # A sessão do Chrome é a mesma para todos os testes de sistema: sem isso os seguintes rodariam em 390 px.
+  teardown { page.driver.browser.execute_cdp("Emulation.clearDeviceMetricsOverride") }
+
   test "nenhuma tela passa da largura do celular" do
     [
       dashboard_path(date: "2026-10-13"), orders_path(week: "2026-10-12"), schedule_path(date: "2026-10-13"),
@@ -31,5 +34,25 @@ class MobileTest < ApplicationSystemTestCase
     within(".tabbar") { find("summary", text: "Mais").click; click_on "Estoque" }
     assert_current_path stock_path
     assert_selector ".tabbar summary.is-current", text: "Mais"
+  end
+
+  test "no estoque cada matéria-prima é um cartão com a contagem e o que comprar à vista" do
+    visit stock_path(date: "2026-10-12")
+    within(".stock-sheet tbody tr", text: "Cenoura") do
+      assert_field "Contagem de Cenoura"
+      cell = find("td[data-label='Comprar']")
+      assert_operator page.evaluate_script("arguments[0].getBoundingClientRect().right", cell), :<=, 390
+    end
+    assert_equal 390, page.evaluate_script("document.documentElement.scrollWidth")
+  end
+
+  test "no pedido o cliente é escolhido num select acima do título, sem as pílulas" do
+    visit orders_path(customer: "hnorte", week: "2026-10-12")
+    assert_no_selector ".chip", text: "Bom Pastor"
+    select "Bom Pastor", from: "Escolha o cliente:"
+
+    assert_selector "h1", text: "Hospital Bom Pastor"
+    assert_text "Semana de 12/10"
+    assert_select "Escolha o cliente:", selected: "Bom Pastor"
   end
 end

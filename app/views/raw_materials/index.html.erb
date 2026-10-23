@@ -27,7 +27,7 @@
     <%= link_to "Usadas nos pedidos (#{@used_ids.size})", raw_materials_path(filter: "used", q: @query.presence), class: "chip", "aria-current": (@filter == "used" ? "true" : nil) %>
     <%= link_to "Sem fornecedor (#{@no_supplier_count})", raw_materials_path(filter: "no_supplier", q: @query.presence), class: "chip", "aria-current": (@filter == "no_supplier" ? "true" : nil) %>
   </nav>
-  <%= form_with url: raw_materials_path, method: :get, class: "ml-auto flex items-center gap-2", data: { turbo: false } do %>
+  <%= form_with url: raw_materials_path, method: :get, class: "search-form ml-auto flex items-center gap-2", data: { turbo: false } do %>
     <%= hidden_field_tag :filter, @filter unless @filter == "all" %>
     <%= label_tag :q, "Buscar", class: "sr-only" %>
     <%= search_field_tag :q, @query, placeholder: "Buscar matéria-prima", class: "field" %>

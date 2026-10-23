@@ -321,6 +321,27 @@
   .savebar { position: sticky; bottom: 0; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: 1rem; padding: .75rem 0; background: linear-gradient(0deg, var(--color-leaf) 75%, transparent); }
   @media (max-width: 639px) { body:has(> .tabbar) .savebar { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); } }
   .field { min-height: 2.5rem; padding: .375rem .75rem; border: 1px solid var(--color-ink-soft); border-radius: .5rem; background: var(--color-surface); }
+  /* Cliente do pedido no celular: select acima do título, trocar abre o pedido do outro cliente na mesma semana */
+  .customer-select { width: 100%; min-height: 2.75rem; font-size: 1rem; font-weight: 700; color: var(--color-accent); border-color: var(--color-field); cursor: pointer; }
+  @media (max-width: 639px) {
+    /* Busca ocupa a linha toda; 16px no campo evita o zoom do iPhone ao tocar */
+    .search-form { width: 100%; margin-left: 0; }
+    .search-form .field[type="search"] { flex: 1 1 12rem; min-width: 0; font-size: 1rem; }
+
+    /* Estoque: cada matéria-prima vira um cartão, com a contagem ao lado do nome e o resto embaixo; a página rola uma vez só */
+    .sheet-wrap:has(> .stock-sheet) { max-height: none; overflow: visible; }
+    .stock-sheet, .stock-sheet tbody { display: block; }
+    .stock-sheet thead { display: none; }
+    .stock-sheet tr { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .875rem; padding: .625rem 1rem; border-top: 1px solid var(--color-line-soft); }
+    .stock-sheet tr:first-child { border-top: 0; }
+    .stock-sheet tbody th.sticky-col { position: static; flex: 1 0 calc(100% - 9rem); min-width: 0; padding: 0; border: 0; font-size: 1rem; }
+    .stock-sheet td { border: 0; padding: 0 !important; text-align: left !important; }
+    .stock-sheet td.count { display: flex; align-items: center; gap: .375rem; }
+    .stock-sheet td.count::after { content: "kg"; color: var(--color-ink-soft); }
+    .stock-sheet td.count .field { font-size: 1rem; }
+    .stock-sheet td[data-label]::before { content: attr(data-label) " "; font-weight: 500; color: var(--color-ink-soft); }
+    .stock-sheet td.is-empty { display: none; }
+  }
 
   /* Conferência de importação */
   .import-cell { min-width: 4.5rem; padding: .375rem .25rem; font-variant-numeric: tabular-nums; }

@@ -15,7 +15,7 @@
       <%= link_to Product::GROUP_LABELS[group], products_path(group: group, q: @query.presence), class: "chip", "aria-current": (@group == group ? "true" : nil) %>
     <% end %>
   </nav>
-  <%= form_with url: products_path, method: :get, class: "ml-auto flex items-center gap-2", data: { turbo: false } do %>
+  <%= form_with url: products_path, method: :get, class: "search-form ml-auto flex items-center gap-2", data: { turbo: false } do %>
     <%= hidden_field_tag :group, @group if @group %>
     <%= label_tag :q, "Buscar", class: "sr-only" %>
     <%= search_field_tag :q, @query, placeholder: "Buscar produto", class: "field" %>

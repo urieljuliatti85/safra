@@ -53,7 +53,8 @@ export default class extends Controller {
     this.index = index
     const step = this.stepsValue[index]
     const lost = !this.onPage(step)
-    this.anchor = lost ? null : document.querySelector(step.target)
+    // O mesmo passo pode ter uma versão para celular e outra para o computador: destaca a que está visível.
+    this.anchor = lost ? null : [ ...document.querySelectorAll(step.target) ].find((el) => el.getClientRects().length) ?? null
     this.anchor?.scrollIntoView({ block: "center", behavior: "instant" })
 
     this.spot = this.build("div", "tour-spot")

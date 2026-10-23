@@ -22,7 +22,7 @@
     <% end %>
   </p>
   <% end %>
-  <%= form_with url: stock_path, method: :get, class: "ml-auto flex flex-wrap items-center gap-2", data: { turbo: false } do %>
+  <%= form_with url: stock_path, method: :get, class: "search-form ml-auto flex flex-wrap items-center gap-2", data: { turbo: false } do %>
     <%= hidden_field_tag :date, @date.iso8601 %>
     <%= label_tag :q, "Buscar", class: "sr-only" %>
     <%= search_field_tag :q, @query, placeholder: "Buscar matéria-prima", class: "field" %>
@@ -36,7 +36,7 @@
   <%= hidden_field_tag :q, @query if @query.present? %>
   <%= hidden_field_tag :todas, "1" if @all %>
   <div class="sheet-wrap">
-    <table class="sheet">
+    <table class="sheet stock-sheet">
       <thead>
         <tr>
           <th class="sticky-col">Matéria-prima</th>
@@ -55,12 +55,12 @@
           <% previous = @previous[rm.id] %>
           <tr>
             <th scope="row" class="sticky-col font-medium"><%= rm.name %></th>
-            <td class="px-1 text-right"><%= text_field_tag "counts[#{rm.id}]", (qty(@today[rm.id].kg) if @today[rm.id]), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Contagem de #{rm.name}" %></td>
-            <td class="num px-2 text-right muted"><%= previous ? "#{qty(previous.kg)} kg em #{short_date(previous.date)}" : "-" %></td>
+            <td class="count px-1 text-right"><%= text_field_tag "counts[#{rm.id}]", (qty(@today[rm.id].kg) if @today[rm.id]), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Contagem de #{rm.name}" %></td>
+            <td class="num px-2 text-right muted <%= 'is-empty' unless previous %>" data-label="Anterior"><%= previous ? "#{qty(previous.kg)} kg em #{short_date(previous.date)}" : "-" %></td>
             <% if @purchase_date %>
-              <td class="num px-2 text-right"><%= need ? "#{qty(need.kg)} kg" : "-" %></td>
-              <td class="num px-2 text-right"><%= need && need.stock_kg.positive? ? "#{qty(need.stock_kg)} kg" : "-" %></td>
-              <td class="num px-2 text-right font-bold"><%= need ? need_text(need) : "-" %></td>
+              <td class="num px-2 text-right <%= 'is-empty' unless need %>" data-label="Precisa"><%= need ? "#{qty(need.kg)} kg" : "-" %></td>
+              <td class="num px-2 text-right <%= 'is-empty' unless need&.stock_kg&.positive? %>" data-label="Abate"><%= need && need.stock_kg.positive? ? "#{qty(need.stock_kg)} kg" : "-" %></td>
+              <td class="num px-2 text-right font-bold <%= 'is-empty' unless need %>" data-label="Comprar"><%= need ? need_text(need) : "-" %></td>
             <% end %>
           </tr>
         <% end %>

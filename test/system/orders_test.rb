@@ -3,6 +3,16 @@ require "application_system_test_case"
 class OrdersTest < ApplicationSystemTestCase
   setup { sign_in_through_form(:office) }
 
+  test "no computador os clientes são pílulas, sem o select do celular" do
+    visit orders_path(customer: "hnorte", week: "2026-10-12")
+    assert_no_field "Escolha o cliente:"
+    click_on "Bom Pastor"
+
+    assert_selector "h1", text: "Hospital Bom Pastor"
+    assert_text "Semana de 12/10"
+    assert_selector ".chip[aria-current='true']", text: "Bom Pastor"
+  end
+
   test "digitar um pedido na grade e salvar" do
     visit orders_path(customer: "hnorte", week: "2026-10-12")
     assert_selector "h1", text: "Hospital Horizonte Norte"
