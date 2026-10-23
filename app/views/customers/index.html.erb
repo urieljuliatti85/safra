@@ -9,7 +9,7 @@
 <%= render "catalog/tabs" %>
 <section class="panel">
   <div class="overflow-x-auto">
-    <table class="ops-table" style="min-width: 48rem; table-layout: auto">
+    <table class="ops-table ops-list" style="min-width: 48rem; table-layout: auto">
       <thead><tr><th>Cliente</th><th>Entrega</th><th>Como o pedido chega</th><th class="col-num">Apelidos</th><th></th></tr></thead>
       <tbody>
         <% @customers.each do |customer| %>
@@ -20,7 +20,7 @@
               <% else %><span class="line-note"><%= icon :info %><span>Sem endereço de entrega</span></span><% end %>
             </td>
             <td class="who"><%= customer.order_source.presence || "-" %></td>
-            <td class="num-col"><%= @alias_counts[customer.id].to_i %></td>
+            <td class="num-col" data-label="Apelidos"><%= @alias_counts[customer.id].to_i %></td>
             <td class="whitespace-nowrap text-right">
               <%= link_to "Editar", edit_customer_path(customer), class: "btn" %>
               <% if @line_counts[customer.id].to_i.zero? %>

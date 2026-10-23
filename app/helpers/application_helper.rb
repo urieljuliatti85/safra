@@ -16,9 +16,33 @@ module ApplicationHelper
     (0..5).map { |days| [ days.zero? ? "No dia da entrega" : (days == 1 ? "1 dia antes" : "#{days} dias antes"), days ] }
   end
 
-  def nav_link(label, path, controllers)
-    current = Array(controllers).include?(controller_name)
-    link_to label, path, class: "nav-link", "aria-current": (current ? "page" : nil), data: { reveal_target: ("current" if current) }.compact
+  # Telas do menu principal que a pessoa pode abrir. As que têm ícone viram aba na barra de baixo do celular.
+  def nav_items
+    [
+      { label: "Painel", path: dashboard_path, controllers: %w[dashboards], icon: :dashboard, allowed: policy(:dashboard).show? },
+      { label: "Pedidos", path: orders_path, controllers: %w[orders], icon: :orders, allowed: policy(:order).index? },
+      { label: "Programação", path: schedule_path, controllers: %w[schedules], allowed: policy(:schedule).show? },
+      { label: "Produção", path: production_path, controllers: %w[productions], icon: :production, allowed: policy(:production).show? },
+      { label: "Compras", path: purchases_path, controllers: %w[purchases], icon: :purchases, allowed: policy(:purchase).show? },
+      { label: "Estoque", path: stock_path, controllers: %w[stocks], allowed: policy(:stock).show? },
+      { label: "BI", path: indicators_path, controllers: %w[indicators], allowed: policy(:indicator).show? },
+      { label: "Conferência", path: conference_path, controllers: %w[conferences], allowed: policy(:conference).show? },
+      { label: "Regras", path: rules_path, controllers: %w[rules], allowed: policy(:rule).show? },
+      { label: "Cadastros", path: raw_materials_path, controllers: %w[raw_materials products customers suppliers customer_aliases cuts],
+        allowed: policy(:raw_material).index? }
+    ].select { |item| item[:allowed] }
+  end
+
+  def nav_current?(item) = item[:controllers].include?(controller_name)
+
+  def nav_link(item)
+    link_to item[:label], item[:path], class: "nav-link", "aria-current": ("page" if nav_current?(item))
+  end
+
+  def tab_link(item)
+    link_to item[:path], class: "tab", "aria-current": ("page" if nav_current?(item)) do
+      safe_join([ icon(item[:icon]), tag.span(item[:label]) ])
+    end
   end
 
   # Navegação de um dia para o anterior/seguinte, mantendo a página.

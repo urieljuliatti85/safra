@@ -9,7 +9,7 @@
 
 <section class="panel">
   <div class="overflow-x-auto">
-    <table class="ops-table" style="min-width: 40rem; table-layout: auto">
+    <table class="ops-table ops-list" style="min-width: 40rem; table-layout: auto">
       <thead><tr><th>Nome</th><th>Acesso</th><th>Situação</th><th>Último uso</th><th></th></tr></thead>
       <tbody>
         <% @tokens.each do |token| %>
@@ -17,7 +17,7 @@
             <td class="name"><strong><%= token.name %></strong><br><span class="muted text-sm num"><%= token.token_prefix %>…</span></td>
             <td><%= token.scope_label %></td>
             <td><%= token.revoked? ? "Revogada em #{l(token.revoked_at, format: '%d/%m')}" : "Ativa" %></td>
-            <td class="num"><%= token.last_used_at ? l(token.last_used_at, format: "%d/%m %H:%M") : "nunca usada" %></td>
+            <td class="num" data-label="Último uso"><%= token.last_used_at ? l(token.last_used_at, format: "%d/%m %H:%M") : "nunca usada" %></td>
             <td class="whitespace-nowrap">
               <% unless token.revoked? %>
                 <%= button_to "Revogar", api_token_path(token), method: :delete, class: "btn", form: { class: "inline", data: { turbo_confirm: "Revogar a chave \"#{token.name}\"? Quem a usa deixa de acessar a API na hora, e não dá para desfazer." } } %>

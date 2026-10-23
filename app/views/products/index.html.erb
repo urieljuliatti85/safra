@@ -25,7 +25,7 @@
 
 <section class="panel">
   <div class="overflow-x-auto">
-    <table class="ops-table" style="min-width: 40rem; table-layout: auto">
+    <table class="ops-table ops-list" style="min-width: 40rem; table-layout: auto">
       <thead><tr><th>Produto</th><th>Grupo</th><th>Matéria-prima</th><th>Corte</th><th>Un.</th><th></th></tr></thead>
       <tbody>
         <% @products.each do |product| %>
@@ -33,8 +33,8 @@
             <td class="name"><strong><%= product.name %></strong></td>
             <td><%= Product::GROUP_LABELS[product.product_group] %></td>
             <td><%= product.raw_material.name %></td>
-            <td><%= product.cut&.name || "-" %></td>
-            <td><%= product.unit %></td>
+            <td data-label="Corte"><%= product.cut&.name || "-" %></td>
+            <td data-label="Un."><%= product.unit %></td>
             <td class="whitespace-nowrap text-right">
               <%= link_to "Editar", edit_product_path(product), class: "btn" %>
               <%= button_to "Excluir", product_path(product), method: :delete, class: "btn", form: { class: "inline", data: { turbo_confirm: "Excluir #{product.name}?" } } %>

@@ -8,17 +8,17 @@
 </div>
 <section class="panel">
   <div class="overflow-x-auto">
-    <table class="ops-table" style="min-width: 44rem; table-layout: auto">
+    <table class="ops-table ops-list" style="min-width: 44rem; table-layout: auto">
       <thead><tr><th>Empresa</th><th>Situação</th><th class="col-num">Usuários</th><th class="col-num">Clientes</th><th class="col-num">Produtos</th><th>Último acesso</th><th></th></tr></thead>
       <tbody>
         <% @companies.each do |company| %>
           <tr class="<%= 'is-changed' unless company.active? %>">
             <td class="name"><strong><%= company.name %></strong><% if company == current_company %> <span class="muted text-sm">(a sua)</span><% end %></td>
             <td><%= company.active? ? "Ativa" : "Suspensa" %></td>
-            <td class="num-col"><%= @users[company.id].to_i %></td>
-            <td class="num-col"><%= @customers[company.id].to_i %></td>
-            <td class="num-col"><%= @products[company.id].to_i %></td>
-            <td class="num"><%= @last_access[company.id] ? l(@last_access[company.id], format: "%d/%m %H:%M") : "nunca" %></td>
+            <td class="num-col" data-label="Usuários"><%= @users[company.id].to_i %></td>
+            <td class="num-col" data-label="Clientes"><%= @customers[company.id].to_i %></td>
+            <td class="num-col" data-label="Produtos"><%= @products[company.id].to_i %></td>
+            <td class="num" data-label="Último acesso"><%= @last_access[company.id] ? l(@last_access[company.id], format: "%d/%m %H:%M") : "nunca" %></td>
             <td class="text-right"><%= link_to "Editar", edit_company_path(company), class: "btn" %></td>
           </tr>
         <% end %>

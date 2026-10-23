@@ -9,7 +9,7 @@
 
 <section class="panel">
   <div class="overflow-x-auto">
-    <table class="ops-table" style="min-width: 40rem; table-layout: auto">
+    <table class="ops-table ops-list" style="min-width: 40rem; table-layout: auto">
       <thead><tr><th>Nome</th><th>Papel</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead>
       <tbody>
         <% @users.each do |user| %>
@@ -21,7 +21,7 @@
               <% elsif user.must_change_password %>Senha provisória
               <% else %>Ativo<% end %>
             </td>
-            <td class="num"><%= @last_access[user.id] ? l(@last_access[user.id], format: "%d/%m %H:%M") : "nunca entrou" %></td>
+            <td class="num" data-label="Último acesso"><%= @last_access[user.id] ? l(@last_access[user.id], format: "%d/%m %H:%M") : "nunca entrou" %></td>
             <td class="whitespace-nowrap">
               <%= link_to "Editar", edit_user_path(user), class: "btn" %>
               <% if user != current_user && user.active? %>

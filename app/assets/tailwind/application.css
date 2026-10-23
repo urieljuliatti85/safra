@@ -90,13 +90,25 @@
   .nav-link { display: flex; align-items: center; white-space: nowrap; padding: 0 .125rem; color: var(--color-ink-soft); font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -1px; }
   .nav-link:hover { color: var(--color-ink); }
   .nav-link[aria-current="page"] { color: var(--color-ink); border-bottom-color: var(--color-field); }
+  /* Barra de abas do celular: fixa embaixo, ao alcance do polegar; "Mais" abre as outras telas para cima */
+  .tabbar { display: none; }
   @media (max-width: 639px) {
-    .shell-nav-inner { display: grid; grid-template-columns: 1fr auto; gap: 0; }
-    .shell-nav-inner .nav-links { grid-column: 1 / -1; grid-row: 2; }
+    :root { --tabbar-h: 3.75rem; }
     .user-name { max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .nav-links { mask-image: linear-gradient(90deg, transparent, #000 1rem, #000 calc(100% - 1.5rem), transparent); }
-    .nav-links { gap: 1.25rem; }
-    .nav-link { padding: .75rem .125rem; }
+    .shell-nav .nav-links { display: none; }
+    body:has(> .tabbar) { padding-bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); }
+    .tabbar { position: fixed; inset: auto 0 0; z-index: 40; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+              background: var(--color-surface); border-top: 1px solid var(--color-line); padding-bottom: env(safe-area-inset-bottom); }
+    .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1875rem; height: var(--tabbar-h);
+           font-size: .75rem; font-weight: 600; color: var(--color-ink-soft); border-top: 3px solid transparent; margin-top: -1px;
+           list-style: none; cursor: pointer; }
+    .tab::-webkit-details-marker { display: none; }
+    .tab .icon { width: 1.375rem; height: 1.375rem; }
+    .tab[aria-current="page"], .tab.is-current, .tabbar-more[open] > .tab { color: var(--color-ink); border-top-color: var(--color-field); }
+    .tabbar-more-panel { position: absolute; right: .5rem; bottom: calc(100% + .5rem); display: grid; gap: .125rem; min-width: 13rem; padding: .5rem;
+                         background: var(--color-surface); border: 1px solid var(--color-line); border-radius: .75rem; box-shadow: 0 12px 32px rgb(0 0 0 / .45); }
+    .tabbar-more-panel .nav-link { padding: .75rem; border: 0; margin: 0; border-radius: .5rem; }
+    .tabbar-more-panel .nav-link[aria-current="page"] { background: var(--color-field-wash); color: var(--color-accent); }
   }
 
   /* Menu da conta */
@@ -248,6 +260,13 @@
     .ops-table td.who { grid-column: 1; margin-top: .125rem; }
     .ops-table tr.is-changed { background: var(--color-change-wash); }
     .ops-table td.extra { grid-column: 1 / -1; margin-top: .25rem; }
+    /* Listas de cadastro: no cartão cada célula vira uma linha, com o nome da coluna nos números e datas.
+       A largura mínima (inline) só vale na tabela larga; no cartão ela cortaria o texto. */
+    .ops-list { min-width: 0 !important; }
+    .ops-list tr { grid-template-columns: minmax(0, 1fr); row-gap: .25rem; }
+    .ops-list td.num-col { width: auto; text-align: left; }
+    .ops-list td[data-label]::before { content: attr(data-label) ": "; font-size: var(--text-small); color: var(--color-ink-soft); }
+    .ops-list td:last-child:has(.btn) { justify-self: start; margin-top: .375rem; }
     .only-desktop { display: none !important; }
     .only-mobile { display: block; }
   }
@@ -300,6 +319,7 @@
   .cell:not(:placeholder-shown) { font-weight: 700; }
   .cell:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 0; background: var(--color-surface); }
   .savebar { position: sticky; bottom: 0; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: 1rem; padding: .75rem 0; background: linear-gradient(0deg, var(--color-leaf) 75%, transparent); }
+  @media (max-width: 639px) { body:has(> .tabbar) .savebar { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); } }
   .field { min-height: 2.5rem; padding: .375rem .75rem; border: 1px solid var(--color-ink-soft); border-radius: .5rem; background: var(--color-surface); }
 
   /* Conferência de importação */
@@ -456,7 +476,10 @@
               background: var(--color-surface); color: var(--color-ink); font-weight: 700; cursor: pointer; box-shadow: 0 6px 18px rgb(0 0 0 / .35); }
   .tour-tab:hover { background: var(--color-field-wash); }
   @media (max-width: 639px) {
-    .tour-card, .tour-card.is-center { top: auto; bottom: 1rem; left: 1rem; transform: none; width: calc(100vw - 2rem); }
+    /* No celular o botão do tour vira só o ícone, acima da barra de abas, para não cobrir botões nem a grade */
+    .tour-tab { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + .75rem); right: .75rem; width: 2.75rem; height: 2.75rem; padding: 0; justify-content: center; }
+    .tour-tab-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .tour-card, .tour-card.is-center { top: auto; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 1rem); left: 1rem; transform: none; width: calc(100vw - 2rem); }
     .tour-card.is-top { top: 1rem; bottom: auto; }
   }
   @media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } }

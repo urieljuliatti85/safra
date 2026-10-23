@@ -7,7 +7,7 @@
   <p class="muted p-3 text-sm">Como <%= @customer.short_name %> escreve cada produto no pedido. A importação de planilhas usa esta lista; nomes novos aparecem para você escolher e entram aqui sozinhos.</p>
   <% if @aliases.any? %>
     <div class="overflow-x-auto">
-      <table class="ops-table" style="min-width: 30rem; table-layout: auto">
+      <table class="ops-table ops-list" style="min-width: 30rem; table-layout: auto">
         <thead><tr><th>Nome no pedido</th><th>Produto no sistema</th><th></th></tr></thead>
         <tbody>
           <% @aliases.each do |record| %>

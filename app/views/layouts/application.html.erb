@@ -38,17 +38,9 @@
       <div class="shell-nav-inner">
         <%= link_to (authenticated? ? root_path : new_session_path), class: "brand", "aria-label": "Safra, início" do %><%= brand_mark %>Safra<% end %>
         <% if authenticated? %>
+          <% nav = nav_items %>
           <nav class="nav-links" aria-label="Principal">
-            <%= nav_link "Painel", dashboard_path, "dashboards" if policy(:dashboard).show? %>
-            <%= nav_link "Pedidos", orders_path, "orders" if policy(:order).index? %>
-            <%= nav_link "Programação", schedule_path, "schedules" if policy(:schedule).show? %>
-            <%= nav_link "Produção", production_path, "productions" if policy(:production).show? %>
-            <%= nav_link "Compras", purchases_path, "purchases" if policy(:purchase).show? %>
-            <%= nav_link "Estoque", stock_path, "stocks" if policy(:stock).show? %>
-            <%= nav_link "BI", indicators_path, "indicators" if policy(:indicator).show? %>
-            <%= nav_link "Conferência", conference_path, "conferences" if policy(:conference).show? %>
-            <%= nav_link "Regras", rules_path, "rules" if policy(:rule).show? %>
-            <%= nav_link "Cadastros", raw_materials_path, %w[raw_materials products customers suppliers customer_aliases cuts] if policy(:raw_material).index? %>
+            <% nav.each do |item| %><%= nav_link item %><% end %>
           </nav>
           <details class="user-menu">
             <summary><span class="user-name"><%= current_user.name %></span><span class="sr-only">Menu da conta</span><%= icon :chevron_right, class: "icon user-chevron" %></summary>
@@ -71,7 +63,22 @@
       <%= yield %>
     </main>
     <% if steps.any? %>
-      <button type="button" class="tour-tab" data-action="tour#start" data-tour="tab"><%= icon :info %>Tour guiado</button>
+      <button type="button" class="tour-tab" data-action="tour#start" data-tour="tab"><%= icon :info %><span class="tour-tab-label">Tour guiado</span></button>
+    <% end %>
+    <% if authenticated? %>
+      <%# No celular o menu de cima some: as telas do dia a dia viram abas embaixo, o resto fica em "Mais". %>
+      <% tabs, more = nav.partition { |item| item[:icon] } %>
+      <nav class="tabbar" aria-label="Principal">
+        <% tabs.each do |item| %><%= tab_link item %><% end %>
+        <% if more.any? %>
+          <details class="tabbar-more">
+            <summary class="tab <%= 'is-current' if more.any? { |item| nav_current?(item) } %>"><%= icon :menu %><span>Mais</span></summary>
+            <div class="tabbar-more-panel">
+              <% more.each do |item| %><%= nav_link item %><% end %>
+            </div>
+          </details>
+        <% end %>
+      </nav>
     <% end %>
   </body>
 </html>

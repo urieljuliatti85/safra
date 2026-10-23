@@ -38,16 +38,16 @@
     </p>
     <% if sim.deltas.any? %>
       <div class="overflow-x-auto">
-        <table class="ops-table" style="min-width: 36rem; table-layout: auto">
+        <table class="ops-table ops-list" style="min-width: 36rem; table-layout: auto">
           <thead><tr><th>Item</th><th>Dia</th><th class="col-num">Planilha</th><th class="col-num">Antes</th><th class="col-num">Depois</th><th>Situação</th></tr></thead>
           <tbody>
             <% sim.deltas.first(80).each do |delta| %>
               <tr class="<%= 'is-changed' if delta.before_ok && !delta.after_ok %>">
                 <td class="name"><%= delta.label %> <span class="muted text-sm">(<%= delta.kind == :production ? "produção" : "compra" %>)</span></td>
-                <td class="num"><%= short_date(delta.date) %></td>
-                <td class="num-col"><%= delta.planilha.is_a?(Numeric) ? qty(delta.planilha) : (delta.planilha || "-") %></td>
-                <td class="num-col"><%= delta.before ? qty(delta.before) : "-" %></td>
-                <td class="num-col"><%= delta.after ? qty(delta.after) : "-" %></td>
+                <td class="num" data-label="Dia"><%= short_date(delta.date) %></td>
+                <td class="num-col" data-label="Planilha"><%= delta.planilha.is_a?(Numeric) ? qty(delta.planilha) : (delta.planilha || "-") %></td>
+                <td class="num-col" data-label="Antes"><%= delta.before ? qty(delta.before) : "-" %></td>
+                <td class="num-col" data-label="Depois"><%= delta.after ? qty(delta.after) : "-" %></td>
                 <td><%= delta.after_ok ? "bate" : (delta.before_ok ? "deixa de bater" : "não bate") %></td>
               </tr>
             <% end %>
@@ -65,14 +65,14 @@
   <section class="panel mb-4" aria-label="Antecedência por corte">
     <div class="panel-head"><h2>Antecedência por corte</h2><span class="meta">vale para todos os produtos do corte, salvo exceção</span></div>
     <div class="overflow-x-auto">
-      <table class="ops-table" style="min-width: 32rem; table-layout: auto">
+      <table class="ops-table ops-list" style="min-width: 32rem; table-layout: auto">
         <thead><tr><th>Corte</th><th>Setor</th><th class="col-num">Produtos</th><th>Produz</th></tr></thead>
         <tbody>
           <% @cuts.each do |cut| %>
             <tr>
               <td class="name"><label for="cut_<%= cut.id %>"><%= cut.name %></label></td>
               <td class="who"><%= cut.sector_name %></td>
-              <td class="num-col"><%= @products_per_cut[cut.id].to_i %></td>
+              <td class="num-col" data-label="Produtos"><%= @products_per_cut[cut.id].to_i %></td>
               <td><%= select_tag "cut_leads[#{cut.id}]", options_for_select(lead_options, current_cut_lead.call(cut)), id: "cut_#{cut.id}", class: "field" %></td>
             </tr>
           <% end %>
@@ -84,7 +84,7 @@
   <section class="panel mb-4" aria-label="Exceções por produto">
     <div class="panel-head"><h2>Exceções por produto</h2><span class="meta">o produto ignora o corte e usa a sua própria antecedência</span></div>
     <% if @exceptions.any? %>
-      <table class="ops-table" style="table-layout: auto">
+      <table class="ops-table ops-list" style="table-layout: auto">
         <thead><tr><th>Produto</th><th>Produz</th></tr></thead>
         <tbody>
           <% @exceptions.each do |rule| %>
