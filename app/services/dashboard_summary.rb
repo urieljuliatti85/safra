@@ -17,7 +17,7 @@ class DashboardSummary
       alerts = ConferenceChecker.new(company: @company, week: @date.beginning_of_week).call.select { |alert| alert.level == :warn }
       stages = [ orders_stage(alerts), schedule_stage, production_stage, purchase_stage(purchase_result) ]
       Result.new(date: @date, stages: stages, alerts: alerts.size,
-                 stale_production: StalePlans.dates(@company), stale_purchase: stale_purchase_dates(purchase_result))
+                 stale_production: StalePlans.dates(@company), stale_purchase: StalePlans.purchase_dates(@company, purchase_result))
     end
   end
 
@@ -128,13 +128,6 @@ class DashboardSummary
   def deliveries(date)
     lines = OrderLine.where(delivery_date: date).where("quantity > 0").joins(:order)
     { items: lines.count, customers: lines.distinct.count("orders.customer_id") }
-  end
-
-  def stale_purchase_dates(result)
-    PurchasePlan.where.not(sent_at: nil).distinct.pluck(:date).sort.select do |date|
-      latest = PurchasePlan.where(date: date).where.not(sent_at: nil).order(:version).last
-      PlanDiff.purchase(latest, result.purchases.fetch(date, [])).any?
-    end
   end
 
   def plural(count, singular, plural_form)

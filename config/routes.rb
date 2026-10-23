@@ -41,6 +41,7 @@ Rails.application.routes.draw do
   resources :order_imports, only: %i[new create show] do
     member do
       post :apply
+      post :undo
       patch :grid
       patch :settings
     end

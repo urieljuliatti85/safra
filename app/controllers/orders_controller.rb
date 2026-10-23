@@ -6,6 +6,7 @@ class OrdersController < ApplicationController
     return render :empty if @customer.nil?
 
     @add_product = Product.find_by(id: params[:add])
+    @imports = OrderImport.where(customer: @customer, week_start: @week_start, kind: "sheet", status: "applied").order(applied_at: :desc)
     build_grid
   end
 

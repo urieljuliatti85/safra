@@ -91,6 +91,93 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     assert_not OrderImports::Applier.new(import: record.reload, mappings: {}).call.ok?
   end
 
+  def order_state(customer)
+    Order.find_by!(customer: customer, week_start: Date.new(2026, 10, 12)).lines
+         .pluck(:product_id, :unit, :delivery_date, :quantity).sort_by { |row| row.map(&:to_s) }
+  end
+
+  def apply_sr_with_pitaya
+    record = import("pedido_sem_unidade.xlsx", @hbp)
+    pitaya_index = record.rows.index { |r| r["name"].start_with?("Pitaya") }
+    assert OrderImports::Applier.new(import: record, mappings: { pitaya_index.to_s => Product.find_by!(code: "abobora_lascas").id.to_s }).call.ok?
+    record.reload
+  end
+
+  test "desfazer devolve o pedido, apaga o apelido criado e reabre a importação" do
+    before = order_state(@hbp)
+    record = apply_sr_with_pitaya
+    assert_not_equal before, order_state(@hbp)
+
+    undoer = OrderImports::Undoer.new(import: record)
+    assert undoer.undoable?
+    assert_empty undoer.later_edits
+    assert undoer.call.ok?
+
+    assert_equal before, order_state(@hbp)
+    assert_not CustomerAlias.exists?(customer: @hbp, name_in_order: "Pitaya Fatiada Especial")
+    record.reload
+    assert_equal "pending", record.status
+    assert_nil record.applied_at
+    assert_nil record.payload["undo"]
+    assert_not OrderImports::Undoer.new(import: record).call.ok?
+    # Reaberta, pode ser aplicada de novo.
+    assert OrderImports::Applier.new(import: record, mappings: { record.rows.index { |r| r["name"].start_with?("Pitaya") }.to_s => "ignore" }).call.ok?
+  end
+
+  test "desfazer volta o apelido que a importação trocou de produto" do
+    record = import("pedido_com_unidade.xlsx", @serra)
+    index = record.rows.index { |r| r["name"] == "ABÓBORA CUBOS" }
+    outro = Product.find_by!(code: "abobora_lascas")
+    assert OrderImports::Applier.new(import: record, mappings: { index.to_s => outro.id.to_s }).call.ok?
+    assert_equal outro, CustomerAlias.find_by!(customer: @serra, name_in_order: "ABÓBORA CUBOS").product
+
+    assert OrderImports::Undoer.new(import: record.reload).call.ok?
+    assert_equal Product.find_by!(code: "abobora_cubos"), CustomerAlias.find_by!(customer: @serra, name_in_order: "ABÓBORA CUBOS").product
+  end
+
+  test "desfazer avisa e passa por cima do que foi alterado no pedido depois da importação" do
+    before = order_state(@hbp)
+    record = apply_sr_with_pitaya
+    line = Order.find_by!(customer: @hbp, week_start: Date.new(2026, 10, 12)).lines
+                .find_by!(product: Product.find_by!(code: "abobora_lascas"), delivery_date: Date.new(2026, 10, 13))
+    line.update!(quantity: 8)
+
+    edits = OrderImports::Undoer.new(import: record).later_edits
+    assert_equal 1, edits.size
+    assert_equal [ Date.new(2026, 10, 13), 3, 8 ], [ edits.first.date, edits.first.imported, edits.first.current ]
+
+    assert OrderImports::Undoer.new(import: record).call.ok?
+    assert_equal before, order_state(@hbp)
+  end
+
+  test "simular o desfazer lista os planos enviados que vão mudar sem gravar nada" do
+    # Cenoura ralada sai no dia da entrega: 15/10 cai na compra de 15/10.
+    Order.find_by!(customer: @serra, week_start: Date.new(2026, 10, 12)).lines
+         .find_by!(product: Product.find_by!(code: "cenoura_ralada"), delivery_date: Date.new(2026, 10, 15)).update!(quantity: 50)
+    record = import("pedido_com_unidade.xlsx", @serra)
+    assert OrderImports::Applier.new(import: record, mappings: {}).call.ok?
+    (12..17).each do |day|
+      PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: Date.new(2026, 10, day)).call)
+    end
+    PurchasePlanner.new(company: company).call.purchases.each do |date, needs|
+      PlanPublisher.purchase(company: company, date: date, needs: needs)
+    end
+    after_apply = order_state(@serra)
+
+    stale = OrderImports::Undoer.new(import: record).stale_after_undo
+    assert_includes stale[:production], Date.new(2026, 10, 15)
+    assert_includes stale[:purchase], Date.new(2026, 10, 15)
+    assert_equal after_apply, order_state(@serra)
+    assert_equal "applied", record.reload.status
+  end
+
+  test "importação aplicada antes do desfazer existir não pode ser desfeita" do
+    record = apply_sr_with_pitaya
+    record.update!(payload: record.payload.except("undo"))
+    assert_not OrderImports::Undoer.new(import: record).undoable?
+    assert_not OrderImports::Undoer.new(import: record).call.ok?
+  end
+
   test "aviso quando o título parece de outro cliente" do
     record = import("pedido_com_unidade.xlsx", @hbp)
     assert_match "parece ser de Hospital Horizonte Norte", record.payload["customer_warning"]

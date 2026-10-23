@@ -1,7 +1,7 @@
 class OrderImportsController < ApplicationController
   authorize_resource :order_import
   before_action :load_customers
-  before_action :load_import, only: %i[show apply grid settings]
+  before_action :load_import, only: %i[show apply undo grid settings]
 
   def new
     @customer = @customers.find { |c| c.code == params[:customer] } || @customers.first
@@ -40,6 +40,7 @@ class OrderImportsController < ApplicationController
 
     @preview = OrderImports::Preview.new(@import)
     @products = Product.order(:name).group_by(&:product_group)
+    load_undo
   end
 
   # Pedido em imagem: grava o que foi digitado olhando a imagem, na grade do cliente e da semana.
@@ -60,7 +61,8 @@ class OrderImportsController < ApplicationController
     attrs = {}
     attrs[:customer] = @customers.find { |c| c.code == params[:customer] } if params[:customer].present?
     attrs[:week_start] = date_param(:week, @import.week_start).beginning_of_week if params[:week].present?
-    attrs[:status] = params[:status] if %w[pending applied].include?(params[:status])
+    # Planilha só sai de "aplicada" desfazendo, para o pedido voltar junto.
+    attrs[:status] = params[:status] if @import.image? && %w[pending applied].include?(params[:status])
     @import.update!(attrs.compact)
     redirect_to order_import_path(@import)
   end
@@ -78,6 +80,17 @@ class OrderImportsController < ApplicationController
     end
   end
 
+  # Devolve o pedido ao que era antes da planilha. Planos enviados não são reenviados: o aviso diz quais mudaram.
+  def undo
+    result = OrderImports::Undoer.new(import: @import).call
+    if result.ok?
+      redirect_to order_import_path(@import), notice: "Importação desfeita: o pedido de #{@import.customer.short_name} voltou ao que era antes.",
+                                              alert: StalePlans.warning(current_company)
+    else
+      redirect_to order_import_path(@import), alert: result.errors.to_sentence
+    end
+  end
+
   private
 
   def load_customers
@@ -86,6 +99,14 @@ class OrderImportsController < ApplicationController
 
   def load_import
     @import = OrderImport.find(params[:id])
+  end
+
+  def load_undo
+    @undoer = OrderImports::Undoer.new(import: @import)
+    return unless @undoer.undoable?
+
+    @later_edits = @undoer.later_edits
+    @stale_after_undo = @undoer.stale_after_undo
   end
 
   def image_order

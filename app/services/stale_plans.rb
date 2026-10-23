@@ -11,6 +11,17 @@ module StalePlans
     end
   end
 
+  # Mesmo para as compras enviadas. Recebe o resultado do PurchasePlanner quando quem chama já calculou.
+  def purchase_dates(company, result = nil)
+    ActsAsTenant.with_tenant(company) do
+      result ||= PurchasePlanner.new(company: company).call
+      PurchasePlan.where.not(sent_at: nil).distinct.pluck(:date).sort.select do |date|
+        latest = PurchasePlan.where(date: date).where.not(sent_at: nil).order(:version).last
+        PlanDiff.purchase(latest, result.purchases.fetch(date, [])).any?
+      end
+    end
+  end
+
   def warning(company)
     stale = dates(company)
     return nil if stale.empty?

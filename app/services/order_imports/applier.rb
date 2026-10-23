@@ -22,13 +22,19 @@ module OrderImports
       return Result.new(errors: errors, changed_dates: []) if errors.any?
 
       order = Order.find_or_create_by!(customer: @import.customer, week_start: @import.week_start)
-      saved = OrderGridSaver.new(order: order, quantities: grid(chosen)).call
+      after = grid(chosen)
+      before = snapshot(order, after)
+      saved = nil
+      OrderImport.transaction do
+        saved = OrderGridSaver.new(order: order, quantities: after).call
+        raise ActiveRecord::Rollback unless saved.ok?
+
+        aliases = remember_names(chosen)
+        @import.update!(status: "applied", applied_at: Time.current,
+                        payload: @import.payload.merge("undo" => { "before" => before, "after" => after, "aliases" => aliases }))
+      end
       return Result.new(errors: saved.errors, changed_dates: []) unless saved.ok?
 
-      OrderImport.transaction do
-        remember_names(chosen)
-        @import.update!(status: "applied", applied_at: Time.current)
-      end
       Result.new(errors: [], changed_dates: saved.changed_dates)
     end
 
@@ -64,11 +70,25 @@ module OrderImports
       end
     end
 
-    def remember_names(chosen)
-      chosen.each do |row, product|
-        record = CustomerAlias.find_or_initialize_by(customer: @import.customer, name_in_order: row["name"])
-        record.update!(product: product) unless record.persisted? && record.product_id == product.id
+    # O pedido de hoje nas mesmas células que a importação vai gravar, para o Undoer devolver.
+    def snapshot(order, after)
+      current = order.lines.group(:product_id, :unit, :delivery_date).sum(:quantity)
+      after.to_h do |key, cells|
+        product_id, unit = key.split("|")
+        [ key, cells.to_h { |date, _| [ date, current[[ product_id.to_i, unit, Date.iso8601(date) ]]&.to_s("F")&.sub(/\.0\z/, "").to_s ] } ]
       end
+    end
+
+    # Devolve os apelidos que mudaram: [{ "name", "product_id", "previous_product_id" }], para o Undoer.
+    def remember_names(chosen)
+      chosen.each_with_object({}) do |(row, product), changed|
+        record = CustomerAlias.find_or_initialize_by(customer: @import.customer, name_in_order: row["name"])
+        next if record.persisted? && record.product_id == product.id
+
+        changed[row["name"]] ||= { "name" => row["name"], "previous_product_id" => record.product_id }
+        changed[row["name"]]["product_id"] = product.id
+        record.update!(product: product)
+      end.values
     end
   end
 end

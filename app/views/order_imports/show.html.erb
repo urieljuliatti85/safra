@@ -13,6 +13,44 @@
 
 <% if @import.applied? %>
   <p class="flash flash-notice"><%= icon :check %><span>Aplicada em <%= l(@import.applied_at, format: "%d/%m às %H:%M") %>.</span></p>
+  <% if @undoer&.undoable? %>
+    <section id="desfazer" class="panel mb-4" aria-label="Desfazer importação">
+      <div class="panel-head"><h2>Desfazer importação</h2></div>
+      <div class="p-3 text-sm">
+        <p class="mb-2">O pedido de <%= @import.customer.short_name %> volta ao que era antes desta planilha, os apelidos que ela criou são removidos e a importação fica aberta para corrigir e aplicar de novo. Programação, produção e compras são recalculadas sozinhas.</p>
+        <% if @later_edits.any? %>
+          <div class="flash flash-alert" role="alert">
+            <%= icon :alert %>
+            <div>
+              <p class="font-bold">O pedido mudou depois da importação. Desfazer passa por cima destas alterações:</p>
+              <ul class="list-disc ml-5">
+                <% @later_edits.each do |edit| %>
+                  <li><%= edit.product&.name || "Produto" %> em <%= short_date(edit.date) %>: a planilha gravou <%= qty(edit.imported) %>, hoje está <%= qty(edit.current) %> <%= edit.unit %></li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        <% end %>
+        <% stale = @stale_after_undo %>
+        <% if stale[:production].any? || stale[:purchase].any? %>
+          <div class="flash flash-alert" role="alert">
+            <%= icon :alert %>
+            <div>
+              <p class="font-bold">Já foram enviadas versões que vão ficar diferentes do pedido. Nada é reenviado sozinho:</p>
+              <ul class="list-disc ml-5">
+                <% stale[:production].each do |date| %><li><%= link_to "Produção de #{short_date(date)}", production_path(date: date) %>: confira e envie a nova versão aos setores.</li><% end %>
+                <% stale[:purchase].each do |date| %><li><%= link_to "Compra de #{short_date(date)}", purchases_path(date: date) %>: confira e envie a nova lista.</li><% end %>
+              </ul>
+            </div>
+          </div>
+        <% end %>
+        <%= button_to undo_order_import_path(@import), method: :post, class: "btn",
+              form: { class: "inline", data: { turbo_confirm: "Desfazer a importação de #{@import.filename}? O pedido de #{@import.customer.short_name} volta ao que era antes#{' e as alterações feitas depois se perdem' if @later_edits.any?}." } } do %>
+          <%= icon :undo %>Desfazer importação
+        <% end %>
+      </div>
+    </section>
+  <% end %>
 <% end %>
 <% blocking = @import.errors_list + Array(@errors) %>
 <% if blocking.any? %>

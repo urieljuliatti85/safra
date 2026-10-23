@@ -49,9 +49,32 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_redirected_to orders_path(customer: "hnorte", week: "2026-10-12")
     follow_redirect!
     assert_match "Planilha importada no pedido", response.body
+    assert_select "a.pill-undo[href='#{order_import_path(import, anchor: 'desfazer')}']", /Desfazer pedido_com_unidade.xlsx/
     assert_equal "applied", ActsAsTenant.with_tenant(company) { import.reload.status }
   end
 
+
+  test "desfazer pela tela devolve o pedido e reabre a importação" do
+    upload("pedido_com_unidade.xlsx", "hnorte")
+    import = ActsAsTenant.with_tenant(company) { OrderImport.order(:id).last }
+    post apply_order_import_path(import)
+    get order_import_path(import)
+    assert_select "section[aria-label='Desfazer importação'] button", /Desfazer importação/
+    post undo_order_import_path(import)
+    assert_redirected_to order_import_path(import)
+    follow_redirect!
+    assert_match "Importação desfeita", response.body
+    assert_select "button", /Importar no pedido/
+    assert_equal "pending", ActsAsTenant.with_tenant(company) { import.reload.status }
+  end
+
+  test "planilha aplicada não é reaberta pelo status, só desfazendo" do
+    upload("pedido_com_unidade.xlsx", "hnorte")
+    import = ActsAsTenant.with_tenant(company) { OrderImport.order(:id).last }
+    post apply_order_import_path(import)
+    patch settings_order_import_path(import), params: { status: "pending" }
+    assert_equal "applied", ActsAsTenant.with_tenant(company) { import.reload.status }
+  end
 
   test "sem arquivo não envia" do
     post order_imports_path, params: { customer: "hbp" }

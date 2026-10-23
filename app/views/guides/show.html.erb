@@ -29,3 +29,23 @@
     </li>
   <% end %>
 </ol>
+
+<section class="mt-8" aria-labelledby="guide-after">
+  <h2 id="guide-after" class="page-title text-2xl">Depois da importação</h2>
+  <p class="page-sub mb-4">O que o sistema faz com o pedido importado, tela por tela, e com que critério.</p>
+  <nav class="chips mb-4" aria-label="Assuntos">
+    <% guide_after_import.each do |topic| %><%= link_to topic.title, "##{topic.id}", class: "chip" %><% end %>
+  </nav>
+  <div class="guide-topics">
+    <% guide_after_import.each do |topic| %>
+      <section id="<%= topic.id %>" class="panel guide-topic" aria-labelledby="topic-<%= topic.id %>">
+        <div class="panel-head"><h3 id="topic-<%= topic.id %>" class="font-bold"><%= topic.title %></h3></div>
+        <div class="p-4">
+          <p class="mb-3"><%= topic.intro %></p>
+          <ul class="guide-list"><% topic.items.each do |item| %><li><%= item %></li><% end %></ul>
+          <div class="flow-actions"><%= link_to topic.link_label, topic.path, class: "flow-link" %></div>
+        </div>
+      </section>
+    <% end %>
+  </div>
+</section>

@@ -18,6 +18,17 @@
   <% end %>
 </nav>
 
+<% if @imports.present? %>
+  <div class="mb-4 flex flex-wrap items-center gap-2" aria-label="Planilhas importadas nesta semana">
+    <span class="text-sm muted">Importado nesta semana:</span>
+    <% @imports.each do |import| %>
+      <%= link_to order_import_path(import, anchor: "desfazer"), class: "pill pill-undo", title: "Abrir #{import.filename} para conferir ou desfazer" do %>
+        <%= icon :undo %>Desfazer <span class="font-normal"><%= import.filename %> · <%= l(import.applied_at, format: "%d/%m %H:%M") %></span>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
 <% if @errors.present? %>
   <div class="flash flash-alert" role="alert">
     <%= icon :alert %>
