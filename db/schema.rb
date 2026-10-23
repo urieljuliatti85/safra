@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_23_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -178,6 +178,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_200000) do
     t.index ["company_id"], name: "index_order_lines_on_company_id"
     t.index ["order_id"], name: "index_order_lines_on_order_id"
     t.index ["product_id"], name: "index_order_lines_on_product_id"
+  end
+
+  create_table "order_versions", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "order_id", null: false
+    t.integer "version", null: false
+    t.string "source", null: false
+    t.bigint "user_id"
+    t.string "user_name"
+    t.bigint "order_import_id"
+    t.integer "restored_from_version"
+    t.jsonb "lines", default: [], null: false
+    t.jsonb "changes_list", default: [], null: false
+    t.datetime "created_at", null: false
+    t.index ["company_id"], name: "index_order_versions_on_company_id"
+    t.index ["order_id", "version"], name: "index_order_versions_on_order_id_and_version", unique: true
+    t.index ["order_id"], name: "index_order_versions_on_order_id"
+    t.index ["order_import_id"], name: "index_order_versions_on_order_import_id"
+    t.index ["user_id"], name: "index_order_versions_on_user_id"
   end
 
   create_table "orders", force: :cascade do |t|
@@ -447,6 +466,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_200000) do
   add_foreign_key "order_lines", "companies"
   add_foreign_key "order_lines", "orders"
   add_foreign_key "order_lines", "products"
+  add_foreign_key "order_versions", "companies"
+  add_foreign_key "order_versions", "order_imports", on_delete: :nullify
+  add_foreign_key "order_versions", "orders", on_delete: :cascade
+  add_foreign_key "order_versions", "users", on_delete: :nullify
   add_foreign_key "orders", "companies"
   add_foreign_key "orders", "customers"
   add_foreign_key "production_plan_items", "companies"

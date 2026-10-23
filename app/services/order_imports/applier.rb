@@ -26,7 +26,7 @@ module OrderImports
       before = snapshot(order, after)
       saved = nil
       OrderImport.transaction do
-        saved = OrderGridSaver.new(order: order, quantities: after).call
+        saved = OrderGridSaver.new(order: order, quantities: after, source: "import", import: @import).call
         raise ActiveRecord::Rollback unless saved.ok?
 
         aliases = remember_names(chosen)

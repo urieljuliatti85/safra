@@ -1,0 +1,27 @@
+<section id="versoes" class="panel mt-8 scroll-mt-4" aria-labelledby="versions-title">
+  <div class="panel-head">
+    <h2 id="versions-title">Versões desta semana</h2>
+    <span class="meta"><%= versions.any? ? "cada salvamento que mudou o pedido vira uma versão" : "nenhum salvamento ainda" %></span>
+  </div>
+  <% if versions.any? %>
+    <ol class="version-list">
+      <% versions.each_with_index do |version, index| %>
+        <li class="version-row">
+          <%= link_to order_version_path(version), class: "version-link" do %>
+            <span class="pill <%= index.zero? ? 'pill-sent' : 'pill-draft' %> num">v<%= version.version %></span>
+            <span class="version-what">
+              <strong><%= version.source_label %></strong>
+              <span class="muted"><%= [ version.user_name, l(version.created_at, format: "%d/%m às %H:%M") ].compact.join(" · ") %></span>
+            </span>
+            <span class="version-count muted num">
+              <% if version.source == "initial" %><%= plural(version.lines.size, "linha", "linhas") %><% else %><%= plural(version.changes_list.size, "alteração", "alterações") %><% end %>
+            </span>
+            <% if index.zero? %><span class="text-sm font-bold">atual</span><% end %>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
+  <% else %>
+    <p class="p-3 muted text-sm">Ao salvar, importar uma planilha ou desfazer, o pedido ganha uma versão. Dá para abrir cada uma e voltar o pedido a ela.</p>
+  <% end %>
+</section>

@@ -52,7 +52,9 @@ module GuidesHelper
         "Os apelidos que a planilha criou são removidos, e os que ela trocou voltam ao produto anterior.",
         "A planilha volta a ficar pendente: corrija e importe de novo, se quiser.",
         "Antes de confirmar, o sistema avisa o que foi mudado no pedido depois da importação: desfazer passa por cima dessas mudanças.",
-        "Produção ou compra já enviada não é reenviada sozinha: a tela mostra o que mudou e você envia a nova versão."
+        "Produção ou compra já enviada não é reenviada sozinha: a tela mostra o que mudou e você envia a nova versão.",
+        "Pedido salvo na grade também volta atrás: clique em Versões no topo da tela de Pedidos, abra a versão e clique em Restaurar esta versão.",
+        "Cada salvamento que muda o pedido (grade, planilha, imagem, desfazer) vira uma versão, com quem fez, quando e o que mudou. Restaurar grava uma versão nova: nenhuma é apagada."
       ], "Abrir Pedidos", orders_path),
       GuideTopic.new("programacao", "Como a programação é montada", "Nada é digitado: ela sai das linhas de pedido, dia de entrega por dia de entrega.", [
         "Para cada dia de entrega, lista o que cada cliente pediu, separado em processados, in natura e frutas.",

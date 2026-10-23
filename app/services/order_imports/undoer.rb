@@ -70,7 +70,7 @@ module OrderImports
 
     def restore
       order = Order.find_or_create_by!(customer: @import.customer, week_start: @import.week_start)
-      saved = OrderGridSaver.new(order: order, quantities: snapshot["before"]).call
+      saved = OrderGridSaver.new(order: order, quantities: snapshot["before"], source: "undo", import: @import).call
       return Result.new(errors: saved.errors, changed_dates: []) unless saved.ok?
 
       restore_aliases

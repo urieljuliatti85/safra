@@ -10,7 +10,7 @@ class OrdersTest < ApplicationSystemTestCase
     fill_in "Cenoura ralada em Ter 13/10", with: "9,5"
     click_on "Salvar pedido"
 
-    assert_text "Pedido salvo."
+    assert_text "Pedido salvo: versão 2, 1 alteração."
     assert_field "Cenoura ralada em Ter 13/10", with: "9,5"
   end
 

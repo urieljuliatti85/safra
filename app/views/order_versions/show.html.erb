@@ -1,0 +1,64 @@
+<% content_for :title, "Versão #{@version.version} do pedido · Safra" %>
+<% customer = @order.customer %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Versão <%= @version.version %> do pedido</h1>
+    <p class="page-sub">
+      <strong><%= customer.name %></strong> · semana de <%= short_date(@order.week_start) %> ·
+      <%= @version.source_label %> · <%= [ @version.user_name, l(@version.created_at, format: "%d/%m às %H:%M") ].compact.join(" · ") %>
+      <% if @version.order_import %>· <%= link_to @version.order_import.filename, order_import_path(@version.order_import) %><% end %>
+    </p>
+  </div>
+  <%= link_to "Voltar ao pedido", orders_path(customer: customer.code, week: @order.week_start, anchor: "versoes"), class: "btn" %>
+</div>
+
+<% if @version.changes_list.any? %>
+  <section class="panel mb-4" aria-labelledby="changes-title">
+    <div class="panel-head"><h2 id="changes-title">O que mudou nesta versão</h2><span class="meta"><%= plural(@version.changes_list.size, "alteração", "alterações") %></span></div>
+    <table class="ops-table">
+      <thead><tr><th scope="col">Produto</th><th scope="col">Entrega</th><th scope="col" class="num">Antes</th><th scope="col" class="num">Depois</th></tr></thead>
+      <tbody>
+        <% @version.changes_list.each do |change| %>
+          <tr>
+            <td><%= change["product"] || "Produto removido" %> <span class="muted"><%= change["unit"] %></span></td>
+            <td class="num"><%= short_date(Date.iso8601(change["date"])) %></td>
+            <td class="num"><%= change["before"] || "-" %></td>
+            <td class="num font-bold"><%= change["after"] || "apagado" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+<% end %>
+
+<section class="panel mb-4" aria-labelledby="snapshot-title">
+  <div class="panel-head"><h2 id="snapshot-title">Pedido nesta versão</h2><span class="meta"><%= plural(@version.lines.size, "linha", "linhas") %></span></div>
+  <% if @version.lines.any? %>
+    <table class="ops-table">
+      <thead><tr><th scope="col">Produto</th><th scope="col">Entrega</th><th scope="col" class="num">Quantidade</th></tr></thead>
+      <tbody>
+        <% @version.lines.sort_by { |line| [ @products[line["product_id"]]&.name.to_s, line["date"] ] }.each do |line| %>
+          <tr>
+            <td><%= @products[line["product_id"]]&.name || "Produto removido" %></td>
+            <td class="num"><%= short_date(Date.iso8601(line["date"])) %></td>
+            <td class="num"><%= line["quantity"] %> <span class="muted"><%= line["unit"] %></span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p class="p-3 muted">O pedido estava vazio nesta versão.</p>
+  <% end %>
+</section>
+
+<% if @version.latest? %>
+  <p class="muted text-sm">Esta é a versão atual do pedido.</p>
+<% else %>
+  <div class="savebar">
+    <%= button_to restore_order_version_path(@version), method: :post, class: "btn btn-primary",
+          form: { class: "inline", data: { turbo_confirm: "Voltar o pedido de #{customer.short_name} à versão #{@version.version}? Isso grava uma versão nova; nenhuma versão é apagada." } } do %>
+      <%= icon :undo %>Restaurar esta versão
+    <% end %>
+    <span class="muted text-sm">O pedido volta a ficar igual a esta versão. Produção e compra já enviadas não são reenviadas: a tela mostra o que mudou.</span>
+  </div>
+<% end %>

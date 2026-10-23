@@ -48,9 +48,10 @@ class OrderImportsController < ApplicationController
     return head(:not_found) unless @import.image?
 
     order = image_order
-    result = OrderGridSaver.new(order: order, quantities: params.fetch(:quantities, {}).to_unsafe_h).call
+    result = OrderGridSaver.new(order: order, quantities: params.fetch(:quantities, {}).to_unsafe_h, source: "image", import: @import).call
     if result.ok?
-      redirect_to order_import_path(@import), notice: "Pedido salvo.", alert: StalePlans.warning(current_company)
+      notice = result.changed_dates.empty? ? "Nada mudou no pedido: as quantidades já eram essas." : "Pedido salvo."
+      redirect_to order_import_path(@import), notice: notice, alert: StalePlans.warning(current_company)
     else
       @errors = result.errors
       show_image(status: :unprocessable_entity)

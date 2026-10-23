@@ -6,6 +6,7 @@
   </div>
   <div class="flex flex-wrap items-center gap-2">
     <%= link_to new_order_import_path(customer: @customer.code), class: "btn", data: { tour: "import" } do %><%= icon :plus %>Importar planilha<% end %>
+    <%= link_to "#versoes", class: "btn", "aria-label": "Versões desta semana" do %><%= icon :history %>Versões<% if @versions.any? %> <span class="pill pill-draft num">v<%= @versions.first.version %></span><% end %><% end %>
     <%= link_to icon(:chevron_left), orders_path(customer: @customer.code, week: @week_start - 7), class: "icon-btn", "aria-label": "Semana anterior" %>
     <strong class="num min-w-36 text-center">Semana de <%= short_date(@week_start) %></strong>
     <%= link_to icon(:chevron_right), orders_path(customer: @customer.code, week: @week_start + 7), class: "icon-btn", "aria-label": "Próxima semana" %>
@@ -41,3 +42,5 @@
 
 <%= render "orders/grid", grid: @grid, form_url: orders_path(customer: @customer.code, week: @week_start),
                        add_url: orders_path, add_hidden: { customer: @customer.code, week: @week_start } %>
+
+<%= render "orders/versions", versions: @versions %>

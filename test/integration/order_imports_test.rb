@@ -76,6 +76,55 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_equal "applied", ActsAsTenant.with_tenant(company) { import.reload.status }
   end
 
+  test "salvar a grade cria versão, a versão mostra o que mudou e pode ser restaurada" do
+    product, order = ActsAsTenant.with_tenant(company) do
+      [ Product.find_by!(code: "cenoura_cubinhos"), Order.find_by!(customer: Customer.find_by!(code: "hbp"), week_start: Date.new(2026, 10, 12)) ]
+    end
+    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-19" => "3" } } }
+    follow_redirect!
+    assert_match "Pedido salvo: versão 2, 1 alteração.", response.body
+    assert_select "a[href='#versoes']", /Versões\s+v2/
+    assert_select "section#versoes h2", "Versões desta semana"
+    assert_select "section#versoes li", 2
+    assert_select "section#versoes li", /v2\s+Grade/
+    assert_select "section#versoes li", /Antes do primeiro salvamento/
+
+    initial, latest = ActsAsTenant.with_tenant(company) { order.versions.order(:version).to_a }
+    get order_version_path(latest)
+    assert_response :success
+    assert_select "h1", "Versão 2 do pedido"
+    assert_select "td", "Cenoura em cubinhos kg"
+    assert_select "button", { text: /Restaurar esta versão/, count: 0 }
+
+    get order_version_path(initial)
+    post restore_order_version_path(initial)
+    assert_redirected_to orders_path(customer: "hbp", week: Date.new(2026, 10, 12))
+    follow_redirect!
+    assert_match "voltou à versão 1", response.body
+    assert_select "section#versoes li", /v3\s+Versão restaurada \(v1\)/
+  end
+
+  test "salvar sem mudar nada avisa que não houve versão nova" do
+    product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_cubinhos") }
+    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-30" => "" } } }
+    follow_redirect!
+    assert_match "Nada mudou no pedido", response.body
+    assert_select "section#versoes li", 0
+  end
+
+  test "produção não vê nem restaura versões do pedido" do
+    version = ActsAsTenant.with_tenant(company) do
+      order = Order.find_by!(customer: Customer.find_by!(code: "hbp"), week_start: Date.new(2026, 10, 12))
+      order.versions.create!(version: 1, source: "grid", lines: [])
+    end
+    sign_in_as(user_for(:production))
+    get order_version_path(version)
+    assert_response :redirect
+    post restore_order_version_path(version)
+    assert_response :redirect
+    assert_equal 1, ActsAsTenant.with_tenant(company) { version.order.versions.count }
+  end
+
   test "sem arquivo não envia" do
     post order_imports_path, params: { customer: "hbp" }
     assert_response :unprocessable_entity

@@ -15,7 +15,7 @@ class OrdersController < ApplicationController
 
     result = OrderGridSaver.new(order: @order, quantities: params.fetch(:quantities, {}).to_unsafe_h).call
     if result.ok?
-      redirect_to orders_path(customer: @customer.code, week: @week_start), notice: "Pedido salvo.", alert: StalePlans.warning(current_company)
+      redirect_to orders_path(customer: @customer.code, week: @week_start), notice: saved_notice(result), alert: StalePlans.warning(current_company)
     else
       @errors = result.errors
       @add_product = nil
@@ -33,7 +33,21 @@ class OrdersController < ApplicationController
     @order = Order.find_or_create_by!(customer: @customer, week_start: @week_start) if @customer
   end
 
+  # Salvar sem mudar nada não grava versão: a mensagem diz isso, para ninguém procurar a versão que não existe.
+  def saved_notice(result)
+    return "Nada mudou no pedido: as quantidades já eram essas. Nenhuma versão nova." if result.changed_dates.empty?
+
+    version = @order.versions.maximum(:version)
+    "Pedido salvo: versão #{version}, #{plural_changes(@order.versions.find_by(version: version))}."
+  end
+
+  def plural_changes(version)
+    count = version&.changes_list&.size.to_i
+    "#{count} #{count == 1 ? 'alteração' : 'alterações'}"
+  end
+
   def build_grid
     @grid = OrderGrid.new(order: @order, add_product: @add_product)
+    @versions = @order.versions.newest_first.includes(:user)
   end
 end

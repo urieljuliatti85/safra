@@ -14,7 +14,7 @@ module Api
         quantities, errors = quantities_from(params.require(:lines))
         return render_error(:unprocessable_entity, "invalid_lines", "Há linhas inválidas.", details: errors) if errors.any?
 
-        result = OrderGridSaver.new(order: @order, quantities: quantities).call
+        result = OrderGridSaver.new(order: @order, quantities: quantities, source: "api").call
         return render_error(:unprocessable_entity, "invalid_lines", "Há linhas inválidas.", details: result.errors) unless result.ok?
 
         render json: ApiPresenter.order(@order.reload, changed_dates: result.changed_dates)

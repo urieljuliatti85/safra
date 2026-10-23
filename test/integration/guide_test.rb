@@ -12,6 +12,7 @@ class GuideTest < ActionDispatch::IntegrationTest
       assert_select "section##{id} h3"
     end
     assert_select "section#desfazer li", /pill vermelha Desfazer/
+    assert_select "section#desfazer li", /Restaurar esta versão/
     assert_select "section#compras li", /fator de perda/
     assert_select "section#cadastros a[href='#{raw_materials_path}']", "Abrir Cadastros"
   end
