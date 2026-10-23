@@ -1,7 +1,7 @@
 require "test_helper"
 
 class AuthorizationTest < ActionDispatch::IntegrationTest
-  FULL = [ "/painel", "/orders", "/schedule", "/production", "/purchases", "/conference", "/conference/sheets", "/conference/sheets/import", "/order_imports/new", "/regras", "/estoque" ].freeze
+  FULL = [ "/painel", "/orders", "/schedule", "/production", "/purchases", "/conference", "/conference/sheets", "/conference/sheets/import", "/order_imports/new", "/regras", "/estoque", "/como-funciona" ].freeze
 
   test "admin e escritório abrem todas as telas de trabalho" do
     %i[admin office].each do |role|
@@ -161,12 +161,16 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     get orders_path
     assert_select "body[data-tour-autostart-value='false']"
     assert_select "button.tour-tab", "Tour guiado"
+    assert_select ".guide-bar a.guide-link[href='/como-funciona']", /Veja como funciona/
 
     production = user_for(:production)
     production.update!(tour_seen_at: nil)
     sign_in_as(production)
     get production_path
     assert_select "body[data-controller='tour']", count: 0
+    assert_select "a.guide-link", count: 0
+    get guide_path
+    assert_redirected_to production_path
     post tour_path
     assert_nil production.reload.tour_seen_at
   end

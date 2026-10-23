@@ -415,6 +415,20 @@
     .bi-rank .bi-row-value, .bi-rows-buy .bi-row-value { grid-column: 3; }
     .bi-row-extra { grid-column: 1 / -1; grid-row: 3; }
   }
+  /* Como funciona: faixa no topo com a chamada e lista de cada passo */
+  .guide-bar { background: var(--color-field-wash); border-bottom: 1px solid var(--color-line); }
+  .guide-bar-inner { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; max-width: 80rem; margin: 0 auto; padding: .375rem 1rem; }
+  .guide-bar-text { color: var(--color-ink-soft); font-size: .875rem; }
+  .guide-link { display: inline-flex; align-items: center; gap: .375rem; white-space: nowrap; padding: .25rem .75rem; border-radius: 999px;
+                border: 1px solid var(--color-field); color: var(--color-accent); font-weight: 700; font-size: .9375rem; }
+  .guide-link:hover, .guide-link[aria-current="page"] { background: var(--color-field); color: #fff; }
+  .guide-list { display: grid; gap: .5rem; padding-left: 1.125rem; list-style: disc; line-height: 1.45; }
+  .guide-list li::marker { color: var(--color-accent); }
+  .guide-list a { font-weight: 700; text-decoration: underline; text-decoration-color: var(--color-line); text-underline-offset: 3px; }
+  .guide-list a:hover { text-decoration-color: var(--color-accent); }
+  body.bi-page .guide-bar-inner { max-width: 90rem; }
+  @media (max-width: 639px) { .guide-bar-text { display: none; } .guide-bar-inner { justify-content: center; } }
+
   /* Tour guiado: recorte no elemento do passo (a sombra escurece o resto) e cartão com o texto. */
   .tour-spot { position: fixed; z-index: 60; border-radius: .75rem; pointer-events: none; outline: 3px solid var(--color-accent);
                box-shadow: 0 0 0 9999px rgb(0 0 0 / .6); transition: top .2s, left .2s, width .2s, height .2s; }

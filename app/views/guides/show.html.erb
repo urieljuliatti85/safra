@@ -1,0 +1,31 @@
+<% content_for :title, "Como funciona · Safra" %>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Como funciona</h1>
+    <p class="page-sub">Só o pedido é digitado. Programação, produção e compras são calculadas a partir dele, nesta ordem.</p>
+  </div>
+  <button type="button" class="btn btn-primary" data-action="tour#start"><%= icon :info %>Fazer o tour guiado</button>
+</div>
+
+<section class="panel mb-4" aria-labelledby="guide-before">
+  <div class="panel-head"><h2 id="guide-before">Antes da semana</h2></div>
+  <div class="p-4">
+    <ul class="guide-list">
+      <li>Em <%= link_to "Compras", purchases_path %>, marque os dias em que se vai à CEASA. Cada compra abastece a produção do dia dela até a véspera da compra seguinte.</li>
+      <li>Em <%= link_to "Estoque", stock_path %>, registre a contagem da câmara fria em kg. Ela é abatida da compra.</li>
+    </ul>
+  </div>
+</section>
+
+<ol class="flow" aria-label="Passo a passo da semana">
+  <% guide_steps.each_with_index do |step, index| %>
+    <li class="flow-step">
+      <div class="flow-head">
+        <span class="flow-node" aria-hidden="true"><%= index + 1 %></span>
+        <h2 class="flow-title"><span class="sr-only">Passo <%= index + 1 %>: </span><%= step.title %></h2>
+      </div>
+      <ul class="guide-list"><% step.items.each do |item| %><li><%= item %></li><% end %></ul>
+      <div class="flow-actions"><%= link_to step.link_label, step.path, class: "flow-link" %></div>
+    </li>
+  <% end %>
+</ol>

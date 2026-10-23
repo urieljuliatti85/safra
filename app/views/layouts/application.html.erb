@@ -26,6 +26,14 @@
 
   <% steps = tour_steps %>
   <body class="<%= yield :body_class %>" <%= tag.attributes(data: { controller: "tour", tour_steps_value: steps.to_json, tour_autostart_value: tour_autostart?, tour_seen_url_value: tour_path }) if steps.any? %>>
+    <% if steps.any? %>
+      <div class="guide-bar">
+        <div class="guide-bar-inner">
+          <span class="guide-bar-text">Primeira vez por aqui ou ficou em dúvida?</span>
+          <%= link_to guide_path, class: "guide-link", "aria-current": (controller_name == "guides" ? "page" : nil) do %><%= icon :info %>Veja como funciona<% end %>
+        </div>
+      </div>
+    <% end %>
     <header class="shell-nav">
       <div class="shell-nav-inner">
         <%= link_to (authenticated? ? root_path : new_session_path), class: "brand", "aria-label": "Safra, início" do %><%= brand_mark %>Safra<% end %>
