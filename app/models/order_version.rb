@@ -4,7 +4,8 @@
 class OrderVersion < ApplicationRecord
   SOURCES = {
     "initial" => "Antes do primeiro salvamento", "grid" => "Grade", "import" => "Planilha importada",
-    "image" => "Pedido em imagem", "undo" => "Importação desfeita", "restore" => "Versão restaurada", "api" => "API"
+    "image" => "Pedido em imagem", "undo" => "Importação desfeita", "restore" => "Versão restaurada", "api" => "API",
+    "copy" => "Copiado da semana anterior"
   }.freeze
 
   acts_as_tenant :company

@@ -65,6 +65,23 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_match "não é um número", response.body
   end
 
+  test "semana vazia oferece copiar a anterior e a cópia preenche a grade" do
+    get orders_path(customer: "hbp", week: "2026-10-19")
+    assert_select "[aria-label='Copiar pedido da semana anterior']", /A semana de 12\/10 tem \d+ itens/
+
+    post copy_previous_orders_path(customer: "hbp", week: "2026-10-19")
+    assert_redirected_to orders_path(customer: "hbp", week: "2026-10-19")
+    follow_redirect!
+    assert_match "Pedido da semana de 12/10 copiado", response.body
+    assert_select "[aria-label='Copiar pedido da semana anterior']", count: 0
+    assert_select "input[aria-label^='Cenoura em cubinhos']"
+  end
+
+  test "semana com pedido não oferece copiar" do
+    get orders_path(customer: "hbp", week: "2026-10-12")
+    assert_select "[aria-label='Copiar pedido da semana anterior']", count: 0
+  end
+
   test "produção do dia agrupa por setor e mostra aprontes" do
     get production_path(date: "2026-10-13")
     assert_response :success
