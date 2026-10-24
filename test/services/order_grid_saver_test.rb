@@ -32,6 +32,15 @@ class OrderGridSaverTest < ActiveSupport::TestCase
     assert_equal 8, @order.lines.where(product: @product, delivery_date: "2026-10-13").sum(:quantity)
   end
 
+  test "quantidade grande demais rejeita tudo com mensagem clara, sem erro do banco" do
+    before = @order.lines.count
+    result = OrderGridSaver.new(order: @order, quantities: { @key => { "2026-10-12" => "50000000", "2026-10-13" => "9" } }).call
+    assert_not result.ok?
+    assert_match "grande demais", result.errors.first
+    assert_equal before, @order.lines.count
+    assert_equal 8, @order.lines.where(product: @product, delivery_date: "2026-10-13").sum(:quantity)
+  end
+
   test "valor sem alteração não conta como mudança" do
     result = OrderGridSaver.new(order: @order, quantities: { @key => { "2026-10-12" => "10" } }).call
     assert_empty result.changed_dates

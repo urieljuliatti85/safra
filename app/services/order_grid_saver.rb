@@ -98,6 +98,8 @@ class OrderGridSaver
         quantity = parse_quantity(text)
         if quantity.nil?
           errors << "#{product&.name || 'Produto'} em #{Formatting.short_date(date)}: \"#{text}\" não é um número."
+        elsif quantity >= OrderLine::MAX_QUANTITY
+          errors << "#{product&.name || 'Produto'} em #{Formatting.short_date(date)}: #{text} é grande demais. Confira a quantidade."
         else
           parsed[[ product_id.to_i, unit, date ]] = quantity
         end

@@ -7,7 +7,7 @@
   </div>
   <div>
     <%= form.label :supplier_id, "Fornecedor", class: "mb-1 block font-bold" %>
-    <%= form.collection_select :supplier_id, Supplier.order(:name), :id, :name, { include_blank: "Sem fornecedor" }, class: "field w-full" %>
+    <%= form.collection_select :supplier_id, @suppliers, :id, :name, { include_blank: "Sem fornecedor" }, class: "field w-full" %>
   </div>
   <div>
     <%= form.label :purchase_package, "Compra em", class: "mb-1 block font-bold" %>

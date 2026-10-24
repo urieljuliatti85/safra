@@ -36,7 +36,7 @@
   <div>
     <label for="customer" class="mb-1 block text-sm font-bold">Cliente</label>
     <select id="customer" name="customer" class="field">
-      <% Customer.order(:name).each do |customer| %>
+      <% @customers.each do |customer| %>
         <option value="<%= customer.code %>" <%= "selected" if customer == @import.customer %>><%= customer.name %></option>
       <% end %>
     </select>

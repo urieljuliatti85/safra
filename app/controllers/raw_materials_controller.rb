@@ -6,6 +6,7 @@ class RawMaterialsController < ApplicationController
 
   authorize_resource :raw_material
   before_action :load_raw_material, only: %i[edit update destroy]
+  before_action :load_suppliers, only: %i[new create edit update]
 
   def index
     load_index
@@ -79,6 +80,10 @@ class RawMaterialsController < ApplicationController
     @raw_material = RawMaterial.find(params[:id])
   end
 
+  def load_suppliers
+    @suppliers = Supplier.order(:name)
+  end
+
   def raw_material_params
     params.require(:raw_material).permit(:name, :supplier_id, :purchase_package, :multiply_factor, :kg_per_package, :kg_per_peeled_box, :note)
   end
@@ -97,7 +102,7 @@ class RawMaterialsController < ApplicationController
         (@filter == "all" || (@filter == "incomplete" && incomplete?(rm, processed_ids)) || (@filter == "used" && @used_ids.include?(rm.id)) ||
          (@filter == "no_supplier" && rm.supplier.nil?))
     end
-    @suppliers = Supplier.order(:name)
+    load_suppliers
     @scores = SheetComparison.new(current_company).scores[:purchase]
   end
 
