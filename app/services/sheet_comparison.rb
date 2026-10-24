@@ -61,10 +61,15 @@ class SheetComparison
 
   Unmatched = Data.define(:target, :label, :lines)
 
+  def self.fmt(value, unit = nil)
+    return "-" if value.nil?
+
+    "#{Formatting.qty(value)}#{unit ? " #{unit}" : ''}"
+  end
+
   def initialize(company, dates: nil)
     @company = company
     @dates = dates
-    @plans = {}
   end
 
   def sheets
@@ -75,17 +80,17 @@ class SheetComparison
     end
   end
 
-  # Programação: cada cliente e dia de entrega vale pela aba mais recente que o traz.
+  # Cada comparação mora na sua classe (Schedule, Production, Purchase); aqui ficam as notas, o placar e o relatório.
   def schedule_rows
-    @schedule_rows ||= with_tenant { with_notes(build_schedule_rows) }
+    @schedule_rows ||= with_tenant { with_notes(Schedule.new(**section_args).rows) }
   end
 
   def production_rows
-    @production_rows ||= with_tenant { with_notes(sheets.select { |s| s.kind == "production" }.flat_map { |sheet| production_rows_for(sheet) }) }
+    @production_rows ||= with_tenant { with_notes(Production.new(**section_args).rows) }
   end
 
   def purchase_rows
-    @purchase_rows ||= with_tenant { with_notes(sheets.select { |s| s.kind == "purchase" }.flat_map { |sheet| purchase_rows_for(sheet) }) }
+    @purchase_rows ||= with_tenant { with_notes(Purchase.new(**section_args).rows) }
   end
 
   def rows = schedule_rows + production_rows + purchase_rows
@@ -134,8 +139,8 @@ class SheetComparison
       list.group_by(&:date).each do |date, day_rows|
         lines << "" << "  #{date.strftime('%d/%m')} (#{day_rows.count(&:ok?)}/#{day_rows.count(&:scored?)} iguais)"
         day_rows.sort_by { |r| [ r.ok? ? 1 : 0, r.section, r.label ] }.each do |r|
-          lines << format("    %-12s %-28s planilha=%-14s sistema=%-10s %-16s %s", r.section, r.label.truncate(28), r.planilha_text || fmt(r.planilha, r.unit),
-                          fmt(r.sistema, r.unit), r.status_label, [ r.reason_label, r.detail ].compact.join(": "))
+          lines << format("    %-12s %-28s planilha=%-14s sistema=%-10s %-16s %s", r.section, r.label.truncate(28), r.planilha_text || SheetComparison.fmt(r.planilha, r.unit),
+                          SheetComparison.fmt(r.sistema, r.unit), r.status_label, [ r.reason_label, r.detail ].compact.join(": "))
         end
       end
     end
@@ -149,6 +154,8 @@ class SheetComparison
   def matcher = @matcher ||= ReferenceSheets::Matcher.new
 
   def names_of(line) = [ [ line.target, line.label ], ([ "customer", line.group_label ] if line.group_label) ].compact
+
+  def section_args = { sheets: sheets, matcher: matcher, company: @company, dates: @dates }
 
   # Nota que ainda vale (mesmos números) vira o motivo; nota antiga fica à mostra, sem explicar.
   def with_notes(list)
@@ -165,299 +172,5 @@ class SheetComparison
   def score(list)
     scored = list.select(&:scored?)
     [ scored.count(&:ok?), scored.size ]
-  end
-
-  # Linhas reconhecidas agrupadas por seção e item; as não reconhecidas vão em :unmatched. Ignoradas somem.
-  def classify(sheet)
-    sheet.lines.each_with_object(Hash.new { |h, k| h[k] = [] }) do |line, groups|
-      match = matcher.call(line.label, line.target)
-      next if match&.ignored
-
-      groups[match ? [ line.section, match.record ] : [ :unmatched, line ]] << line
-    end
-  end
-
-  # [quantidade somada, texto]: com qualquer linha em texto (ou em outra unidade), a soma não vale e fica o texto.
-  def total(lines, unit = nil)
-    return [ nil, nil ] if lines.blank?
-
-    numeric = lines.all? { |line| line.quantity && (unit.nil? || line.unit == unit) }
-    numeric ? [ lines.sum(&:quantity), nil ] : [ nil, lines.map(&:quantity_text).join(" + ") ]
-  end
-
-  def status_for(planilha, text, sistema)
-    return :not_comparable if planilha.nil? && text
-    return :only_system if planilha.nil?
-    return :only_sheet if sistema.nil?
-
-    (planilha - sistema).abs < 0.0005 ? :ok : :different
-  end
-
-  # --- Programação ----------------------------------------------------------------------------------------------
-
-  def schedule_blocks
-    sheets.select { |s| s.kind == "schedule" }.sort_by(&:date).each_with_object({}) do |sheet, blocks|
-      sheet.lines.group_by { |line| [ line.group_label, line.delivery_date ] }.each do |(label, delivery), lines|
-        next if delivery.nil? || (@dates && !@dates.cover?(delivery))
-
-        customer = matcher.call(label, "customer")
-        blocks[[ customer.record, delivery ]] = lines if customer && !customer.ignored
-      end
-    end
-  end
-
-  def build_schedule_rows
-    blocks = schedule_blocks
-    return [] if blocks.empty?
-
-    dates = blocks.keys.map(&:last)
-    @ordered = OrderLine.where("quantity > 0").where(delivery_date: (dates.min - NEIGHBOR_DAYS)..(dates.max + NEIGHBOR_DAYS))
-                        .includes(:product, order: :customer).reject { |line| line.product.raw? }
-                        .group_by { |line| [ line.order.customer, line.delivery_date, line.product ] }
-    blocks.sort_by { |(customer, delivery), _| [ delivery, customer.short_name ] }.flat_map do |(customer, delivery), lines|
-      schedule_block_rows(customer, delivery, lines)
-    end
-  end
-
-  def schedule_block_rows(customer, delivery, lines)
-    matched, unmatched = lines.partition { |line| matcher.call(line.label, "product") }
-    matched = matched.reject { |line| matcher.call(line.label, "product").ignored }.group_by { |line| matcher.call(line.label, "product").record }
-    products = matched.keys | @ordered.keys.filter_map { |c, d, product| product if c == customer && d == delivery }
-    sheet_totals = matched.transform_values { |list| total(list).first }
-    rows = products.map do |product|
-      planilha, text = total(matched[product])
-      sistema = ordered(customer, delivery, product)
-      status = status_for(planilha, text, sistema)
-      reason, detail = schedule_reason(status, customer, delivery, product, planilha, sistema, sheet_totals)
-      Row.new(kind: :schedule, section: customer.short_name, date: delivery, record: product, label: product.name, planilha: planilha,
-              planilha_text: text, sistema: sistema, unit: product.unit, status: status, reason: reason, detail: detail)
-    end
-    rows + unmatched.map do |line|
-      Row.new(kind: :schedule, section: customer.short_name, date: delivery, record: nil, label: line.label, planilha: line.quantity,
-              planilha_text: line.quantity.nil? ? line.quantity_text : nil, sistema: nil, unit: nil, status: :unmatched, reason: :unmatched, detail: nil)
-    end
-  end
-
-  # Quanto o cliente pediu no Safra, na unidade do produto.
-  def ordered(customer, date, product)
-    lines = @ordered.fetch([ customer, date, product ], []).select { |line| line.unit == product.unit }
-    lines.empty? ? nil : lines.sum(&:quantity)
-  end
-
-  def schedule_reason(status, customer, date, product, planilha, sistema, sheet_totals)
-    return [ nil, nil ] if status == :ok
-    return [ :text, nil ] if status == :not_comparable
-
-    other_units = @ordered.fetch([ customer, date, product ], []).reject { |line| line.unit == product.unit }
-    return [ :other_unit, "Safra: #{other_units.map { |line| fmt(line.quantity, line.unit) }.join(' + ')}" ] if other_units.any?
-
-    swapped = swapped_product(customer, date, product, status == :only_system ? sistema : planilha, status, sheet_totals)
-    return [ :other_product, swapped ] if swapped
-    return [ :not_in_sheet, nil ] if status == :only_system
-
-    day = neighbor_days(date).find { |d| same?(ordered(customer, d, product), planilha) }
-    return [ :other_day, "no Safra está em #{day.strftime('%d/%m')}" ] if day
-
-    other = @ordered.keys.find { |c, d, p| d == date && p == product && c != customer && same?(ordered(c, d, p), planilha) }
-    return [ :other_customer, "no Safra está em #{other.first.short_name}" ] if other
-
-    [ :unexplained, nil ]
-  end
-
-  # Mesmo cliente, dia e quantidade, mas outro corte da mesma matéria-prima (chuchu em cubos × em cubinhos).
-  def swapped_product(customer, date, product, quantity, status, sheet_totals)
-    candidates = if status == :only_system
-      sheet_totals.reject { |other, _| other == product || ordered(customer, date, other) }.map { |other, q| [ other, q ] }
-    else
-      @ordered.keys.filter_map { |c, d, other| [ other, ordered(c, d, other) ] if c == customer && d == date && other != product && !sheet_totals.key?(other) }
-    end
-    other, = candidates.find { |other, q| other.raw_material_id == product.raw_material_id && same?(q, quantity) }
-    other && "#{status == :only_system ? 'na planilha' : 'no Safra'}: #{other.name}"
-  end
-
-  # --- Produção -------------------------------------------------------------------------------------------------
-
-  def plan(date) = @plans[date] ||= ProductionPlanner.new(company: @company, date: date).call
-
-  def produced(date, product)
-    items = plan(date).items.select { |item| item.product == product && item.unit == product.unit }
-    items.empty? ? nil : items.sum(&:quantity)
-  end
-
-  def production_rows_for(sheet)
-    groups = classify(sheet)
-    sections = groups.keys.map(&:first).uniq
-    rows = []
-    rows.concat(cut_rows(sheet, groups)) if sections.include?("cortes")
-    rows.concat(apronte_rows(sheet, groups, rows)) if sections.include?("aprontes")
-    groups.select { |(section, _), _| section == "descascador" }.each do |(_, raw_material), lines|
-      quantity, text = total(lines)
-      rows << Row.new(kind: :production, section: "descascador", date: sheet.date, record: raw_material, label: raw_material.name, planilha: quantity,
-                      planilha_text: text || lines.map(&:quantity_text).join(" + "), sistema: nil, unit: "cx", status: :not_comparable, reason: :not_modeled, detail: nil)
-    end
-    rows + unmatched_rows(:production, sheet, groups)
-  end
-
-  def cut_rows(sheet, groups)
-    sheet_products = groups.filter_map { |(section, product), lines| [ product, lines ] if section == "cortes" }.to_h
-    products = (sheet_products.keys | plan(sheet.date).items.map(&:product)).uniq
-    products.filter_map do |product|
-      planilha, text = total(sheet_products[product])
-      sistema = produced(sheet.date, product)
-      next if planilha.nil? && text.nil? && sistema.nil?
-
-      status = status_for(planilha, text, sistema)
-      reason, detail = cut_reason(status, sheet.date, product, planilha, sistema)
-      Row.new(kind: :production, section: "cortes", date: sheet.date, record: product, label: product.name, planilha: planilha, planilha_text: text,
-              sistema: sistema, unit: product.unit, status: status, reason: reason, detail: detail)
-    end
-  end
-
-  def cut_reason(status, date, product, planilha, sistema)
-    return [ nil, nil ] if status == :ok
-    return [ :text, nil ] if status == :not_comparable
-    return [ :descasc_sector, nil ] if status == :only_system && product.sector == "descasc"
-
-    detail = shifted_day(status, date, product, planilha, sistema)
-    return [ :lead_time, detail ] if detail
-    return [ :not_in_sheet, nil ] if status == :only_system
-    return [ :no_order, nil ] if status == :only_sheet && neighbor_days(date).none? { |day| produced(day, product) }
-
-    [ :unexplained, nil ]
-  end
-
-  # A diferença é só de dia quando o mesmo número aparece em outro dia: o que a planilha faz hoje o Safra faz num
-  # dia vizinho (ou divide entre hoje e o dia ao lado), ou o que o Safra faz hoje a planilha fez num dia vizinho.
-  def shifted_day(status, date, product, planilha, sistema)
-    unit = product.unit
-    if status == :only_system
-      day = neighbor_days(date).find { |d| same?(sheet_quantity(d, product), sistema) }
-      return day && "a planilha faz #{fmt(sistema, unit)} em #{day.strftime('%d/%m')}"
-    end
-
-    neighbor_days(date).each do |day|
-      other = produced(day, product) or next
-      return "o Safra faz #{fmt(other, unit)} em #{day.strftime('%d/%m')}" if same?(other, planilha)
-      if sistema && (day - date).abs <= 2 && same?(other + sistema, planilha)
-        return "o Safra divide: #{fmt(sistema, unit)} em #{date.strftime('%d/%m')} e #{fmt(other, unit)} em #{day.strftime('%d/%m')}"
-      end
-    end
-    nil
-  end
-
-  def same?(a, b) = a && b && (a - b).abs < 0.0005
-
-  def neighbor_days(date) = ((date - NEIGHBOR_DAYS)..(date + NEIGHBOR_DAYS)).reject { |day| day == date || day.sunday? }
-
-  # Quanto a planilha de produção de outro dia (entre as importadas) tem do produto.
-  def sheet_quantity(date, product)
-    @sheet_cuts ||= sheets.select { |s| s.kind == "production" }.to_h do |sheet|
-      [ sheet.date, classify(sheet).filter_map { |(section, record), lines| [ record, total(lines).first ] if section == "cortes" }.to_h ]
-    end
-    @sheet_cuts.dig(date, product)
-  end
-
-  def apronte_rows(sheet, groups, cut_rows)
-    sheet_boxes = groups.filter_map { |(section, raw_material), lines| [ raw_material, lines ] if section == "aprontes" }.to_h
-    system_boxes = plan(sheet.date).aprontes.to_h { |apronte| [ apronte.raw_material, apronte.boxes ] }
-    (sheet_boxes.keys | system_boxes.keys).map do |raw_material|
-      planilha, text = total(sheet_boxes[raw_material], "cx")
-      sistema = system_boxes[raw_material]
-      status = status_for(planilha, text, sistema)
-      reason = apronte_reason(status, raw_material, cut_rows)
-      Row.new(kind: :production, section: "aprontes", date: sheet.date, record: raw_material, label: raw_material.name, planilha: planilha,
-              planilha_text: text, sistema: sistema, unit: "cx", status: status, reason: reason, detail: nil)
-    end
-  end
-
-  def apronte_reason(status, raw_material, cut_rows)
-    return nil if status == :ok
-    return :text if status == :not_comparable
-    return :missing_box if raw_material.kg_per_peeled_box.blank?
-    return :follows_cuts if cut_rows.any? { |row| row.record.raw_material == raw_material && !row.ok? }
-    return :not_in_sheet if status == :only_system
-
-    :unexplained
-  end
-
-  def unmatched_rows(kind, sheet, groups)
-    groups.select { |(section, _), _| section == :unmatched }.map do |(_, line), _|
-      Row.new(kind: kind, section: line.section, date: sheet.date, record: nil, label: line.label, planilha: line.quantity,
-              planilha_text: line.quantity.nil? ? line.quantity_text : nil, sistema: nil, unit: line.unit, status: :unmatched, reason: :unmatched, detail: nil)
-    end
-  end
-
-  # --- Compras --------------------------------------------------------------------------------------------------
-
-  def purchases = @purchases ||= PurchasePlanner.new(company: @company).call.purchases
-
-  def purchase_days = @purchase_days ||= PurchaseDay.pluck(:date).to_set
-
-  def purchase_rows_for(sheet)
-    groups = classify(sheet)
-    sheet_items = groups.filter_map { |(section, raw_material), lines| [ raw_material, lines ] if section == "compras" }.to_h
-    needs = purchases.fetch(sheet.date, []).group_by(&:raw_material)
-    rows = (sheet_items.keys | needs.keys).map do |raw_material|
-      purchase_row(sheet.date, raw_material, sheet_items[raw_material], needs.fetch(raw_material, []))
-    end
-    rows + unmatched_rows(:purchase, sheet, groups)
-  end
-
-  def purchase_row(date, raw_material, lines, needs)
-    units = lines.to_a.map(&:unit).uniq
-    unit = units.size == 1 && units.first ? units.first : system_unit(raw_material, needs)
-    planilha, text = total(lines, unit)
-    sistema = comparable_value(needs, unit) if purchase_days.include?(date)
-    status = status_for(planilha, text, sistema)
-    reason, detail = purchase_reason(status, date, raw_material, needs, unit, planilha, sistema)
-    Row.new(kind: :purchase, section: "compras", date: date, record: raw_material, label: raw_material.name, planilha: planilha,
-            planilha_text: text, sistema: sistema, unit: unit, status: status, reason: reason, detail: detail)
-  end
-
-  def purchase_reason(status, date, raw_material, needs, unit, planilha, sistema)
-    return [ nil, nil ] if status == :ok
-    return [ :text, nil ] if status == :not_comparable
-    return [ :not_purchase_day, "cadastre #{date.strftime('%d/%m')} em Compras" ] unless purchase_days.include?(date)
-    return [ :not_in_sheet, "outro fornecedor, estoque ou outra compra?" ] if status == :only_system
-    return [ :no_order, nil ] if needs.empty?
-    return [ :other_unit, "Safra: #{needs.map { |n| fmt(n.kg, n.unit) }.join(' + ')}" ] if needs.none? { |n| n.unit == unit || (n.unit == "kg" && unit != "un") }
-    return [ :missing_package, nil ] if %w[cx sc].include?(unit) && raw_material.kg_per_package.blank? && needs.any? { |n| n.unit == "kg" }
-    return [ :missing_factor, nil ] if needs.any?(&:missing_factor)
-
-    stock = needs.sum(&:stock_kg)
-    return [ :stock, "#{fmt(stock, 'kg')} abatidos" ] if stock.positive?
-    return [ :rounding, nil ] if %w[cx sc].include?(unit) && planilha && sistema && (planilha - sistema).abs <= 1
-
-    [ :unexplained, nil ]
-  end
-
-  # Unidade para mostrar o que só o sistema compra: a embalagem de compra quando dá para calcular, senão a do pedido.
-  def system_unit(raw_material, needs)
-    return needs.first&.unit || "kg" unless needs.any? { |n| n.unit == "kg" }
-
-    %w[cx sc].include?(raw_material.purchase_package) && raw_material.kg_per_package.present? ? raw_material.purchase_package : "kg"
-  end
-
-  # Valor do sistema na mesma unidade que a planilha usou.
-  def comparable_value(needs, unit)
-    return nil if needs.empty?
-
-    case unit
-    when "cx", "sc"
-      packaged = needs.select { |n| n.unit == "kg" }.filter_map(&:packages)
-      same_unit = needs.select { |n| n.unit == unit }.sum { |n| n.raw_quantity + n.processed_quantity }
-      return nil if packaged.empty? && same_unit.zero? # sem kg por embalagem: não dá para calcular
-
-      (packaged.sum + same_unit).to_d
-    when "kg" then needs.select { |n| n.unit == "kg" }.sum(&:net_kg).to_d
-    when "g" then needs.select { |n| n.unit == "kg" }.sum(&:net_kg).to_d * 1000
-    else needs.select { |n| n.unit == unit }.then { |same| same.empty? ? nil : same.sum(&:kg).to_d }
-    end
-  end
-
-  def fmt(value, unit = nil)
-    return "-" if value.nil?
-
-    "#{Formatting.qty(value)}#{unit ? " #{unit}" : ''}"
   end
 end
