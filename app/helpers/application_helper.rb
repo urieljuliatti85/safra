@@ -57,10 +57,6 @@ module ApplicationHelper
     end
   end
 
-  def version_label(plan)
-    plan ? "Versão #{plan.version} enviada em #{l(plan.sent_at, format: '%d/%m %H:%M')}" : "Ainda não enviada aos setores"
-  end
-
   def change_text(change)
     case change.kind
     when :added then "novo: #{qty(change.after)} #{change.unit}"
