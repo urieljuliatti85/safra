@@ -32,6 +32,7 @@ class DashboardTest < ActionDispatch::IntegrationTest
     facts = css_select(".flow-step:first-child .flow-facts li").map(&:text)
     breakdown = facts.find { |fact| fact.start_with?("Alertas:") }
     assert_match(/matérias-primas sem fator/, breakdown)
+    assert_match(/2 quantidades fora do comum/, breakdown)
     assert_match(/matérias-primas com unidades misturadas/, breakdown)
     assert_match(/observações em pedidos/, breakdown)
     assert breakdown.index("sem fator") < breakdown.index("unidades misturadas"), "o mais grave vem primeiro"

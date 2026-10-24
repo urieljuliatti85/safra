@@ -26,6 +26,7 @@ class DashboardSummary
   # Tipos de alerta de atenção, do mais grave para o menos, com o texto que aparece no Painel.
   ALERT_KINDS = {
     "Sem fator" => [ "matéria-prima sem fator", "matérias-primas sem fator" ],
+    "Quantidade" => [ "quantidade fora do comum", "quantidades fora do comum" ],
     "Unidade" => [ "matéria-prima com unidades misturadas", "matérias-primas com unidades misturadas" ],
     "Pedido" => [ "observação em pedido", "observações em pedidos" ]
   }.freeze

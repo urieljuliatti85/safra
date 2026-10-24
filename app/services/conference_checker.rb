@@ -7,6 +7,14 @@ class ConferenceChecker
 
   FACTOR_NOTE = /1,3|copiad|50 ou 25/
 
+  # Quantidade fora do comum: ao menos OUTLIER_RATIO vezes a mediana do mesmo cliente, produto e unidade, com histórico
+  # de OUTLIER_MIN_HISTORY pedidos e OUTLIER_MIN_GAP acima da mediana (1 contra 8 kg não é erro de digitação).
+  # Se o cliente já pediu ao menos a metade disso antes, é padrão (segunda e domingo maiores), não erro.
+  # Só para cima: pedido pequeno costuma ser de propósito (dia de entrega menor).
+  OUTLIER_RATIO = 5
+  OUTLIER_MIN_HISTORY = 3
+  OUTLIER_MIN_GAP = 10
+
   # week: segunda-feira da semana a conferir (pela data de entrega das linhas); nil confere todas as semanas.
   # purchase_result: o PurchasePlanner já calculado por quem chama (o Painel), para não refazer a compra inteira.
   def initialize(company:, week: nil, purchase_result: nil)
@@ -21,7 +29,8 @@ class ConferenceChecker
       lines = lines.where(delivery_date: week_range) if @week
       lines = lines.includes({ order: :customer }, product: [ :cut, { raw_material: :supplier } ])
       alerts = line_note_alerts(lines) + missing_factor_alerts(lines) + unit_alerts(lines) +
-               supplier_alerts(lines) + factor_note_alerts(lines) + uncovered_alerts + sunday_alerts(lines)
+               supplier_alerts(lines) + factor_note_alerts(lines) + uncovered_alerts + sunday_alerts(lines) +
+               outlier_alerts(lines)
       alerts.sort_by { |a| [ a.level == :warn ? 0 : 1, a.kind, a.message ] }
     end
   end
@@ -88,6 +97,25 @@ class ConferenceChecker
 
     [ alert(:mute, "Data", "#{sundays.size} linhas com entrega no domingo. Domingo não tem produção: ela cai para sábado.",
                 action: order_action(sundays.min_by(&:delivery_date))) ]
+  end
+
+  # Compara com todos os pedidos do cliente (de qualquer semana), sem contar a própria linha.
+  def outlier_alerts(lines)
+    history = OrderLine.where("quantity > 0").where(product_id: lines.map(&:product_id).uniq).joins(:order)
+                       .pluck("orders.customer_id", :product_id, :unit, :id, :quantity)
+                       .group_by { |customer_id, product_id, unit, _, _| [ customer_id, product_id, unit ] }
+    lines.filter_map do |line|
+      others = history.fetch([ line.order.customer_id, line.product_id, line.unit ], []).reject { |row| row[3] == line.id }.map(&:last)
+      next if others.size < OUTLIER_MIN_HISTORY
+
+      median = others.sort[others.size / 2]
+      next unless line.quantity >= median * OUTLIER_RATIO && line.quantity - median >= OUTLIER_MIN_GAP
+      next if others.max * 2 >= line.quantity
+
+      alert(:warn, "Quantidade", "#{line.order.customer.short_name}: #{line.product.name} com #{Formatting.qty(line.quantity)} #{line.unit} " \
+                                 "em #{Formatting.short_date(line.delivery_date)}, quando o normal é #{Formatting.qty(median)} #{line.unit}. Confira se não é erro de digitação.",
+            action: order_action(line))
+    end
   end
 
   def week_range = @week..(@week + 6)

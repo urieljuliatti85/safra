@@ -114,4 +114,53 @@ class ConferenceCheckerTest < ActiveSupport::TestCase
       assert_includes alert.action.path, "customer=#{line.order.customer.code}"
     end
   end
+
+  def quantity_alerts(week: nil) = ConferenceChecker.new(company: company, week: week).call.select { |a| a.kind == "Quantidade" }
+
+  def customer_lines(code, product_name)
+    OrderLine.joins(:product, order: :customer).where(customers: { code: code }, products: { name: product_name })
+  end
+
+  test "quantidade bem acima do normal do cliente avisa e abre o pedido" do
+    alerts = quantity_alerts
+    assert_equal [ "Horiz. Norte: Batata em cubos com 80 kg em 15/10, quando o normal é 16 kg. Confira se não é erro de digitação.",
+                   "Bom Pastor: Cenoura em palitos com 76 kg em 13/10, quando o normal é 2 kg. Confira se não é erro de digitação." ], alerts.map(&:message)
+    assert alerts.all? { |a| a.level == :warn }
+    assert_includes alerts.first.action.path, "customer=hnorte"
+  end
+
+  test "zero a mais vira aviso; zero a menos e números pequenos não" do
+    ActsAsTenant.with_tenant(company) do
+      batata = customer_lines("hnorte", "Batata em cubos")
+      batata.find_by(delivery_date: "2026-10-15").update!(quantity: 15)
+      assert_no_match "Batata em cubos", quantity_alerts.map(&:message).join
+
+      batata.find_by(delivery_date: "2026-10-16").update!(quantity: 160)
+      assert_match "Batata em cubos com 160 kg em 16/10", quantity_alerts.map(&:message).join
+
+      batata.find_by(delivery_date: "2026-10-16").update!(quantity: 1.6)
+      assert_no_match "Batata em cubos", quantity_alerts.map(&:message).join, "pedido pequeno costuma ser de propósito"
+    end
+    # Couve picada do Horiz. Norte: 1, 8, 1 e 2 kg. 8 passa de 5 vezes o normal, mas só 7 kg acima: não avisa.
+    assert_no_match "Couve picada", quantity_alerts.map(&:message).join
+  end
+
+  test "quantidade alta que já se repetiu é padrão do cliente, não erro" do
+    # Inhame em cubos da Bom Pastor: 52 kg na segunda e no domingo, 7 a 10 kg nos outros dias.
+    assert_no_match "Inhame", quantity_alerts.map(&:message).join
+    ActsAsTenant.with_tenant(company) { customer_lines("hbp", "Inhame em cubos").find_by(delivery_date: "2026-10-18").update!(quantity: 9) }
+    assert_match "Inhame em cubos com 52 kg em 12/10", quantity_alerts.map(&:message).join
+  end
+
+  test "sem histórico suficiente não há o que comparar" do
+    ActsAsTenant.with_tenant(company) do
+      customer_lines("hnorte", "Batata em cubos").where.not(delivery_date: [ "2026-10-15", "2026-10-16", "2026-10-17" ]).delete_all
+    end
+    assert_no_match "Batata em cubos", quantity_alerts.map(&:message).join
+  end
+
+  test "a semana filtra o aviso" do
+    assert_empty quantity_alerts(week: Date.new(2026, 10, 19))
+    assert_equal 2, quantity_alerts(week: Date.new(2026, 10, 12)).size
+  end
 end

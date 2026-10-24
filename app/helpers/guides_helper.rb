@@ -85,6 +85,7 @@ module GuidesHelper
         "Matéria-prima sem fator de perda: a compra não consegue converter para kg in natura.",
         "A mesma matéria-prima pedida em unidades diferentes (kg e un, por exemplo): não dá para somar.",
         "Matéria-prima sem fornecedor, fator marcado para revisar, entregas no domingo e linhas que ficam fora de qualquer compra.",
+        "Quantidade fora do comum: 5 vezes ou mais o que o cliente costuma pedir daquele produto, provável zero a mais.",
         "Cada alerta tem um link para a tela onde se corrige.",
         "Em Sistema × planilhas, os números das planilhas feitas à mão aparecem ao lado do que o Safra calcula, com o motivo provável de cada diferença."
       ], "Abrir Conferência", conference_path),
