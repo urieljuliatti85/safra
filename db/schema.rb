@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_24_110100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -95,7 +95,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id", "kind", "section", "date", "item"], name: "index_comparison_notes_on_row", unique: true
-    t.index ["company_id"], name: "index_comparison_notes_on_company_id"
     t.index ["user_id"], name: "index_comparison_notes_on_user_id"
   end
 
@@ -108,7 +107,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "updated_at", null: false
     t.index ["company_id"], name: "index_customer_aliases_on_company_id"
     t.index ["customer_id", "name_in_order"], name: "index_customer_aliases_on_customer_id_and_name_in_order", unique: true
-    t.index ["customer_id"], name: "index_customer_aliases_on_customer_id"
     t.index ["product_id"], name: "index_customer_aliases_on_product_id"
   end
 
@@ -131,7 +129,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.time "delivery_until"
     t.text "delivery_notes"
     t.index ["company_id", "code"], name: "index_customers_on_company_id_and_code", unique: true
-    t.index ["company_id"], name: "index_customers_on_company_id"
   end
 
   create_table "cuts", force: :cascade do |t|
@@ -143,8 +140,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.integer "lead_days", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index "company_id, lower((name)::text)", name: "index_cuts_on_company_id_and_lower_name", unique: true
     t.index ["company_id", "code"], name: "index_cuts_on_company_id_and_code", unique: true
-    t.index ["company_id"], name: "index_cuts_on_company_id"
   end
 
   create_table "order_imports", force: :cascade do |t|
@@ -159,7 +156,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "updated_at", null: false
     t.string "kind", default: "sheet", null: false
     t.index ["company_id", "created_at"], name: "index_order_imports_on_company_id_and_created_at"
-    t.index ["company_id"], name: "index_order_imports_on_company_id"
     t.index ["customer_id"], name: "index_order_imports_on_customer_id"
   end
 
@@ -174,7 +170,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id", "delivery_date"], name: "index_order_lines_on_company_id_and_delivery_date"
-    t.index ["company_id"], name: "index_order_lines_on_company_id"
     t.index ["order_id"], name: "index_order_lines_on_order_id"
     t.index ["product_id"], name: "index_order_lines_on_product_id"
   end
@@ -193,7 +188,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.index ["company_id"], name: "index_order_versions_on_company_id"
     t.index ["order_id", "version"], name: "index_order_versions_on_order_id_and_version", unique: true
-    t.index ["order_id"], name: "index_order_versions_on_order_id"
     t.index ["order_import_id"], name: "index_order_versions_on_order_import_id"
     t.index ["user_id"], name: "index_order_versions_on_user_id"
   end
@@ -206,7 +200,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "updated_at", null: false
     t.index ["company_id"], name: "index_orders_on_company_id"
     t.index ["customer_id", "week_start"], name: "index_orders_on_customer_id_and_week_start", unique: true
-    t.index ["customer_id"], name: "index_orders_on_customer_id"
   end
 
   create_table "production_plan_items", force: :cascade do |t|
@@ -232,7 +225,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "updated_at", null: false
     t.bigint "sent_by_id"
     t.index ["company_id", "date", "version"], name: "index_production_plans_on_company_id_and_date_and_version", unique: true
-    t.index ["company_id"], name: "index_production_plans_on_company_id"
     t.index ["sent_by_id"], name: "index_production_plans_on_sent_by_id"
   end
 
@@ -257,7 +249,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id", "code"], name: "index_products_on_company_id_and_code", unique: true
-    t.index ["company_id"], name: "index_products_on_company_id"
     t.index ["cut_id"], name: "index_products_on_cut_id"
     t.index ["raw_material_id"], name: "index_products_on_raw_material_id"
   end
@@ -268,7 +259,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id", "date"], name: "index_purchase_days_on_company_id_and_date", unique: true
-    t.index ["company_id"], name: "index_purchase_days_on_company_id"
   end
 
   create_table "purchase_plan_items", force: :cascade do |t|
@@ -294,7 +284,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id", "date", "version"], name: "index_purchase_plans_on_company_id_and_date_and_version", unique: true
-    t.index ["company_id"], name: "index_purchase_plans_on_company_id"
   end
 
   create_table "push_subscriptions", force: :cascade do |t|
@@ -324,7 +313,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id", "code"], name: "index_raw_materials_on_company_id_and_code", unique: true
-    t.index ["company_id"], name: "index_raw_materials_on_company_id"
     t.index ["supplier_id"], name: "index_raw_materials_on_supplier_id"
   end
 
@@ -354,7 +342,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.index ["company_id"], name: "index_reference_sheet_versions_on_company_id"
     t.index ["imported_by_id"], name: "index_reference_sheet_versions_on_imported_by_id"
     t.index ["reference_sheet_id", "version"], name: "idx_on_reference_sheet_id_version_f801518e6c", unique: true
-    t.index ["reference_sheet_id"], name: "index_reference_sheet_versions_on_reference_sheet_id"
     t.index ["sheet_import_id"], name: "index_reference_sheet_versions_on_sheet_import_id"
   end
 
@@ -368,7 +355,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id", "kind", "date"], name: "index_reference_sheets_on_company_id_and_kind_and_date", unique: true
-    t.index ["company_id"], name: "index_reference_sheets_on_company_id"
     t.index ["imported_by_id"], name: "index_reference_sheets_on_imported_by_id"
   end
 
@@ -393,7 +379,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "updated_at", null: false
     t.bigint "customer_id"
     t.index ["company_id", "target", "name"], name: "index_sheet_aliases_on_company_id_and_target_and_name", unique: true
-    t.index ["company_id"], name: "index_sheet_aliases_on_company_id"
     t.index ["customer_id"], name: "index_sheet_aliases_on_customer_id"
     t.index ["product_id"], name: "index_sheet_aliases_on_product_id"
     t.index ["raw_material_id"], name: "index_sheet_aliases_on_raw_material_id"
@@ -407,7 +392,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id", "week_start"], name: "index_sheet_imports_on_company_id_and_week_start"
-    t.index ["company_id"], name: "index_sheet_imports_on_company_id"
     t.index ["user_id"], name: "index_sheet_imports_on_user_id"
   end
 
@@ -420,7 +404,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "updated_at", null: false
     t.index ["company_id"], name: "index_stock_counts_on_company_id"
     t.index ["raw_material_id", "date"], name: "index_stock_counts_on_raw_material_id_and_date", unique: true
-    t.index ["raw_material_id"], name: "index_stock_counts_on_raw_material_id"
   end
 
   create_table "suppliers", force: :cascade do |t|
@@ -429,7 +412,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id", "name"], name: "index_suppliers_on_company_id_and_name", unique: true
-    t.index ["company_id"], name: "index_suppliers_on_company_id"
   end
 
   create_table "users", force: :cascade do |t|
