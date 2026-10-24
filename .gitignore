@@ -45,3 +45,6 @@
 /.impeccable/review/
 /.impeccable/build/
 /.impeccable/live/
+
+# macOS
+.DS_Store

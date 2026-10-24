@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_23_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_24_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -70,7 +70,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_23_100000) do
     t.datetime "created_at", null: false
     t.index ["auditable_type", "auditable_id"], name: "index_audit_logs_on_auditable_type_and_auditable_id"
     t.index ["company_id", "created_at"], name: "index_audit_logs_on_company_id_and_created_at"
-    t.index ["company_id"], name: "index_audit_logs_on_company_id"
     t.index ["request_id"], name: "index_audit_logs_on_request_id"
     t.index ["user_id"], name: "index_audit_logs_on_user_id"
   end
