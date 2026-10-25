@@ -171,6 +171,27 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     assert_equal "applied", record.reload.status
   end
 
+  # Pedido e apelidos voltam juntos: se o apelido falha depois de o pedido já ter voltado, nada fica pela metade.
+  test "falha ao voltar o apelido desfaz também a volta do pedido" do
+    record = import("pedido_com_unidade.xlsx", @serra)
+    index = record.rows.index { |r| r["name"] == "ABÓBORA CUBOS" }
+    assert OrderImports::Applier.new(import: record, mappings: { index.to_s => Product.find_by!(code: "abobora_lascas").id.to_s }).call.ok?
+    order = Order.find_by!(customer: @serra, week_start: Date.new(2026, 10, 12))
+    after_apply = [ order_state(@serra), order.versions.count ]
+
+    CustomerAlias.define_singleton_method(:find_by) { |*| raise ActiveRecord::ActiveRecordError, "falha simulada no apelido" }
+    begin
+      assert_raises(ActiveRecord::ActiveRecordError) { OrderImports::Undoer.new(import: record.reload).call }
+    ensure
+      CustomerAlias.singleton_class.remove_method(:find_by)
+    end
+
+    assert_equal after_apply, [ order_state(@serra), order.versions.count ]
+    assert_equal "applied", record.reload.status
+    assert record.payload["undo"].present?
+    assert OrderImports::Undoer.new(import: record).call.ok?, "depois da falha, desfazer de novo funciona"
+  end
+
   test "importação aplicada antes do desfazer existir não pode ser desfeita" do
     record = apply_sr_with_pitaya
     record.update!(payload: record.payload.except("undo"))

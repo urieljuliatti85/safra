@@ -176,6 +176,60 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_equal "applied", import.reload.status
   end
 
+  def applied_serra_import
+    upload("pedido_com_unidade.xlsx", "hnorte")
+    import = ActsAsTenant.with_tenant(company) { OrderImport.order(:id).last }
+    post apply_order_import_path(import)
+    import
+  end
+
+  def serra_order_state
+    ActsAsTenant.with_tenant(company) do
+      order = Order.find_by!(customer: Customer.find_by!(code: "hnorte"), week_start: Date.new(2026, 10, 12))
+      [ order.lines.group(:product_id, :unit, :delivery_date).sum(:quantity), order.versions.count ]
+    end
+  end
+
+  test "produção não consegue desfazer importação chamando a rota direto" do
+    import = applied_serra_import
+    before = serra_order_state
+
+    sign_in_as(user_for(:production))
+    post undo_order_import_path(import)
+
+    assert_redirected_to production_path
+    assert_equal before, serra_order_state
+    assert_equal "applied", ActsAsTenant.with_tenant(company) { import.reload.status }
+  end
+
+  test "desfazer importação de outra empresa responde 404 e não muda nada" do
+    other = Company.create!(name: "Outra Processadora")
+    import = ActsAsTenant.with_tenant(other) do
+      customer = Customer.create!(code: "x", name: "Cliente X", short_name: "X")
+      OrderImport.create!(customer: customer, filename: "a.xlsx", week_start: Date.new(2026, 10, 12), status: "applied",
+                          payload: { "undo" => { "before" => {}, "after" => {}, "aliases" => [] } })
+    end
+
+    post undo_order_import_path(import)
+
+    assert_response :not_found
+    assert_equal "applied", ActsAsTenant.with_tenant(other) { import.reload.status }
+  end
+
+  test "desfazer duas vezes (duplo clique ou F5): a segunda avisa e não grava outra versão" do
+    import = applied_serra_import
+    post undo_order_import_path(import)
+    after_first = serra_order_state
+
+    post undo_order_import_path(import)
+
+    assert_redirected_to order_import_path(import)
+    follow_redirect!
+    assert_match "Esta importação não pode ser desfeita.", response.body
+    assert_equal after_first, serra_order_state
+    assert_equal "pending", ActsAsTenant.with_tenant(company) { import.reload.status }
+  end
+
   test "arquivo de tipo não aceito volta ao formulário" do
     post order_imports_path, params: { customer: "hbp", file: fixture_file_upload("documento_sem_imagens.odt", "application/vnd.oasis.opendocument.text") }
     assert_response :unprocessable_entity
