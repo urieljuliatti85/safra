@@ -90,6 +90,16 @@ class OrderVersionsTest < ActiveSupport::TestCase
     assert_equal original, state
   end
 
+  # A semana do pedido vai da segunda até a segunda seguinte (8º dia da grade), nos dois limites.
+  test "limites da semana: a segunda seguinte vale, o domingo anterior não" do
+    assert save({ "2026-10-19" => "2,5" }).ok?
+    assert_equal BigDecimal("2.5"), state[[ @product.id, "kg", Date.new(2026, 10, 19) ]]
+
+    result = save({ "2026-10-11" => "4" })
+    assert_equal [ "#{@product.name} em 11/10: fora da semana do pedido (12/10 a 19/10)." ], result.errors
+    assert_nil state[[ @product.id, "kg", Date.new(2026, 10, 11) ]]
+  end
+
   test "zero fora da semana apaga a linha que já estava lá" do
     @order.lines.create!(product: @product, unit: "kg", delivery_date: Date.new(2026, 10, 20), quantity: 3)
 

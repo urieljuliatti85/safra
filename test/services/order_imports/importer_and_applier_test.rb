@@ -204,6 +204,13 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     assert_equal before, order_state(@serra)
   end
 
+  test "planilha que termina na segunda seguinte cabe na semana e aplica" do
+    record = import("pedido_segunda_a_segunda.csv", @serra)
+
+    assert_empty record.errors_list
+    assert OrderImports::Applier.new(import: record, mappings: {}).call.ok?
+  end
+
   test "importação aplicada antes do desfazer existir não pode ser desfeita" do
     record = apply_sr_with_pitaya
     record.update!(payload: record.payload.except("undo"))

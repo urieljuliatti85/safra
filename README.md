@@ -41,7 +41,7 @@ bin/rails db:reset         # apaga o banco e recomeça do zero (precisa de nenhu
 | Tela | O que faz |
 |---|---|
 | Painel | Página inicial do escritório e do administrador: as quatro etapas do dia (Pedidos, Programação, Produção, Compras) com o estado de cada uma em palavras, o que falta, o que mudou depois do envio, e a faixa da semana. Só lê o que as outras telas já calculam; cada etapa leva à sua tela. A Produção continua caindo na própria tela. |
-| Pedidos | Grade por cliente e semana. Quantidade vazia ou 0 apaga a linha. "Importar planilha" lê xlsx, xls, ods e csv e mostra o que muda antes de gravar; ODT ou imagem (pedido colado como print, como o da Aurora) abre a imagem ao lado da grade para digitar olhando. |
+| Pedidos | Grade por cliente e semana (da segunda até a segunda seguinte; data fora disso é recusada). Quantidade vazia ou 0 apaga a linha. "Importar planilha" lê xlsx, xls, ods e csv e mostra o que muda antes de gravar; ODT ou imagem (pedido colado como print, como o da Aurora) abre a imagem ao lado da grade para digitar olhando. |
 | Programação | O que cada cliente pediu para um dia de entrega e quando cada item é produzido. |
 | Produção | Lista do dia por setor (filtro por setor e aprontes, na tela e no PDF), envio aos setores em versões, diferença depois do envio e histórico de envios. Quem trabalha na produção vê só a versão enviada. **Avisos no celular** (veja "Avisos de produção no celular") avisam, por setor, quando sai versão nova. |
 | Compras | Compra da CEASA por fornecedor, texto para WhatsApp e envio em versões. |
@@ -123,6 +123,8 @@ Regras que ajudam a entender a conferência:
 - Linhas sem nenhuma quantidade são ignoradas. A planilha manda nos produtos que ela traz: célula vazia numa linha com outras quantidades apaga a linha do pedido.
 - Com mais de uma aba (por exemplo, cotação e pedido), vale a que tem mais produtos com quantidade.
 - Uma planilha por vez: processados e in natura costumam vir em arquivos separados.
+- A planilha precisa caber numa semana de pedido, da segunda até a segunda seguinte. Se passar disso (por exemplo, de sexta a terça), a conferência avisa e não deixa importar: separe em uma planilha por semana.
+- **Desfazer** (pílula na grade ou na tela da importação) devolve o pedido ao que era antes da planilha nos produtos e dias que ela tocou, apaga os apelidos que ela criou e reabre a importação. Alterações feitas no pedido depois da importação são listadas antes e se perdem.
 
 Planilhas de exemplo ficam em `referencia/planilhas` (fora do git). Se essa pasta existir, os testes importam as planilhas reais e conferem que reproduzem os pedidos dos seeds.
 
@@ -199,7 +201,7 @@ O `bin/setup` ativa o hook `.githooks/pre-commit`: Rubocop nos arquivos Ruby do 
 
 ## Fluxo de trabalho
 
-Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde antes do merge. Commits são juntados antes do push para evitar vários deploys.
+Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde antes do merge. Commits são juntados antes do push para evitar vários deploys. Mudança de comportamento ganha uma entrada em `docs/mudancas.md` (o que mudou, o que fica no banco e como reverter).
 
 ## Estrutura
 
@@ -257,7 +259,7 @@ O envio não tem confirmação de leitura: com o celular sem internet o aviso at
 
 **Saúde do app.** `/up` diz só que o Rails subiu. `/ready` responde 200 quando o banco responde e 503 quando não, sem login e sem detalhes. O healthcheck da Railway usa `/ready` (`railway.json`): uma versão que não alcança o banco não entra no ar, e a anterior segue atendendo.
 
-**Voltar atrás.** No painel da Railway: projeto `safra` > serviço `safra` > Deployments > o último deploy que funcionava > Rollback (ou Redeploy). O código volta; o banco não, porque migrations não são desfeitas. Com a regra acima o código antigo funciona com o banco novo, então voltar é seguro, exceto depois de uma migration que removeu algo. Os dados do banco e do volume não mudam. O rollback vale até o próximo merge: ele publica a `main` de novo, então corrija o problema na `main` antes de mergear qualquer coisa.
+**Voltar atrás.** Para desfazer um PR específico (por exemplo, a Hortifruti Modelo não quer mais uma mudança), veja `docs/mudancas.md`: cada PR recente tem o que mudou, o que fica no banco e como reverter. Para uma emergência, no painel da Railway: projeto `safra` > serviço `safra` > Deployments > o último deploy que funcionava > Rollback (ou Redeploy). O código volta; o banco não, porque migrations não são desfeitas. Com a regra acima o código antigo funciona com o banco novo, então voltar é seguro, exceto depois de uma migration que removeu algo. Os dados do banco e do volume não mudam. O rollback vale até o próximo merge: ele publica a `main` de novo, então corrija o problema na `main` antes de mergear qualquer coisa.
 
 **Limite conhecido.** O volume só pode ser montado em uma instância: não escale o app para mais de uma réplica enquanto as imagens estiverem em disco local. Para várias réplicas, mover o Active Storage para um bucket S3.
 

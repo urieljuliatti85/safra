@@ -230,6 +230,39 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_equal "pending", ActsAsTenant.with_tenant(company) { import.reload.status }
   end
 
+  test "grade recusa quantidade fora da semana: 422, mensagem e nada gravado" do
+    product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_ralada") }
+    before = serra_order_state
+
+    patch orders_path(customer: "hnorte", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-13" => "9", "2026-10-20" => "3" } } }
+
+    assert_response :unprocessable_entity
+    assert_select "[role=alert]", /Nada foi salvo/
+    assert_select "[role=alert] li", "Cenoura ralada em 20/10: fora da semana do pedido (12/10 a 19/10)."
+    assert_equal before, serra_order_state
+  end
+
+  # Trocar a semana da importação para uma que não contém as datas da planilha: aplicar é recusado sem gravar
+  # nada pela metade (pedido, versão, apelido escolhido e status ficam como estavam).
+  test "aplicar com a semana trocada para outra é recusado sem deixar nada pela metade" do
+    upload("pedido_sem_unidade.xlsx", "hbp")
+    import = ActsAsTenant.with_tenant(company) { OrderImport.order(:id).last }
+    patch settings_order_import_path(import), params: { week: "2026-10-19" }
+    pitaya = import.reload.rows.index { |r| r["name"].start_with?("Pitaya") }
+    product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "abobora_lascas") }
+    lines_before = ActsAsTenant.with_tenant(company) { [ OrderLine.count, OrderVersion.count ] }
+
+    post apply_order_import_path(import), params: { mappings: { pitaya.to_s => product.id.to_s } }
+
+    assert_response :unprocessable_entity
+    assert_match "fora da semana do pedido (19/10 a 26/10)", response.body
+    ActsAsTenant.with_tenant(company) do
+      assert_equal lines_before, [ OrderLine.count, OrderVersion.count ]
+      assert_not CustomerAlias.exists?(name_in_order: import.rows[pitaya]["name"])
+      assert_equal "pending", import.reload.status
+    end
+  end
+
   test "arquivo de tipo não aceito volta ao formulário" do
     post order_imports_path, params: { customer: "hbp", file: fixture_file_upload("documento_sem_imagens.odt", "application/vnd.oasis.opendocument.text") }
     assert_response :unprocessable_entity
