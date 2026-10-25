@@ -82,3 +82,7 @@ Fora: portal do cliente, leitura de pedido por foto/WhatsApp com IA, nota fiscal
 - `prototipo/safra.html`: protótipo funcional (abrir no navegador). A lógica de cálculo dele é a referência para os serviços.
 - `referencia/planilhas/`: planilhas originais da Hortifruti Modelo e pedidos dos clientes. Não versionar no Git (dados de clientes).
 - `docs/`: análise das planilhas, dúvidas de regra e plano do MVP.
+
+## Pull requests
+
+Todo PR ganha uma entrada em `docs/mudancas.md`, no próprio PR: o que mudou para quem usa, por quê, dados gravados e como reverter. Regra e formato no topo do arquivo; o modelo de descrição está em `.github/pull_request_template.md`.
