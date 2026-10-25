@@ -24,18 +24,6 @@ class OrdersController < ApplicationController
     end
   end
 
-  def copy_previous
-    return head(:unprocessable_entity) if @customer.nil?
-
-    result = OrderWeekCopier.new(order: @order).call
-    if result.ok?
-      redirect_to orders_path(customer: @customer.code, week: @week_start), alert: StalePlans.warning(current_company),
-                  notice: "Pedido da semana de #{Formatting.short_date(@week_start - 7)} copiado, com as entregas 7 dias depois. Confira e ajuste o que mudou."
-    else
-      redirect_to orders_path(customer: @customer.code, week: @week_start), alert: result.errors.to_sentence
-    end
-  end
-
   private
 
   def load_context
@@ -61,6 +49,5 @@ class OrdersController < ApplicationController
   def build_grid
     @grid = OrderGrid.new(order: @order, add_product: @add_product)
     @versions = @order.versions.newest_first.includes(:user)
-    @copy_count = @grid.rows.empty? ? OrderWeekCopier.new(order: @order).previous_lines_count : 0
   end
 end

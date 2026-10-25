@@ -44,13 +44,6 @@
   </div>
 <% end %>
 
-<% if @copy_count.positive? %>
-  <div class="flash flash-notice mb-4 flex flex-wrap items-center justify-between gap-3" aria-label="Copiar pedido da semana anterior">
-    <p><%= icon :copy %> Esta semana ainda não tem pedido. A semana de <%= short_date(@week_start - 7) %> tem <%= pluralize(@copy_count, "item", plural: "itens") %>: copie e ajuste só o que mudou.</p>
-    <%= button_to copy_previous_orders_path(customer: @customer.code, week: @week_start), class: "btn", form: { class: "inline" } do %><%= icon :copy %>Copiar semana anterior<% end %>
-  </div>
-<% end %>
-
 <% if @errors.present? %>
   <div class="flash flash-alert" role="alert">
     <%= icon :alert %>

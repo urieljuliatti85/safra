@@ -2,6 +2,7 @@
 # lines: o pedido inteiro, [{ "product_id", "unit", "date", "quantity" }].
 # changes_list: só o que mudou em relação à versão anterior, [{ "product_id", "product", "unit", "date", "before", "after" }].
 class OrderVersion < ApplicationRecord
+  # "copy" veio do botão "Copiar semana anterior", que foi retirado; fica para as versões já gravadas assim.
   SOURCES = {
     "initial" => "Antes do primeiro salvamento", "grid" => "Grade", "import" => "Planilha importada",
     "image" => "Pedido em imagem", "undo" => "Importação desfeita", "restore" => "Versão restaurada", "api" => "API",

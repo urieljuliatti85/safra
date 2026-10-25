@@ -37,7 +37,6 @@ Rails.application.routes.draw do
 
   get "orders", to: "orders#index"
   patch "orders", to: "orders#update"
-  post "orders/copy_previous", to: "orders#copy_previous", as: :copy_previous_orders
   resources :order_versions, only: :show do
     post :restore, on: :member
   end
