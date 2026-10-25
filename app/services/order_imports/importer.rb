@@ -13,11 +13,13 @@ module OrderImports
         result = SheetReader.new(@path, extension: File.extname(@filename)).call
         matcher = Matcher.new(customer: @customer)
         rows = result.rows.map { |row| serialize(row, matcher.call(row.name)) }
+        week_start = result.dates.min.beginning_of_week
         OrderImport.create!(
-          customer: @customer, filename: @filename, week_start: result.dates.min.beginning_of_week,
+          customer: @customer, filename: @filename, week_start: week_start,
           payload: {
             sheet: result.sheet, title: result.title, dates: result.dates.map(&:iso8601), rows: rows,
-            errors: result.errors, ignored_blank: result.ignored_blank, customer_warning: customer_warning(result.title)
+            errors: result.errors + week_errors(result.dates, week_start), ignored_blank: result.ignored_blank,
+            customer_warning: customer_warning(result.title)
           }
         )
       end
@@ -31,6 +33,15 @@ module OrderImports
         quantities: row.quantities.to_h { |date, qty| [ date.iso8601, qty&.to_s("F")&.sub(/\.0\z/, "") ] },
         product_id: match&.product&.id, matched_by: match&.by
       }
+    end
+
+    # O pedido de uma semana vai de segunda até a segunda seguinte; dia depois disso não apareceria em grade nenhuma.
+    def week_errors(dates, week_start)
+      last = week_start + 7
+      return [] if dates.max <= last
+
+      [ "A planilha vai de #{Formatting.short_date(dates.min)} a #{Formatting.short_date(dates.max)}, mais do que uma semana " \
+        "(#{Formatting.short_date(week_start)} a #{Formatting.short_date(last)}). Separe em uma planilha por semana." ]
     end
 
     # O título da planilha costuma dizer de que cliente ela é; avisa se parece outro.

@@ -49,7 +49,7 @@ class OrderVersionsTest < ActiveSupport::TestCase
   test "restaurar volta o pedido ao retrato e grava uma versão nova" do
     original = state
     save({ "2026-10-12" => "", "2026-10-19" => "3" })
-    save({ "2026-10-20" => "8" })
+    save({ "2026-10-17" => "8,125" })
     assert_equal 3, @order.versions.count
 
     initial = @order.versions.find_by!(version: 1)
@@ -62,6 +62,39 @@ class OrderVersionsTest < ActiveSupport::TestCase
     assert_equal 4, @order.versions.count # nada foi apagado
 
     assert_not OrderVersionRestorer.new(version: restored).call.ok?
+  end
+
+  # A grade da semana de 12/10 vai até 19/10: dia depois disso não apareceria em grade nenhuma, mas entraria no cálculo.
+  test "quantidade fora da semana do pedido é recusada e nada é gravado" do
+    before = state
+    result = save({ "2026-10-13" => "5", "2026-10-20" => "3" })
+
+    assert_not result.ok?
+    assert_equal [ "#{@product.name} em 20/10: fora da semana do pedido (12/10 a 19/10)." ], result.errors
+    assert_equal before, state
+    assert_equal 0, @order.versions.count
+  end
+
+  # Linha gravada antes da regra existir entra no retrato de toda versão: restaurar reenvia ela igual e precisa passar.
+  test "linha antiga fora da semana não impede restaurar, mas não pode mudar de quantidade" do
+    @order.lines.create!(product: @product, unit: "kg", delivery_date: Date.new(2026, 10, 20), quantity: 3)
+    original = state
+    assert save({ "2026-10-13" => "7,25" }).ok?
+
+    result = OrderVersionRestorer.new(version: @order.versions.find_by!(version: 1)).call
+    assert result.ok?, result.errors.inspect
+    assert_equal original, state
+
+    changed = save({ "2026-10-20" => "4" })
+    assert_equal [ "#{@product.name} em 20/10: fora da semana do pedido (12/10 a 19/10)." ], changed.errors
+    assert_equal original, state
+  end
+
+  test "zero fora da semana apaga a linha que já estava lá" do
+    @order.lines.create!(product: @product, unit: "kg", delivery_date: Date.new(2026, 10, 20), quantity: 3)
+
+    assert save({ "2026-10-20" => "" }).ok?
+    assert_not @order.lines.exists?(delivery_date: Date.new(2026, 10, 20))
   end
 
   test "importar e desfazer viram versões ligadas à planilha" do

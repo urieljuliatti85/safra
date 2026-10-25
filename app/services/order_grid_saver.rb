@@ -29,6 +29,10 @@ class OrderGridSaver
       @order.lock!
       existing = @order.lines.to_a.group_by { |l| [ l.product_id, l.unit, l.delivery_date ] }
       before = existing.transform_values { |lines| lines.sum(&:quantity) }
+      # Nada foi gravado ainda: sair aqui não deixa o pedido pela metade.
+      outside = outside_week_errors(parsed, before)
+      return Result.new(errors: outside, changed_dates: []) if outside.any?
+
       parsed.each do |(product_id, unit, date), quantity|
         lines = existing.fetch([ product_id, unit, date ], [])
         current = lines.sum(&:quantity)
@@ -89,10 +93,10 @@ class OrderGridSaver
   end
 
   def parse(errors)
-    products = Product.where(id: @quantities.keys.map { |k| k.split("|").first }).index_by(&:id)
+    @products = Product.where(id: @quantities.keys.map { |k| k.split("|").first }).index_by(&:id)
     @quantities.each_with_object({}) do |(key, cells), parsed|
       product_id, unit = key.split("|")
-      product = products[product_id.to_i]
+      product = @products[product_id.to_i]
       cells.each do |date_text, text|
         date = Date.iso8601(date_text)
         quantity = parse_quantity(text)
@@ -108,6 +112,19 @@ class OrderGridSaver
   rescue Date::Error
     errors << "Data inválida na grade."
     {}
+  end
+
+  # Os dias que a grade mostra. Criar ou mudar quantidade fora deles deixaria a linha invisível em toda grade.
+  # Zero continua valendo, para apagar; e linha antiga que chega igual passa, para restaurar versão de um pedido
+  # que já tinha uma dessas continuar funcionando.
+  def outside_week_errors(parsed, before)
+    week = @order.week_start..(@order.week_start + 7)
+    parsed.filter_map do |(product_id, unit, date), quantity|
+      next if week.cover?(date) || quantity.zero? || before.fetch([ product_id, unit, date ], 0) == quantity
+
+      "#{@products[product_id]&.name || 'Produto'} em #{Formatting.short_date(date)}: fora da semana do pedido " \
+        "(#{Formatting.short_date(week.first)} a #{Formatting.short_date(week.last)})."
+    end
   end
 
   def parse_quantity(text)

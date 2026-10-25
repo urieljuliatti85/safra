@@ -192,6 +192,18 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     assert OrderImports::Undoer.new(import: record).call.ok?, "depois da falha, desfazer de novo funciona"
   end
 
+  # Sexta a terça: a semana é a de 12/10, que vai até 19/10. A terça 20/10 ficaria fora de qualquer grade.
+  test "planilha que passa de uma semana avisa na conferência e não aplica" do
+    before = order_state(@serra)
+    record = import("pedido_sexta_a_terca.csv", @serra)
+
+    assert_equal Date.new(2026, 10, 12), record.week_start
+    assert_equal [ "A planilha vai de 16/10 a 20/10, mais do que uma semana (12/10 a 19/10). Separe em uma planilha por semana." ],
+                 record.errors_list
+    assert_not OrderImports::Applier.new(import: record, mappings: {}).call.ok?
+    assert_equal before, order_state(@serra)
+  end
+
   test "importação aplicada antes do desfazer existir não pode ser desfeita" do
     record = apply_sr_with_pitaya
     record.update!(payload: record.payload.except("undo"))
