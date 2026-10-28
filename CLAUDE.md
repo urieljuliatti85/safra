@@ -18,6 +18,12 @@ Dores relatadas: (1) redigitação; (2) consolidação por produto e corte sem p
 
 ## Domínio
 
+**A referência de domínio é a esteira operacional (`docs/esteira.md`)**, enviada pelo Gerente de Produção e Responsável Técnico em 27/10/2026. Ela está acima das planilhas: as planilhas mostram o resultado, a esteira mostra o processo.
+
+**Só fatos confirmados.** Uma regra de negócio só entra no sistema depois de confirmada com o Gerente de Produção, etapa por etapa, na pauta `docs/duvidas.md` (resposta, fonte, data), e registrada em `docs/regras.md`, a única fonte de regra para o código. O ciclo completo (preparar, conversar, consolidar, decidir, implementar, validar) e a situação de cada etapa estão em `docs/roteiro.md`. Nada de regra deduzida das planilhas. O que o sistema faz hoje em cada etapa, comparado com a esteira, está em `docs/lacunas.md`.
+
+O que o código já tem (abaixo) foi modelado a partir das planilhas, antes da esteira, e **não está confirmado**:
+
 - **Matéria-prima** (`db/seeds_data/materias_primas.yml`): cenoura, batata, abóbora... com fornecedor e fatores.
 - **Corte** (`cortes.yml`): cubos, cubinhos, ralado, palitos, picado, floretes... Cada corte define o setor e a antecedência de produção.
 - **Produto processado = matéria-prima + corte** (ex.: cenoura + cubinhos). Produto in natura = a própria matéria-prima. Frutas descascadas ou embaladas são vendidas por unidade.
@@ -25,22 +31,9 @@ Dores relatadas: (1) redigitação; (2) consolidação por produto e corte sem p
 - **Apelido** (`apelidos.yml`): como cada cliente escreve cada produto ("Batata Inglesa Cubos Pequenos" → batata + cubinhos). Confirmado uma vez, reconhecido sempre.
 - **Setores de produção**: descascados inteiros, cortes manuais, ralados/picados/rodelas, palitos, cubinhos, frutas.
 
-### Fórmulas (da tabela de conversões)
+### Cálculo e regras de produção
 
-```
-kg in natura          = kg processado × fator_multiplicar
-embalagens a comprar  = ROUND(kg in natura ÷ kg_por_embalagem)   # caixa ou saco
-caixas para aprontar  = ROUND(kg processado ÷ kg_por_caixa_descascada)
-```
-Folhas (alface, couve) são compradas em kg. Matéria-prima sem fator gera alerta, não erro.
-
-### Regras de produção (hipótese, a confirmar)
-
-- Cada linha de pedido tem data de entrega. A data de produção = entrega − antecedência (do corte, com exceção por produto).
-- Comparando com as planilhas de 13 e 15/10/2026: ralados, picados e rodelas batem 100% com produção **no dia da entrega**; cubos, cubinhos e palitos variam (véspera, ou véspera mais o dia seguinte).
-- Domingo não tem produção: cai para sábado.
-- Cada compra na CEASA abastece a produção desde o dia da compra até a véspera da compra seguinte. Estoque da câmara fria é abatido antes.
-- Dúvidas em aberto: `docs/duvidas.md`.
+Não há fórmula nem regra de produção confirmada. O que o código faz hoje (antecedência por corte, domingo para sábado, cobertura de cada compra, arredondamento único das embalagens, estoque abatendo só a compra) saiu das planilhas e está descrito, com arquivo e linha, em `docs/lacunas.md`. A ordem de cálculo que a esteira descreve (saldo de produto pronto, fator, saldo de matéria-prima, arredondamento por produto) é um exemplo ilustrativo do documento e também está na pauta. As regras observadas nas planilhas estão em `docs/analise-planilhas.md`, como observação e não como regra.
 
 ## Stack e convenções
 
@@ -49,7 +42,7 @@ Folhas (alface, couve) são compradas em kg. Matéria-prima sem fator gera alert
 - Código, tabelas e classes em inglês; interface, mensagens e seeds em português do Brasil.
 - Quantidades em `decimal(10,3)`. Datas sem hora (`date`). Fuso `America/Sao_Paulo`.
 - PDFs (programação, produção por setor, compras) com Prawn. Interface usável no celular (PWA).
-- Testes com Minitest. Os números de `referencia_planilhas.yml` são fixtures: o sistema deve chegar neles ou a diferença deve ser explicada por uma regra cadastrada.
+- Testes com Minitest. Os números de `referencia_planilhas.yml` são fixtures: registram o que as planilhas mostraram, não uma regra confirmada. Diferença entre o sistema e eles vira pergunta na pauta (`docs/duvidas.md`), não regra nova.
 
 ## Modelo de dados (MVP)
 
@@ -79,9 +72,15 @@ Fora: portal do cliente, leitura de pedido por foto/WhatsApp com IA, nota fiscal
 ## Arquivos
 
 - `db/seeds_data/`: dados reais da semana de 12/10/2026 em YAML.
-- `prototipo/safra.html`: protótipo funcional (abrir no navegador). A lógica de cálculo dele é a referência para os serviços.
-- `referencia/planilhas/`: planilhas originais da Hortifruti Modelo e pedidos dos clientes. Não versionar no Git (dados de clientes).
-- `docs/`: análise das planilhas, dúvidas de regra e plano do MVP.
+- `prototipo/safra.html`: protótipo funcional (abrir no navegador). O cálculo dele foi modelado a partir das planilhas, antes da esteira: não é referência de regra (a referência é `docs/regras.md`).
+- `referencia/planilhas/`: planilhas originais da Hortifruti Modelo e pedidos dos clientes. `referencia/esteira/`: documento original da esteira. Não versionar no Git (dados de clientes).
+- `docs/roteiro.md`: roteiro de execução, papel de cada documento e situação de cada etapa. Comece por aqui.
+- `docs/esteira.md`: esteira operacional, referência de domínio.
+- `docs/regras.md`: regras confirmadas, com a referência da resposta que as confirmou.
+- `docs/duvidas.md`: pauta com o Gerente de Produção, por etapa da esteira, com as respostas confirmadas.
+- `docs/lacunas.md`: o que o sistema faz hoje em cada etapa, comparado com a esteira.
+- `docs/analise-planilhas.md`: o que as planilhas de outubro/2026 contêm (observação, não regra).
+- `docs/skills.md`: skills de revisão e QA do Claude Code (`.claude/skills/`), quando usar cada uma e por que só rodam quando chamadas.
 
 ## Pull requests
 

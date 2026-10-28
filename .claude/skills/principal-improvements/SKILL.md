@@ -2,6 +2,7 @@
 name: principal-improvements
 description: A Principal Rails engineer should review Claude-generated code for correctness, failure handling, security, and maintainability. Clean syntax matters, but the key question is whether the code behaves correctly in production.
 tags: ["review", "quality", "audit"]
+disable-model-invocation: true
 ---
 
 # O que um Principal Rails revisa no Safra

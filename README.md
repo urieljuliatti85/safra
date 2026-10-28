@@ -1,6 +1,6 @@
 # Safra
 
-Sistema de planejamento de produção e compras para atacadista de hortifrúti e processadora de vegetais minimamente processados. Só o pedido é digitado: programação, produção por setor, aprontes e compras CEASA são calculados e versionados. Contexto de produto e regras de negócio em [`CLAUDE.md`](CLAUDE.md), dúvidas em aberto em [`docs/duvidas.md`](docs/duvidas.md).
+Sistema de planejamento de produção e compras para atacadista de hortifrúti e processadora de vegetais minimamente processados. Só o pedido é digitado: programação, produção por setor, aprontes e compras CEASA são calculados e versionados. Contexto de produto e regras de negócio em [`CLAUDE.md`](CLAUDE.md), processo de referência em [`docs/esteira.md`](docs/esteira.md) e pauta com o Gerente de Produção em [`docs/duvidas.md`](docs/duvidas.md).
 
 ## Requisitos
 
