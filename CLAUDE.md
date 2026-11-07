@@ -33,7 +33,7 @@ O que o código já tem (abaixo) foi modelado a partir das planilhas, antes da e
 
 ### Cálculo e regras de produção
 
-Não há fórmula nem regra de produção confirmada. O que o código faz hoje (antecedência por corte, domingo para sábado, cobertura de cada compra, arredondamento único das embalagens, estoque abatendo só a compra) saiu das planilhas e está descrito, com arquivo e linha, em `docs/lacunas.md`. A ordem de cálculo que a esteira descreve (saldo de produto pronto, fator, saldo de matéria-prima, arredondamento por produto) é um exemplo ilustrativo do documento e também está na pauta. As regras observadas nas planilhas estão em `docs/analise-planilhas.md`, como observação e não como regra.
+Não há fórmula nem regra de produção confirmada. O que o código faz hoje (antecedência por corte, domingo para sábado, cobertura de cada compra, arredondamento único das embalagens, estoque abatendo só a compra) saiu das planilhas e está descrito, com arquivo e linha, em `docs/lacunas.md`. **A esteira vem antes do código:** no passo "Decidir" de cada etapa, cálculo deduzido das planilhas é removido e refeito a partir de `docs/regras.md`, e não ajustado (`docs/roteiro.md`). O que ainda vem das planilhas está listado no topo de `docs/lacunas.md`. A ordem de cálculo que a esteira descreve (saldo de produto pronto, fator, saldo de matéria-prima, arredondamento por produto) é um exemplo ilustrativo do documento e também está na pauta. As regras observadas nas planilhas estão em `docs/analise-planilhas.md`, como observação e não como regra.
 
 ## Stack e convenções
 
