@@ -522,3 +522,125 @@
   grupo: in_natura
   materia_prima: abacate
   unidade: kg
+# Produtos da tabela de cortes de 04/11/2026 que faltavam (R1.17, D14). Batata chips e batata bolinha ficam fora até
+# a pergunta sobre o corte delas ser respondida.
+- codigo: abobrinha_palitos
+  nome: Abobrinha em palitos
+  grupo: processado
+  materia_prima: abobrinha
+  unidade: kg
+  corte: palitos
+- codigo: abobrinha_laminas
+  nome: Abobrinha em lâminas
+  grupo: processado
+  materia_prima: abobrinha
+  unidade: kg
+  corte: laminas
+- codigo: abobrinha_rodelas
+  nome: Abobrinha em rodelas
+  grupo: processado
+  materia_prima: abobrinha
+  unidade: kg
+  corte: rodelas
+- codigo: alho_descascado
+  nome: Alho descascado
+  grupo: processado
+  materia_prima: alho
+  unidade: kg
+  corte: inteira_descascada
+- codigo: banana_rodelas
+  nome: Banana em rodelas
+  grupo: processado
+  materia_prima: banana
+  unidade: kg
+  corte: rodelas
+- codigo: banana_gomos
+  nome: Banana em gomos
+  grupo: processado
+  materia_prima: banana
+  unidade: kg
+  corte: gomos
+- codigo: batata_palitos
+  nome: Batata em palitos
+  grupo: processado
+  materia_prima: batata
+  unidade: kg
+  corte: palitos
+- codigo: batata_doce_rodelas
+  nome: Batata-doce em rodelas
+  grupo: processado
+  materia_prima: batata_doce
+  unidade: kg
+  corte: rodelas
+- codigo: berinjela_rodelas
+  nome: Berinjela em rodelas
+  grupo: processado
+  materia_prima: berinjela
+  unidade: kg
+  corte: rodelas
+- codigo: berinjela_palitos
+  nome: Berinjela em palitos
+  grupo: processado
+  materia_prima: berinjela
+  unidade: kg
+  corte: palitos
+- codigo: berinjela_laminas
+  nome: Berinjela em lâminas
+  grupo: processado
+  materia_prima: berinjela
+  unidade: kg
+  corte: laminas
+- codigo: beterraba_cubos
+  nome: Beterraba em cubos
+  grupo: processado
+  materia_prima: beterraba
+  unidade: kg
+  corte: cubos
+- codigo: beterraba_rodelas
+  nome: Beterraba em rodelas
+  grupo: processado
+  materia_prima: beterraba
+  unidade: kg
+  corte: rodelas
+- codigo: cebola_descascada
+  nome: Cebola descascada
+  grupo: processado
+  materia_prima: cebola
+  unidade: kg
+  corte: inteira_descascada
+- codigo: cebola_rodelas
+  nome: Cebola em rodelas
+  grupo: processado
+  materia_prima: cebola
+  unidade: kg
+  corte: rodelas
+- codigo: chuchu_laminas
+  nome: Chuchu em lâminas
+  grupo: processado
+  materia_prima: chuchu
+  unidade: kg
+  corte: laminas
+- codigo: milho_verde_rodelas
+  nome: Milho verde em rodelas
+  grupo: processado
+  materia_prima: milho_verde
+  unidade: kg
+  corte: rodelas
+- codigo: pepino_palitos
+  nome: Pepino em palitos
+  grupo: processado
+  materia_prima: pepino
+  unidade: kg
+  corte: palitos
+- codigo: quiabo_palitos
+  nome: Quiabo em palitos
+  grupo: processado
+  materia_prima: quiabo
+  unidade: kg
+  corte: palitos
+- codigo: laranja_lima_desc
+  nome: Laranja lima descascada
+  grupo: fruta
+  materia_prima: laranja_lima
+  unidade: kg
+  corte: descascada_un

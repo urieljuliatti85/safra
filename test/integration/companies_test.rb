@@ -55,7 +55,7 @@ class CompaniesTest < ActionDispatch::IntegrationTest
     admin = new_company.users.sole
     assert_equal [ "admin", true, false, "dono@novo.local" ], [ admin.role, admin.must_change_password, admin.platform_admin, admin.email_address ]
     ActsAsTenant.with_tenant(new_company) do
-      assert_equal 13, Cut.count
+      assert_equal 17, Cut.count
       assert_equal [ 0, 0, 0, 0 ], [ Customer.count, Product.count, RawMaterial.count, Order.count ]
     end
     assert User.authenticate_by(email_address: "dono@novo.local", password: password)
@@ -68,7 +68,7 @@ class CompaniesTest < ActionDispatch::IntegrationTest
     create_company(name: "Cópia SA", email: "copia@novo.local", catalog: company.id)
     copy = Company.find_by!(name: "Cópia SA")
     ActsAsTenant.with_tenant(copy) do
-      assert_equal [ 66, 95, 10, 13, 1 ], [ RawMaterial.count, Product.count, Supplier.count, Cut.count, ProductionRule.count ]
+      assert_equal [ 69, 115, 10, 17, 1 ], [ RawMaterial.count, Product.count, Supplier.count, Cut.count, ProductionRule.count ]
       cenoura = RawMaterial.find_by!(code: "cenoura")
       assert_equal [ 1.35, 20.0, "Fornecedor B" ], [ cenoura.multiply_factor.to_f, cenoura.kg_per_package.to_f, cenoura.supplier.name ]
       produto = Product.find_by!(code: "cenoura_ralada")
@@ -78,7 +78,7 @@ class CompaniesTest < ActionDispatch::IntegrationTest
       assert_equal [ 0, 0, 0, 0, 0, 0 ], [ Customer.count, CustomerAlias.count, Order.count, OrderLine.count, StockCount.count, PurchaseDay.count ]
     end
     assert_equal 2, copy.raw_lead_days
-    assert_equal 66, RawMaterial.count, "a empresa de origem não pode mudar"
+    assert_equal 69, RawMaterial.count, "a empresa de origem não pode mudar"
   end
 
   test "a montagem inicial não enche o histórico da empresa nova" do
@@ -189,6 +189,6 @@ class CompaniesTest < ActionDispatch::IntegrationTest
     get companies_path
     assert_select "td.name", text: /Hortifruti Modelo/
     assert_match "(a sua)", response.body
-    assert_select "tr", text: /Hortifruti Modelo.*Ativa.*3.*7.*95/m
+    assert_select "tr", text: /Hortifruti Modelo.*Ativa.*3.*7.*115/m
   end
 end

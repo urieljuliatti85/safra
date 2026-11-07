@@ -65,3 +65,25 @@
   setor: frutas
   nome_setor: Frutas descascadas e embaladas
   antecedencia_dias: 1
+# Cortes da tabela de 04/11/2026 (R1.15, D13). Setor e antecedência por analogia com cortes parecidos: hipótese,
+# como os demais, até as etapas 3 (antecedência) e 7 (setor).
+- codigo: laminas
+  nome: Lâminas / chinelo (5 mm)
+  setor: ralpic
+  nome_setor: Ralados, picados e rodelas
+  antecedencia_dias: 0
+- codigo: meia_lua
+  nome: Meia-lua (3 a 10 mm)
+  setor: ralpic
+  nome_setor: Ralados, picados e rodelas
+  antecedencia_dias: 0
+- codigo: gomos
+  nome: Gomos
+  setor: manual
+  nome_setor: Cortes manuais
+  antecedencia_dias: 1
+- codigo: cubos_g
+  nome: Cubos grandes 50x50 mm
+  setor: manual
+  nome_setor: Cortes manuais
+  antecedencia_dias: 1

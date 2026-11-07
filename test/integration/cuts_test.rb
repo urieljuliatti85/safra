@@ -49,11 +49,11 @@ class CutsTest < ActionDispatch::IntegrationTest
   end
 
   test "editar: o código não muda e trocar o setor troca o nome do setor" do
-    cut = Cut.create!(name: "Meia-lua", code: "meia_lua", sector: "manual", lead_days: 1)
-    patch cut_path(cut), params: { cut: { name: "Meia-lua fina", sector: "ralpic", lead_days: "0" } }
+    cut = Cut.create!(name: "Juliana", code: "juliana", sector: "manual", lead_days: 1)
+    patch cut_path(cut), params: { cut: { name: "Juliana fina", sector: "ralpic", lead_days: "0" } }
     assert_redirected_to cuts_path
     cut.reload
-    assert_equal [ "meia_lua", "Meia-lua fina", "ralpic", "Ralados, picados e rodelas", 0 ], [ cut.code, cut.name, cut.sector, cut.sector_name, cut.lead_days ]
+    assert_equal [ "juliana", "Juliana fina", "ralpic", "Ralados, picados e rodelas", 0 ], [ cut.code, cut.name, cut.sector, cut.sector_name, cut.lead_days ]
   end
 
   test "a tela de edição avisa quando há produtos no corte" do
@@ -105,10 +105,10 @@ class CutsTest < ActionDispatch::IntegrationTest
     sign_in_as(result.admin)
 
     get cuts_path
-    assert_select "tbody tr", 13
+    assert_select "tbody tr", 17
     post cuts_path, params: { cut: { name: "Só nossa", sector: "manual", lead_days: "1" } }
-    assert_equal 14, ActsAsTenant.with_tenant(result.company) { Cut.count }
-    assert_equal 13, Cut.count, "a empresa de origem não ganha corte"
+    assert_equal 18, ActsAsTenant.with_tenant(result.company) { Cut.count }
+    assert_equal 17, Cut.count, "a empresa de origem não ganha corte"
 
     get edit_cut_path(modelo_cut)
     assert_response :not_found

@@ -472,3 +472,14 @@
   kg_por_embalagem: null
   kg_por_caixa_descascada: null
   embalagem_compra: kg
+# Matérias-primas dos produtos da tabela de cortes de 04/11/2026 (D14). Fornecedor, fator e embalagem ainda não
+# confirmados (etapas 3 e 4): sem fator, a Conferência mostra o alerta "Sem fator".
+- codigo: alho
+  nome: Alho
+  embalagem_compra: kg
+- codigo: laranja_lima
+  nome: Laranja lima
+  embalagem_compra: kg
+- codigo: milho_verde
+  nome: Milho verde
+  embalagem_compra: kg
