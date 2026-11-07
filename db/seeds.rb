@@ -67,7 +67,8 @@ ActsAsTenant.with_tenant(company) do
     customers = load_yaml.call("clientes.yml").to_h do |row|
       customer = create_missing.call(
         Customer.find_or_initialize_by(code: row["codigo"]),
-        name: row["nome"], short_name: row["nome_curto"], order_source: row["origem_pedido"]
+        name: row["nome"], short_name: row["nome_curto"], order_source: row["origem_pedido"],
+        monthly_orders: row["pedido_mensal"] || false
       )
       [ row["codigo"], customer ]
     end

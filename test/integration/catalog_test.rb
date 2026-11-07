@@ -173,8 +173,9 @@ class CatalogTest < ActionDispatch::IntegrationTest
   test "endereço de entrega do cliente: grava normalizado, valida e aparece na lista" do
     customer = Customer.find_by!(code: "hbp")
     patch customer_path(customer), params: { customer: { address: " Rua das Flores, 120 ", city: "Vitória", state: "es", postal_code: "29010-000",
-                                                         delivery_from: "06:00", delivery_until: "09:00" } }
+                                                         delivery_from: "06:00", delivery_until: "09:00", monthly_orders: "1" } }
     customer.reload
+    assert customer.monthly_orders?, "pedido mensal (R1.5) marcado pelo cadastro"
     assert_equal [ "Rua das Flores, 120", "ES", "29010000" ], [ customer.address, customer.state, customer.postal_code ]
     assert_equal "06:00 às 09:00", customer.delivery_window_text
     get customers_path

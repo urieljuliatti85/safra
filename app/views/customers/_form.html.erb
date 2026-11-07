@@ -14,6 +14,10 @@
     <%= form.text_field :order_source, class: "field w-full" %>
     <p class="muted mt-1 text-sm">Ex.: planilha em xlsx, PDF, print de tela. É só uma lembrança para a equipe.</p>
   </div>
+  <div>
+    <label class="flex items-center gap-2 font-bold"><%= form.check_box :monthly_orders, class: "size-5" %>Manda o pedido do mês inteiro</label>
+    <p class="muted mt-1 text-sm">Como a Nutrir: o pedido não segue o prazo da quinta-feira.</p>
+  </div>
   <fieldset class="grid gap-4 border-t border-line pt-4">
     <legend class="font-bold">Entrega</legend>
     <p class="muted -mt-2 text-sm">Usado pela logística e pela roteirização (API de entregas). Rua, número e cidade bastam; latitude e longitude são opcionais.</p>

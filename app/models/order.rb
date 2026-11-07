@@ -13,10 +13,8 @@ class Order < ApplicationRecord
   def week_dates = self.class.week_dates(week_start)
 
   # Prazo do pedido semanal: 15h da quinta-feira anterior à semana das entregas (R1.4, D7).
-  # A Nutrir não segue esse prazo: manda o pedido do mês 10 dias antes (R1.5).
-  MONTHLY_CUSTOMER_CODES = %w[nutrir].freeze
-
+  # Cliente com pedido mensal (a Nutrir manda o mês 10 dias antes, R1.5) não segue esse prazo.
   def deadline = (week_start - 4).in_time_zone.change(hour: 15)
 
-  def late? = received_at.present? && MONTHLY_CUSTOMER_CODES.exclude?(customer.code) && received_at > deadline
+  def late? = received_at.present? && !customer.monthly_orders? && received_at > deadline
 end

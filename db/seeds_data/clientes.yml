@@ -28,3 +28,4 @@
   nome: Nutrir · Usina Litoral
   nome_curto: Nutrir UL
   origem_pedido: PDF por e-mail com o pedido do mês inteiro, uma AF por data de entrega (unidade 4471)
+  pedido_mensal: true
