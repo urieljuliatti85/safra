@@ -20,6 +20,7 @@ class Cut < ApplicationRecord
   has_many :products, dependent: :restrict_with_error
 
   validates :code, :name, :sector_name, presence: true
+  validates :reference_measure, length: { maximum: 200 }
   validates :name, uniqueness: { scope: :company_id, case_sensitive: false }
   validates :code, uniqueness: { scope: :company_id }
   validates :sector, inclusion: { in: SECTORS }

@@ -46,7 +46,8 @@ ActsAsTenant.with_tenant(company) do
         name: row["nome"],
         sector: row["setor"],
         sector_name: row["nome_setor"],
-        lead_days: row["antecedencia_dias"]
+        lead_days: row["antecedencia_dias"],
+        reference_measure: row["medida"]
       )
       [ row["codigo"], cut ]
     end

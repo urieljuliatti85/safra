@@ -1,55 +1,66 @@
 # Cortes. O produto processado = matéria-prima + corte. O setor e a antecedência vêm do corte.
+# medida: referência confirmada na R1.15 (D12); a medida escrita no pedido orienta o preparo (R1.14).
 # antecedencia_dias: 0 = produz no dia da entrega, 1 = véspera. Hipótese tirada da comparação com as planilhas de 13 e 15/10; confirmar.
 - codigo: cubos
   nome: Cubos
   setor: manual
   nome_setor: Cortes manuais
   antecedencia_dias: 1
+  medida: '20 × 20 × 20 mm'
 - codigo: cubinhos
   nome: Cubinhos 10x10 mm
   setor: cubinho
   nome_setor: Cubinhos 10×10 mm
   antecedencia_dias: 1
+  medida: '10 × 10 × 10 mm'
 - codigo: ralado
   nome: Ralado
   setor: ralpic
   nome_setor: Ralados, picados e rodelas
   antecedencia_dias: 0
+  medida: '3 a 5 mm'
 - codigo: rodelas
   nome: Rodelas
   setor: ralpic
   nome_setor: Ralados, picados e rodelas
   antecedencia_dias: 0
+  medida: '3 a 30 mm de espessura, conforme a solicitação'
 - codigo: picado
   nome: Picado
   setor: ralpic
   nome_setor: Ralados, picados e rodelas
   antecedencia_dias: 0
+  medida: '3 a 10 mm'
 - codigo: fatiado
   nome: Fatiado
   setor: ralpic
   nome_setor: Ralados, picados e rodelas
   antecedencia_dias: 0
+  medida: '3 a 10 mm'
 - codigo: palitos
   nome: Palitos
   setor: palito
   nome_setor: Palitos
   antecedencia_dias: 1
+  medida: '30 a 50 mm × 10 a 12 mm (vagem: 8 a 10 mm); usual 40 × 10 mm; 10 × 10 × 60 mm quando o cliente pede'
 - codigo: floretes
   nome: Floretes
   setor: manual
   nome_setor: Cortes manuais
   antecedencia_dias: 1
+  medida: '60 mm de referência, dimensões variáveis'
 - codigo: lascas
   nome: Lascas com casca
   setor: manual
   nome_setor: Cortes manuais
   antecedencia_dias: 1
+  medida: '30 × 50 mm'
 - codigo: inteira_descascada
   nome: Inteira descascada
   setor: descasc
   nome_setor: Descascados inteiros
   antecedencia_dias: 1
+  medida: 'Sem corte; sem medida fixa'
 - codigo: mistura
   nome: Mistura
   setor: manual
@@ -72,18 +83,22 @@
   setor: ralpic
   nome_setor: Ralados, picados e rodelas
   antecedencia_dias: 0
+  medida: '5 mm de espessura, comprimento variável'
 - codigo: meia_lua
   nome: Meia-lua (3 a 10 mm)
   setor: ralpic
   nome_setor: Ralados, picados e rodelas
   antecedencia_dias: 0
+  medida: '3 a 10 mm'
 - codigo: gomos
   nome: Gomos
   setor: manual
   nome_setor: Cortes manuais
   antecedencia_dias: 1
+  medida: 'Conforme o vegetal e a solicitação do cliente'
 - codigo: cubos_g
   nome: Cubos grandes 50x50 mm
   setor: manual
   nome_setor: Cortes manuais
   antecedencia_dias: 1
+  medida: '50 × 50 × 50 mm'

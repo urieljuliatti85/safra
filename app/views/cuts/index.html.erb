@@ -10,11 +10,12 @@
 <section class="panel">
   <div class="overflow-x-auto">
     <table class="ops-table ops-list" style="min-width: 40rem; table-layout: auto">
-      <thead><tr><th>Corte</th><th>Setor</th><th>Produz</th><th class="col-num">Produtos</th><th></th></tr></thead>
+      <thead><tr><th>Corte</th><th>Medida</th><th>Setor</th><th>Produz</th><th class="col-num">Produtos</th><th></th></tr></thead>
       <tbody>
         <% @cuts.each do |cut| %>
           <tr>
             <td class="name"><strong><%= cut.name %></strong></td>
+            <td data-label="Medida"><%= cut.reference_measure.presence || "—" %></td>
             <td class="who"><%= cut.sector_name %></td>
             <td data-label="Produz"><%= lead_options.find { |_, days| days == cut.lead_days }&.first %></td>
             <td class="num-col" data-label="Produtos"><%= @product_counts[cut.id].to_i %></td>

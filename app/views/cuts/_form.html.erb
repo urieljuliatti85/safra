@@ -7,6 +7,11 @@
     <p class="muted mt-1 text-sm">Ex.: Cubos grandes, Fatiado fino, Meia-lua.</p>
   </div>
   <div>
+    <%= form.label :reference_measure, "Medida de referência", class: "mb-1 block font-bold" %>
+    <%= form.text_field :reference_measure, class: "field w-full" %>
+    <p class="muted mt-1 text-sm">Ex.: 10 × 10 × 10 mm. É referência: quando o pedido traz uma medida, é ela que orienta o preparo.</p>
+  </div>
+  <div>
     <%= form.label :sector, "Setor (lista de produção em que aparece)", class: "mb-1 block font-bold" %>
     <%= form.select :sector, Cut::SECTORS.map { |code| [ Cut::SECTOR_NAMES[code], code ] }, {}, class: "field w-full" %>
     <ul class="muted mt-2 grid gap-1 text-sm">

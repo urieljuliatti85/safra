@@ -50,10 +50,10 @@ class CutsTest < ActionDispatch::IntegrationTest
 
   test "editar: o código não muda e trocar o setor troca o nome do setor" do
     cut = Cut.create!(name: "Juliana", code: "juliana", sector: "manual", lead_days: 1)
-    patch cut_path(cut), params: { cut: { name: "Juliana fina", sector: "ralpic", lead_days: "0" } }
+    patch cut_path(cut), params: { cut: { name: "Juliana fina", sector: "ralpic", lead_days: "0", reference_measure: "2 × 2 × 40 mm" } }
     assert_redirected_to cuts_path
     cut.reload
-    assert_equal [ "juliana", "Juliana fina", "ralpic", "Ralados, picados e rodelas", 0 ], [ cut.code, cut.name, cut.sector, cut.sector_name, cut.lead_days ]
+    assert_equal [ "juliana", "Juliana fina", "ralpic", "Ralados, picados e rodelas", 0, "2 × 2 × 40 mm" ], [ cut.code, cut.name, cut.sector, cut.sector_name, cut.lead_days, cut.reference_measure ]
   end
 
   test "a tela de edição avisa quando há produtos no corte" do

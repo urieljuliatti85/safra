@@ -20,6 +20,8 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
       assert_equal "abobora_japonesa", Product.find_by!(code: "abobora_japonesa_cubos").raw_material.code
       assert_equal %w[banana_terra], Product.where(code: %w[banana_cubinhos banana_rodelas banana_gomos]).map { |p| p.raw_material.code }.uniq
       assert_nil RawMaterial.find_by(code: "banana")
+      # R1.15 (D12): medida de referência de cada corte.
+      assert_equal [ "10 × 10 × 10 mm", "50 × 50 × 50 mm" ], Cut.where(code: %w[cubinhos cubos_g]).order(:code).pluck(:reference_measure)
       # R1.6 (D6): a semana do pedido vai de segunda a domingo; a entrega de 19/10 da Aurora Mollinari fica no pedido de 19/10.
       assert Order.where(week_start: "2026-10-12").all? { |order| order.lines.all? { |line| order.week_dates.cover?(line.delivery_date) } }
       assert_equal 5, Order.joins(:customer).find_by!(customers: { code: "amoll" }, week_start: "2026-10-19").lines.count

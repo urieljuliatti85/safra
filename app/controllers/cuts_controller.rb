@@ -52,6 +52,6 @@ class CutsController < ApplicationController
 
   # O nome do setor não vem da tela: segue o do setor escolhido.
   def cut_params
-    params.require(:cut).permit(:name, :sector, :lead_days)
+    params.require(:cut).permit(:name, :sector, :lead_days, :reference_measure)
   end
 end
