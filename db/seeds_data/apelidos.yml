@@ -414,3 +414,46 @@
 - cliente: amoll
   nome_no_pedido: SELETA PRIMAVERA
   produto: seleta
+# Nutrir: os 14 nomes das AFs de novembro/2026 (R1.16: cubo 10 mm = cubinhos, cubo 20 mm = cubos; D5).
+- cliente: nutrir
+  nome_no_pedido: 'CENOURA PROC CUBO 10MM'
+  produto: cenoura_cubinhos
+- cliente: nutrir
+  nome_no_pedido: 'CENOURA PROCESSADA CUBO (20MM)'
+  produto: cenoura_cubos
+- cliente: nutrir
+  nome_no_pedido: 'CHUCHU PROCESSADO CUBO P (10MM)'
+  produto: chuchu_cubinhos
+- cliente: nutrir
+  nome_no_pedido: 'CHUCHU PROCESSADO CUBO M 20MM'
+  produto: chuchu_cubos
+- cliente: nutrir
+  nome_no_pedido: 'BATATA PROC CUBO 10MM'
+  produto: batata_cubinhos
+- cliente: nutrir
+  nome_no_pedido: 'BATATA PROCESSADA CUBO 20MM'
+  produto: batata_cubos
+- cliente: nutrir
+  nome_no_pedido: 'BATATA DOCE PROCESSADA CUBO M 20MM'
+  produto: batata_doce_cubos
+- cliente: nutrir
+  nome_no_pedido: 'BERINJELA PROCESSADA CUBO M (20MM)'
+  produto: berinjela_cubos
+- cliente: nutrir
+  nome_no_pedido: 'BETERRABA PROCESSADA PALITO'
+  produto: beterraba_palitos
+- cliente: nutrir
+  nome_no_pedido: 'ABOBORA JAP. (KABOTIA) PROCESSADO CUBO 20MM'
+  produto: abobora_japonesa_cubos
+- cliente: nutrir
+  nome_no_pedido: 'BANANA DA TERRA PROC CUBO P 10MM'
+  produto: banana_cubinhos
+- cliente: nutrir
+  nome_no_pedido: 'ABOBRINHA BRASILEIRA PROCESSADA CUBO M'
+  produto: abobrinha_cubos
+- cliente: nutrir
+  nome_no_pedido: 'VAGEM PROCESSADA CUBINHO'
+  produto: vagem_cubinhos
+- cliente: nutrir
+  nome_no_pedido: 'BATATA PROCESSADA DESCASCADA INT'
+  produto: batata_inteira

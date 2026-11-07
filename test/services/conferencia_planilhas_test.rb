@@ -28,6 +28,10 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
       assert_equal [ 4, 4, 3 ], %w[yakissoba salada_roxa vinagrete].map { |code| mixes[code].components.size }
       assert_in_delta 100, mixes["vinagrete"].components.sum(&:percentage), 0.001
       assert_equal "seleta", CustomerAlias.find_by!(name_in_order: "SELETA PRIMAVERA").product.code
+      # R1.16 (D5): os nomes da Nutrir ligados aos produtos da Hortifruti Modelo.
+      nutrir = CustomerAlias.joins(:customer).where(customers: { code: "nutrir" }).to_h { |a| [ a.name_in_order, a.product.code ] }
+      assert_equal 14, nutrir.size
+      assert_equal %w[cenoura_cubinhos cenoura_cubos], nutrir.values_at("CENOURA PROC CUBO 10MM", "CENOURA PROCESSADA CUBO (20MM)")
       # R1.15 (D12): medida de referência de cada corte.
       assert_equal [ "10 × 10 × 10 mm", "50 × 50 × 50 mm" ], Cut.where(code: %w[cubinhos cubos_g]).order(:code).pluck(:reference_measure)
       # R1.6 (D6): a semana do pedido vai de segunda a domingo; a entrega de 19/10 da Aurora Mollinari fica no pedido de 19/10.
