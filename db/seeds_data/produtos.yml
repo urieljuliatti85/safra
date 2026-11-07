@@ -264,7 +264,7 @@
   unidade: kg
   corte: palitos
 - codigo: yakissoba
-  nome: Mistura yakissoba
+  nome: Yaksoba
   grupo: processado
   materia_prima: mistura
   unidade: kg
@@ -651,3 +651,28 @@
   materia_prima: abobora_japonesa
   unidade: kg
   corte: cubos
+# Ingredientes e misturas da lista de misturas (R1.20, D18).
+- codigo: tomate_cubinhos
+  nome: Tomate em cubinhos
+  grupo: processado
+  materia_prima: tomate
+  unidade: kg
+  corte: cubinhos
+- codigo: pimentao_verde_cubinhos
+  nome: Pimentão verde em cubinhos
+  grupo: processado
+  materia_prima: pimentao_verde
+  unidade: kg
+  corte: cubinhos
+- codigo: salada_roxa
+  nome: Salada roxa
+  grupo: processado
+  materia_prima: mistura
+  unidade: kg
+  corte: mistura
+- codigo: vinagrete
+  nome: Vinagrete
+  grupo: processado
+  materia_prima: mistura
+  unidade: kg
+  corte: mistura

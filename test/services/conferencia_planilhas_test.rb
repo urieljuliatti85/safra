@@ -9,7 +9,7 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
 
   test "seeds carregam cadastros e pedidos da semana" do
     ActsAsTenant.with_tenant(company) do
-      assert_equal 116, Product.count
+      assert_equal 120, Product.count
       assert_equal 7, Customer.count
       # R1.2 (D1): a Nutrir é um cliente só, com a unidade Usina Litoral (4471).
       assert_equal "Nutrir · Usina Litoral", Customer.find_by!(code: "nutrir").name
@@ -20,6 +20,14 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
       assert_equal "abobora_japonesa", Product.find_by!(code: "abobora_japonesa_cubos").raw_material.code
       assert_equal %w[banana_terra], Product.where(code: %w[banana_cubinhos banana_rodelas banana_gomos]).map { |p| p.raw_material.code }.uniq
       assert_nil RawMaterial.find_by(code: "banana")
+      # R1.19 e R1.20 (D18): as quatro misturas com os ingredientes e o percentual sobre o peso.
+      mixes = Product.where(code: %w[seleta yakissoba salada_roxa vinagrete]).index_by(&:code)
+      assert_equal "Yaksoba", mixes["yakissoba"].name
+      assert_equal [ [ "batata_cubinhos", 50 ], [ "cenoura_cubinhos", 35 ], [ "vagem_cubinhos", 15 ] ],
+                   mixes["seleta"].components.map { |c| [ c.component.code, c.percentage.to_i ] }
+      assert_equal [ 4, 4, 3 ], %w[yakissoba salada_roxa vinagrete].map { |code| mixes[code].components.size }
+      assert_in_delta 100, mixes["vinagrete"].components.sum(&:percentage), 0.001
+      assert_equal "seleta", CustomerAlias.find_by!(name_in_order: "SELETA PRIMAVERA").product.code
       # R1.15 (D12): medida de referência de cada corte.
       assert_equal [ "10 × 10 × 10 mm", "50 × 50 × 50 mm" ], Cut.where(code: %w[cubinhos cubos_g]).order(:code).pluck(:reference_measure)
       # R1.6 (D6): a semana do pedido vai de segunda a domingo; a entrega de 19/10 da Aurora Mollinari fica no pedido de 19/10.
@@ -35,7 +43,7 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
     load_seeds
     ActsAsTenant.with_tenant(company) do
       assert_equal 1, Company.count
-      assert_equal 116, Product.count
+      assert_equal 120, Product.count
       assert_equal 375, OrderLine.count
     end
   end

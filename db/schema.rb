@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_07_230000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_07_240000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -203,6 +203,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_230000) do
     t.datetime "received_at"
     t.index ["company_id"], name: "index_orders_on_company_id"
     t.index ["customer_id", "week_start"], name: "index_orders_on_customer_id_and_week_start", unique: true
+  end
+
+  create_table "product_components", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "product_id", null: false
+    t.bigint "component_id", null: false
+    t.decimal "percentage", precision: 7, scale: 4, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_product_components_on_company_id"
+    t.index ["component_id"], name: "index_product_components_on_component_id"
+    t.index ["product_id", "component_id"], name: "index_product_components_on_product_id_and_component_id", unique: true
+    t.index ["product_id"], name: "index_product_components_on_product_id"
   end
 
   create_table "production_plan_items", force: :cascade do |t|
@@ -456,6 +469,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_07_230000) do
   add_foreign_key "order_versions", "users", on_delete: :nullify
   add_foreign_key "orders", "companies"
   add_foreign_key "orders", "customers"
+  add_foreign_key "product_components", "companies"
+  add_foreign_key "product_components", "products"
+  add_foreign_key "product_components", "products", column: "component_id"
   add_foreign_key "production_plan_items", "companies"
   add_foreign_key "production_plan_items", "production_plans"
   add_foreign_key "production_plan_items", "products"

@@ -1,0 +1,10 @@
+# Composição das misturas (R1.19, R1.20; D18): percentual sobre o peso. A lista é completa (o Gerente de Produção, 04/11/2026).
+# Vinagrete: três partes iguais (33,3333% cada).
+- mistura: seleta
+  ingredientes: { batata_cubinhos: 50, cenoura_cubinhos: 35, vagem_cubinhos: 15 }
+- mistura: yakissoba
+  ingredientes: { brocolis: 25, couve_flor: 25, cenoura_ralada: 25, repolho_picado: 25 }
+- mistura: salada_roxa
+  ingredientes: { repolho_roxo_picado: 25, cenoura_ralada: 25, repolho_picado: 25, beterraba_ralada: 25 }
+- mistura: vinagrete
+  ingredientes: { tomate_cubinhos: 33.3333, pimentao_verde_cubinhos: 33.3333, cebola_cubinhos: 33.3333 }

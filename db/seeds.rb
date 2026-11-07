@@ -72,6 +72,13 @@ ActsAsTenant.with_tenant(company) do
       [ row["codigo"], customer ]
     end
 
+    load_yaml.call("misturas.yml").each do |row|
+      mix = products.fetch(row["mistura"])
+      row["ingredientes"].each do |code, percentage|
+        create_missing.call(ProductComponent.find_or_initialize_by(product: mix, component: products.fetch(code)), percentage: percentage)
+      end
+    end
+
     load_yaml.call("apelidos.yml").each do |row|
       create_missing.call(
         CustomerAlias.find_or_initialize_by(customer: customers.fetch(row["cliente"]), name_in_order: row["nome_no_pedido"]),

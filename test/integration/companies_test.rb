@@ -68,7 +68,7 @@ class CompaniesTest < ActionDispatch::IntegrationTest
     create_company(name: "Cópia SA", email: "copia@novo.local", catalog: company.id)
     copy = Company.find_by!(name: "Cópia SA")
     ActsAsTenant.with_tenant(copy) do
-      assert_equal [ 70, 116, 10, 17, 1 ], [ RawMaterial.count, Product.count, Supplier.count, Cut.count, ProductionRule.count ]
+      assert_equal [ 70, 120, 10, 17, 1, 14 ], [ RawMaterial.count, Product.count, Supplier.count, Cut.count, ProductionRule.count, ProductComponent.count ]
       cenoura = RawMaterial.find_by!(code: "cenoura")
       assert_equal [ 1.35, 20.0, "Fornecedor B" ], [ cenoura.multiply_factor.to_f, cenoura.kg_per_package.to_f, cenoura.supplier.name ]
       produto = Product.find_by!(code: "cenoura_ralada")
@@ -189,6 +189,6 @@ class CompaniesTest < ActionDispatch::IntegrationTest
     get companies_path
     assert_select "td.name", text: /Hortifruti Modelo/
     assert_match "(a sua)", response.body
-    assert_select "tr", text: /Hortifruti Modelo.*Ativa.*3.*7.*116/m
+    assert_select "tr", text: /Hortifruti Modelo.*Ativa.*3.*7.*120/m
   end
 end

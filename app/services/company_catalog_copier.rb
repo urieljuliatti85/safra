@@ -9,7 +9,8 @@ class CompanyCatalogCopier
 
   def call
     source = ActsAsTenant.with_tenant(@from) do
-      { suppliers: Supplier.all.to_a, cuts: Cut.all.to_a, raw_materials: RawMaterial.all.to_a, products: Product.all.to_a, rules: ProductionRule.all.to_a }
+      { suppliers: Supplier.all.to_a, cuts: Cut.all.to_a, raw_materials: RawMaterial.all.to_a, products: Product.all.to_a, rules: ProductionRule.all.to_a,
+        components: ProductComponent.all.to_a }
     end
     Current.set(session: nil) do
       ActsAsTenant.with_tenant(@to) do
@@ -24,6 +25,9 @@ class CompanyCatalogCopier
           [ p.id, Product.create!(attributes.merge("raw_material" => raw_materials.fetch(p.raw_material_id), "cut" => cuts[p.cut_id])) ]
         end
         source[:rules].each { |rule| ProductionRule.create!(product: products.fetch(rule.product_id), lead_days: rule.lead_days) }
+        source[:components].each do |item|
+          ProductComponent.create!(product: products.fetch(item.product_id), component: products.fetch(item.component_id), percentage: item.percentage)
+        end
       end
     end
     @to.update!(raw_lead_days: @from.raw_lead_days)

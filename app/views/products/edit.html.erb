@@ -1,3 +1,14 @@
 <% content_for :title, "Editar produto · Safra" %>
 <div class="mb-5"><h1 class="page-title"><%= @product.name %></h1><p class="page-sub">Código <code><%= @product.code %></code> (não muda). <%= link_to "Histórico deste cadastro", audit_logs_path(type: @product.class.name, id: @product.id), class: "underline" if policy(:audit_log).index? %></p></div>
+<% if @product.components.any? %>
+  <section class="panel mb-4 max-w-xl p-5">
+    <h2 class="mb-2 font-bold">Composição da mistura</h2>
+    <ul class="grid gap-1">
+      <% @product.components.includes(:component).each do |item| %>
+        <li><%= item.component.name %>: <span class="num"><%= qty(item.percentage) %>%</span> do peso</li>
+      <% end %>
+    </ul>
+    <p class="muted mt-2 text-sm">Lista de misturas da Hortifruti Modelo (R1.20). Ainda não entra no cálculo da produção.</p>
+  </section>
+<% end %>
 <%= render "form", product: @product, raw_materials: @raw_materials, cuts: @cuts %>

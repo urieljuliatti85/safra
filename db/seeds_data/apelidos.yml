@@ -410,3 +410,7 @@
 - cliente: afab
   nome_no_pedido: VAGEM PROCESSADA · RODELINHAS 10MM
   produto: vagem_cubinhos
+# "Seleta primavera" é a Seleta (R1.20, D18). Ligado à Aurora Mollinari, que já pede "SELETA JARDINEIRA".
+- cliente: amoll
+  nome_no_pedido: SELETA PRIMAVERA
+  produto: seleta

@@ -11,6 +11,10 @@ class Product < ApplicationRecord
   has_many :customer_aliases, dependent: :destroy
   has_many :sheet_aliases, dependent: :destroy
   has_many :order_lines, dependent: :restrict_with_error
+  # Ingredientes, quando o produto é uma mistura (D18).
+  has_many :components, -> { order(percentage: :desc) }, class_name: "ProductComponent", dependent: :destroy, inverse_of: :product
+  # Ingrediente de alguma mistura não pode ser apagado sem tirar da mistura antes.
+  has_many :used_in_mixes, class_name: "ProductComponent", foreign_key: :component_id, dependent: :restrict_with_error, inverse_of: :component
 
   validates :code, :name, :unit, presence: true
   validates :code, uniqueness: { scope: :company_id }
