@@ -18,9 +18,9 @@ class OrderGridSaverTest < ActiveSupport::TestCase
   end
 
   test "quantidade vazia apaga a linha e nova quantidade cria" do
-    OrderGridSaver.new(order: @order, quantities: { @key => { "2026-10-12" => "", "2026-10-19" => "3" } }).call
+    OrderGridSaver.new(order: @order, quantities: { @key => { "2026-10-12" => "", "2026-10-18" => "3" } }).call
     assert_equal 0, @order.lines.where(product: @product, delivery_date: "2026-10-12").count
-    assert_equal 3, @order.lines.where(product: @product, delivery_date: "2026-10-19").sum(:quantity)
+    assert_equal 3, @order.lines.where(product: @product, delivery_date: "2026-10-18").sum(:quantity)
   end
 
   test "texto que não é número rejeita tudo e não grava nada" do

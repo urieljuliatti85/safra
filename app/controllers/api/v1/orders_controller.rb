@@ -36,7 +36,7 @@ module Api
       # [{ product, unit, date, quantity }] -> { "<product_id>|<unit>" => { "AAAA-MM-DD" => "12,5" } }
       def quantities_from(lines)
         errors = []
-        week = (@order.week_start..(@order.week_start + 7))
+        week = @order.week_dates
         products = Product.where(code: lines.filter_map { |line| line[:product] if line.respond_to?(:key?) }).index_by(&:code)
         quantities = lines.each_with_index.with_object({}) do |(line, index), grid|
           next errors << "Linha #{index + 1}: formato inválido." unless line.respond_to?(:key?)

@@ -84,10 +84,13 @@ class MobileTest < ApplicationSystemTestCase
     assert_field "Acelga picada em Qua 14/10", with: "9"
     assert_no_field "Aipim em cubos em Qua 14/10"
 
-    find(".day-pick", text: "Seg 19/10").click
+    # Todo dia da semana de 12/10 tem pedido do Horizonte Norte; o Horizonte Sul não tem no sábado 17/10.
+    visit orders_path(customer: "hsul", week: "2026-10-12")
+    find(".day-pick", text: "Sáb 17/10").click
+    click_on "Só com pedido"
     assert_text "Nenhum produto com pedido neste dia"
     click_on "Todos"
-    assert_field "Acelga picada em Seg 19/10"
+    assert_field "Abóbora em cubos em Sáb 17/10"
   end
 
   test "tocar no número da faixa da semana abre a produção do setor já rolada até a lista dele" do

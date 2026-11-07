@@ -80,7 +80,7 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     product, order = ActsAsTenant.with_tenant(company) do
       [ Product.find_by!(code: "cenoura_cubinhos"), Order.find_by!(customer: Customer.find_by!(code: "hbp"), week_start: Date.new(2026, 10, 12)) ]
     end
-    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-19" => "3" } } }
+    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-18" => "3" } } }
     follow_redirect!
     assert_match "Pedido salvo: versão 2, 1 alteração.", response.body
     assert_select "a[href='#versoes']", /Versões\s+v2/
@@ -238,7 +238,7 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_select "[role=alert]", /Nada foi salvo/
-    assert_select "[role=alert] li", "Cenoura ralada em 20/10: fora da semana do pedido (12/10 a 19/10)."
+    assert_select "[role=alert] li", "Cenoura ralada em 20/10: fora da semana do pedido (12/10 a 18/10)."
     assert_equal before, serra_order_state
   end
 
@@ -255,7 +255,7 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     post apply_order_import_path(import), params: { mappings: { pitaya.to_s => product.id.to_s } }
 
     assert_response :unprocessable_entity
-    assert_match "fora da semana do pedido (19/10 a 26/10)", response.body
+    assert_match "fora da semana do pedido (19/10 a 25/10)", response.body
     ActsAsTenant.with_tenant(company) do
       assert_equal lines_before, [ OrderLine.count, OrderVersion.count ]
       assert_not CustomerAlias.exists?(name_in_order: import.rows[pitaya]["name"])

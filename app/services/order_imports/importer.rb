@@ -35,9 +35,9 @@ module OrderImports
       }
     end
 
-    # O pedido de uma semana vai de segunda até a segunda seguinte; dia depois disso não apareceria em grade nenhuma.
+    # O pedido de uma semana vai de segunda a domingo (R1.6); dia depois disso não apareceria em grade nenhuma.
     def week_errors(dates, week_start)
-      last = week_start + 7
+      last = Order.week_dates(week_start).last
       return [] if dates.max <= last
 
       [ "A planilha vai de #{Formatting.short_date(dates.min)} a #{Formatting.short_date(dates.max)}, mais do que uma semana " \

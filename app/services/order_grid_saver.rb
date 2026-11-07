@@ -118,7 +118,7 @@ class OrderGridSaver
   # Zero continua valendo, para apagar; e linha antiga que chega igual passa, para restaurar versão de um pedido
   # que já tinha uma dessas continuar funcionando.
   def outside_week_errors(parsed, before)
-    week = @order.week_start..(@order.week_start + 7)
+    week = @order.week_dates
     parsed.filter_map do |(product_id, unit, date), quantity|
       next if week.cover?(date) || quantity.zero? || before.fetch([ product_id, unit, date ], 0) == quantity
 

@@ -22,14 +22,15 @@ class OrderVersionsTest < ActiveSupport::TestCase
   test "o primeiro salvamento guarda como o pedido estava e a versão com o que mudou" do
     before = state
     current = before.fetch([ @product.id, "kg", Date.new(2026, 10, 12) ])
-    assert save({ "2026-10-12" => "11,5", "2026-10-19" => "3" }).ok?
+    sunday = before[[ @product.id, "kg", Date.new(2026, 10, 18) ]]
+    assert save({ "2026-10-12" => "11,5", "2026-10-18" => "3" }).ok?
 
     initial, first = @order.versions.order(:version).to_a
     assert_equal [ 1, "initial", nil ], [ initial.version, initial.source, initial.user_name ]
     assert_equal before, initial.quantities
     assert_equal [ 2, "grid" ], [ first.version, first.source ]
     assert_equal state, first.quantities
-    assert_equal [ [ "2026-10-12", current.to_s("F").sub(/\.0\z/, ""), "11.5" ], [ "2026-10-19", nil, "3" ] ],
+    assert_equal [ [ "2026-10-12", current.to_s("F").sub(/\.0\z/, ""), "11.5" ], [ "2026-10-18", sunday&.to_s("F")&.sub(/\.0\z/, ""), "3" ] ],
                  first.changes_list.map { |c| [ c["date"], c["before"], c["after"] ] }
     assert_equal @product.name, first.changes_list.first["product"]
   end
@@ -48,7 +49,7 @@ class OrderVersionsTest < ActiveSupport::TestCase
 
   test "restaurar volta o pedido ao retrato e grava uma versão nova" do
     original = state
-    save({ "2026-10-12" => "", "2026-10-19" => "3" })
+    save({ "2026-10-12" => "", "2026-10-18" => "3" })
     save({ "2026-10-17" => "8,125" })
     assert_equal 3, @order.versions.count
 
@@ -64,13 +65,13 @@ class OrderVersionsTest < ActiveSupport::TestCase
     assert_not OrderVersionRestorer.new(version: restored).call.ok?
   end
 
-  # A grade da semana de 12/10 vai até 19/10: dia depois disso não apareceria em grade nenhuma, mas entraria no cálculo.
+  # A grade da semana de 12/10 vai até 18/10 (R1.6): dia depois disso não apareceria em grade nenhuma, mas entraria no cálculo.
   test "quantidade fora da semana do pedido é recusada e nada é gravado" do
     before = state
     result = save({ "2026-10-13" => "5", "2026-10-20" => "3" })
 
     assert_not result.ok?
-    assert_equal [ "#{@product.name} em 20/10: fora da semana do pedido (12/10 a 19/10)." ], result.errors
+    assert_equal [ "#{@product.name} em 20/10: fora da semana do pedido (12/10 a 18/10)." ], result.errors
     assert_equal before, state
     assert_equal 0, @order.versions.count
   end
@@ -86,17 +87,19 @@ class OrderVersionsTest < ActiveSupport::TestCase
     assert_equal original, state
 
     changed = save({ "2026-10-20" => "4" })
-    assert_equal [ "#{@product.name} em 20/10: fora da semana do pedido (12/10 a 19/10)." ], changed.errors
+    assert_equal [ "#{@product.name} em 20/10: fora da semana do pedido (12/10 a 18/10)." ], changed.errors
     assert_equal original, state
   end
 
-  # A semana do pedido vai da segunda até a segunda seguinte (8º dia da grade), nos dois limites.
-  test "limites da semana: a segunda seguinte vale, o domingo anterior não" do
-    assert save({ "2026-10-19" => "2,5" }).ok?
-    assert_equal BigDecimal("2.5"), state[[ @product.id, "kg", Date.new(2026, 10, 19) ]]
+  # A semana do pedido vai de segunda a domingo (R1.6, D6), nos dois limites.
+  test "limites da semana: o domingo vale, a segunda seguinte e o domingo anterior não" do
+    assert save({ "2026-10-18" => "2,5" }).ok?
+    assert_equal BigDecimal("2.5"), state[[ @product.id, "kg", Date.new(2026, 10, 18) ]]
+
+    assert_equal [ "#{@product.name} em 19/10: fora da semana do pedido (12/10 a 18/10)." ], save({ "2026-10-19" => "4" }).errors
 
     result = save({ "2026-10-11" => "4" })
-    assert_equal [ "#{@product.name} em 11/10: fora da semana do pedido (12/10 a 19/10)." ], result.errors
+    assert_equal [ "#{@product.name} em 11/10: fora da semana do pedido (12/10 a 18/10)." ], result.errors
     assert_nil state[[ @product.id, "kg", Date.new(2026, 10, 11) ]]
   end
 

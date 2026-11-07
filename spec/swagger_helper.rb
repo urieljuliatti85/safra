@@ -17,7 +17,7 @@ RSpec.configure do |config|
           pedidos e contagens de estoque. Erros vêm como `{ "error": { "code", "message", "details" } }`.
 
           **Formatos:** datas em AAAA-MM-DD; quantidades como número decimal (kg, un, cx ou mç, conforme a unidade); a semana de
-          pedido começa na segunda-feira e cobre 8 dias (segunda a segunda). O limite é de 300 requisições por minuto por chave.
+          pedido começa na segunda-feira e cobre 7 dias (segunda a domingo). O limite é de 300 requisições por minuto por chave.
         TEXT
       },
       servers: [ { url: "/", description: "Esta instalação" } ],

@@ -13,6 +13,9 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
       assert_equal 7, Customer.count
       # R1.2 (D1): a Nutrir é um cliente só, com a unidade Usina Litoral (4471).
       assert_equal "Nutrir · Usina Litoral", Customer.find_by!(code: "nutrir").name
+      # R1.6 (D6): a semana do pedido vai de segunda a domingo; a entrega de 19/10 da Aurora Mollinari fica no pedido de 19/10.
+      assert Order.where(week_start: "2026-10-12").all? { |order| order.lines.all? { |line| order.week_dates.cover?(line.delivery_date) } }
+      assert_equal 5, Order.joins(:customer).find_by!(customers: { code: "amoll" }, week_start: "2026-10-19").lines.count
       assert_equal 375, OrderLine.count
       assert_equal 3, PurchaseDay.count
       assert_equal 0, Product.where(product_group: "processed", cut_id: nil).count

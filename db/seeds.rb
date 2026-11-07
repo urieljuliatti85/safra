@@ -117,7 +117,11 @@ ActsAsTenant.with_tenant(company) do
     load_yaml.call("pedidos_2026-10-12.yml").each do |row|
       next unless fresh_orders.key?(row["cliente"])
 
-      orders.fetch(row["cliente"]).lines.create!(
+      # A semana do pedido vai de segunda a domingo (R1.6): entrega na segunda seguinte vai para o pedido daquela semana.
+      order = orders.fetch(row["cliente"])
+      delivery = Date.parse(row["entrega"].to_s)
+      order = Order.find_or_create_by!(customer: order.customer, week_start: delivery.beginning_of_week) unless order.week_dates.cover?(delivery)
+      order.lines.create!(
         product: products.fetch(row["produto"]),
         delivery_date: row["entrega"],
         quantity: row["quantidade"],
