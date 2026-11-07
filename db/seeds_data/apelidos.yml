@@ -457,3 +457,6 @@
 - cliente: nutrir
   nome_no_pedido: 'BATATA PROCESSADA DESCASCADA INT'
   produto: batata_inteira
+- cliente: nutrir
+  nome_no_pedido: LARANJA PERA DESCASCADA-UN
+  produto: laranja_desc

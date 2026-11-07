@@ -82,3 +82,5 @@ gem "roo-xls", "~> 2.0"
 gem "rails-i18n", "~> 8.1"
 
 gem "web-push", "~> 3.1"
+
+gem "pdf-reader", "~> 2.12"

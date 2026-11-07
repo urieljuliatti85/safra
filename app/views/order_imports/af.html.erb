@@ -1,0 +1,48 @@
+<% content_for :title, "Conferir AFs · Safra" %>
+<% afs = @import.payload.fetch("afs") %>
+<% products = Product.where(id: afs.flat_map { |af| af["items"].map { |i| i["product_id"] } }).index_by(&:id) %>
+<% unknown = afs.flat_map { |af| af["items"] }.reject { |i| i["product_id"] }.map { |i| i["name"] }.uniq %>
+<div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Conferir AFs</h1>
+    <p class="page-sub">
+      <strong><%= @import.filename %></strong> · <%= @import.customer.name %> ·
+      <%= afs.size %> <%= afs.size == 1 ? "AF" : "AFs" %>, de <%= short_date(Date.iso8601(afs.map { |a| a["date"] }.min)) %> a <%= short_date(Date.iso8601(afs.map { |a| a["date"] }.max)) %>.
+      Cada AF vai para o pedido da semana da sua entrega; a AF que já estava no pedido é trocada pela deste arquivo.
+    </p>
+  </div>
+  <%= link_to "Outro arquivo", new_order_import_path(customer: @import.customer.code), class: "btn" %>
+</div>
+
+<% if @import.applied? %>
+  <p class="flash flash-notice"><%= icon :check %><span>Aplicada em <%= l(@import.applied_at, format: "%d/%m às %H:%M") %>.</span></p>
+<% end %>
+<% errors = Array(@import.payload["errors"]) + Array(@errors) + unknown.map { |name| "\"#{name}\" não tem produto: cadastre o apelido de #{@import.customer.short_name} e importe de novo." } %>
+<% if errors.any? %>
+  <div class="flash flash-alert" role="alert"><ul><% errors.uniq.each do |e| %><li><%= e %></li><% end %></ul></div>
+<% end %>
+
+<section class="panel mb-4 overflow-x-auto">
+  <table class="ops-table ops-list" style="min-width: 36rem; table-layout: auto">
+    <thead><tr><th>AF</th><th>Entrega</th><th>Produto</th><th class="col-num">Quantidade</th></tr></thead>
+    <tbody>
+      <% afs.sort_by { |a| a["date"] }.each do |af| %>
+        <% af["items"].each_with_index do |item, index| %>
+          <tr>
+            <td class="num"><%= af["number"] if index.zero? %><% if index.zero? && af["alteration"] %> <strong>alteração</strong><% end %></td>
+            <td><%= weekday_date(Date.iso8601(af["date"])) if index.zero? %></td>
+            <td>
+              <%= products[item["product_id"]]&.name || tag.strong("Sem produto") %>
+              <span class="muted text-sm">· <%= item["name"] %><%= " · alterado" if item["changed"] %></span>
+            </td>
+            <td class="num"><%= qty(BigDecimal(item["quantity"])) %> <%= item["unit"] %></td>
+          </tr>
+        <% end %>
+      <% end %>
+    </tbody>
+  </table>
+</section>
+
+<% unless @import.applied? %>
+  <%= button_to "Aplicar nos pedidos", apply_order_import_path(@import), method: :post, class: "btn btn-primary", disabled: unknown.any?, form: { data: { turbo: false } } %>
+<% end %>

@@ -1,7 +1,8 @@
 # Planilha de pedido enviada por um cliente, lida e guardada para conferência antes de entrar no pedido.
 class OrderImport < ApplicationRecord
   STATUSES = %w[pending applied].freeze
-  KINDS = %w[sheet image].freeze
+  # af: PDF de Autorizações de Fornecimento de cliente com pedido mensal (D2, D3).
+  KINDS = %w[sheet image af].freeze
   IMAGE_TYPES = %w[image/png image/jpeg image/webp image/gif].freeze
 
   acts_as_tenant :company
@@ -19,6 +20,8 @@ class OrderImport < ApplicationRecord
   validates :status, inclusion: { in: STATUSES }
   validates :kind, inclusion: { in: KINDS }
   validate :image_content_type, if: -> { kind == "image" && image.attached? }
+
+  def af? = kind == "af"
 
   def image?
     kind == "image"

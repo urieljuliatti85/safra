@@ -22,20 +22,23 @@ class OrderImportsController < ApplicationController
     extension = File.extname(file.original_filename).downcase
     if SHEET_EXTENSIONS.include?(extension)
       import = OrderImports::Importer.new(company: current_company, customer: @customer, path: file.tempfile.path, filename: file.original_filename).call
+    elsif extension == ".pdf"
+      import = OrderImports::AfImporter.new(company: current_company, customer: @customer, path: file.tempfile.path, filename: file.original_filename).call
     elsif IMAGE_EXTENSIONS.include?(extension)
       import = OrderImports::ImageBatch.new(company: current_company, customer: @customer, path: file.tempfile.path, filename: file.original_filename,
                                             content_type: file.content_type, date: date_param(:date, nil)).call.first
     else
-      raise OrderImports::SheetReader::Unreadable, "Formato não aceito. Envie xlsx, xls, ods, csv, um ODT ou uma imagem."
+      raise OrderImports::SheetReader::Unreadable, "Formato não aceito. Envie xlsx, xls, ods, csv, um ODT, uma imagem ou o PDF de AFs."
     end
     redirect_to order_import_path(import)
-  rescue OrderImports::SheetReader::Unreadable, OrderImports::OdtReader::Unreadable => e
+  rescue OrderImports::SheetReader::Unreadable, OrderImports::OdtReader::Unreadable, OrderImports::AfReader::Unreadable => e
     flash.now[:alert] = e.message
     @customer ||= @customers.first
     render :new, status: :unprocessable_entity
   end
 
   def show
+    return render(:af) if @import.af?
     return show_image if @import.image?
 
     @preview = OrderImports::Preview.new(@import)
@@ -69,6 +72,8 @@ class OrderImportsController < ApplicationController
   end
 
   def apply
+    return apply_afs if @import.af?
+
     result = OrderImports::Applier.new(import: @import, mappings: params.fetch(:mappings, {}).to_unsafe_h).call
     if result.ok?
       redirect_to orders_path(customer: @import.customer.code, week: @import.week_start),
@@ -83,6 +88,8 @@ class OrderImportsController < ApplicationController
 
   # Devolve o pedido ao que era antes da planilha. Planos enviados não são reenviados: o aviso diz quais mudaram.
   def undo
+    return head(:not_found) if @import.af?
+
     result = OrderImports::Undoer.new(import: @import).call
     if result.ok?
       redirect_to order_import_path(@import), notice: "Importação desfeita: o pedido de #{@import.customer.short_name} voltou ao que era antes.",
@@ -96,6 +103,19 @@ class OrderImportsController < ApplicationController
 
   def load_customers
     @customers = Customer.order(:name).to_a
+  end
+
+  # PDF de AFs: cada AF no pedido da semana da entrega (D2, D3, D4).
+  def apply_afs
+    result = OrderImports::AfApplier.new(import: @import).call
+    if result.ok?
+      weeks = result.weeks.map { |week| Formatting.short_date(week) }.to_sentence(last_word_connector: " e ")
+      redirect_to orders_path(customer: @import.customer.code, week: result.weeks.first),
+                  notice: "AFs de #{@import.customer.short_name} aplicadas nos pedidos das semanas de #{weeks}.", alert: StalePlans.warning(current_company)
+    else
+      @errors = result.errors
+      render :af, status: :unprocessable_entity
+    end
   end
 
   def load_import
