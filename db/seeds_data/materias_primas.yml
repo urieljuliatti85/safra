@@ -3,6 +3,14 @@
 # embalagens a comprar = ROUND(kg in natura / kg_por_embalagem)
 # caixas para aprontar = ROUND(kg processado / kg_por_caixa_descascada)
 # null = ainda não informado (gera alerta na Conferência)
+# A variedade da abóbora vem do pedido e o cadastro a guarda (R1.18, D16): uma matéria-prima por variedade.
+# "Abóbora", sem variedade, fica para os pedidos que não dizem qual. Fornecedor e fator das variedades: etapas 3 e 4.
+- codigo: abobora_japonesa
+  nome: Abóbora japonesa (kabotiá)
+  embalagem_compra: kg
+- codigo: abobora_jacare
+  nome: Abóbora jacaré
+  embalagem_compra: kg
 - codigo: abobora
   nome: Abóbora
   fornecedor: Fornecedor I
@@ -177,13 +185,6 @@
   kg_por_embalagem: null
   kg_por_caixa_descascada: null
   embalagem_compra: cx
-- codigo: banana
-  nome: Banana (para cubinhos)
-  fornecedor: Fornecedor J
-  fator_multiplicar: null
-  kg_por_embalagem: null
-  kg_por_caixa_descascada: null
-  embalagem_compra: kg
 - codigo: banana_nanica
   nome: Banana nanica
   fornecedor: Fornecedor J
@@ -346,10 +347,11 @@
   kg_por_embalagem: null
   kg_por_caixa_descascada: null
   embalagem_compra: kg
+# A banana dos cortes é a banana-da-terra (R1.18, D17): uma matéria-prima só, sem fator até a etapa 3.
 - codigo: banana_terra
-  nome: Banana da terra
+  nome: Banana-da-terra
   fornecedor: Fornecedor J
-  fator_multiplicar: 1
+  fator_multiplicar: null
   kg_por_embalagem: null
   kg_por_caixa_descascada: null
   embalagem_compra: kg

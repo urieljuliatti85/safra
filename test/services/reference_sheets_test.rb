@@ -62,7 +62,7 @@ class ReferenceSheetsTest < ActiveSupport::TestCase
     assert_equal "un", row(comparison, "Laranja descascada").unit
     assert_equal :not_modeled, row(comparison, "Batata inglesa", section: "descascador").reason
     assert_equal :not_comparable, row(comparison, "Vagem", section: "aprontes").status
-    assert_equal 65, row(comparison, "Banana da terra").planilha # 45 kg + 20 kg da média, somados pelo apelido
+    assert_equal 65, row(comparison, "Banana-da-terra").planilha # 45 kg + 20 kg da média, somados pelo apelido
     assert_equal :not_comparable, row(comparison, "Quiabo", section: "compras").status
     assert_equal [ "COISA NOVA PICADA" ], comparison.unmatched.map(&:label)
     assert_equal :unmatched, row(comparison, "COISA NOVA PICADA").status

@@ -50,7 +50,7 @@
 - codigo: banana_cubinhos
   nome: Banana em cubinhos
   grupo: processado
-  materia_prima: banana
+  materia_prima: banana_terra
   unidade: kg
   corte: cubinhos
 - codigo: baroa_cubos
@@ -551,13 +551,13 @@
 - codigo: banana_rodelas
   nome: Banana em rodelas
   grupo: processado
-  materia_prima: banana
+  materia_prima: banana_terra
   unidade: kg
   corte: rodelas
 - codigo: banana_gomos
   nome: Banana em gomos
   grupo: processado
-  materia_prima: banana
+  materia_prima: banana_terra
   unidade: kg
   corte: gomos
 - codigo: batata_palitos
@@ -644,3 +644,10 @@
   materia_prima: laranja_lima
   unidade: kg
   corte: descascada_un
+# Abóbora japonesa em cubos: "ABOBORA JAP. (KABOTIA) PROCESSADO CUBO 20MM" da Nutrir (R1.18, R1.16; D16).
+- codigo: abobora_japonesa_cubos
+  nome: Abóbora japonesa em cubos
+  grupo: processado
+  materia_prima: abobora_japonesa
+  unidade: kg
+  corte: cubos
