@@ -56,4 +56,20 @@ class OrderImports::SheetReaderTest < ActiveSupport::TestCase
       assert_match "datas da semana", error.message
     end
   end
+
+  # R1.21 e R1.23 (D9, D11): crivo (ou pente) e dúzia são unidades; unidade escrita na célula não recusa a planilha.
+  test "unidade escrita na célula: na mesma unidade entra com aviso, em outra fica de fora com aviso" do
+    result = OrderImports::SheetReader.new(file_fixture("pedido_unidade_na_celula.csv").to_s, extension: ".csv").call
+    assert_empty result.errors
+    rows = result.rows.index_by(&:name)
+
+    assert_equal "crivo", rows["OVOS"].unit
+    assert_equal({ Date.new(2026, 10, 12) => 2, Date.new(2026, 10, 13) => 3 }, rows["OVOS"].quantities.compact)
+    assert_equal "dz", rows["OVOS CAIXA"].unit
+    assert_equal 12, rows["OVOS CAIXA"].quantities[Date.new(2026, 10, 12)]
+    assert_equal 60, rows["LARANJA DESCASCADA"].quantities[Date.new(2026, 10, 12)]
+
+    assert_equal({ Date.new(2026, 10, 13) => 5 }, rows["MAMÃO"].quantities.compact)
+    assert_match "12/10: \"60 Un\" está em un e a linha é em kg; não entrou. Esclareça com o cliente.", rows["MAMÃO"].warnings.join
+  end
 end

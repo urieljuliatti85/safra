@@ -16,7 +16,7 @@ RSpec.configure do |config|
           **Autenticação:** envie `Authorization: Bearer <chave>`. Chaves de leitura consultam; chaves de escrita também gravam
           pedidos e contagens de estoque. Erros vêm como `{ "error": { "code", "message", "details" } }`.
 
-          **Formatos:** datas em AAAA-MM-DD; quantidades como número decimal (kg, un, cx ou mç, conforme a unidade); a semana de
+          **Formatos:** datas em AAAA-MM-DD; quantidades como número decimal (kg, un, cx, mç, crivo ou dz, conforme a unidade); a semana de
           pedido começa na segunda-feira e cobre 7 dias (segunda a domingo). O limite é de 300 requisições por minuto por chave.
         TEXT
       },
@@ -62,7 +62,7 @@ RSpec.configure do |config|
                                        purchase_package: { type: :string, example: "sc" } } },
           Product: { type: :object, required: %w[code name group unit raw_material],
                      properties: { code: { type: :string, example: "cenoura_cubinhos" }, name: { type: :string }, group: { type: :string, enum: %w[processed raw fruit] },
-                                   unit: { type: :string, enum: %w[kg un cx mç] }, raw_material: { type: :string }, cut: { type: :string, nullable: true }, sector: { type: :string, nullable: true } } },
+                                   unit: { type: :string, enum: %w[kg un cx mç crivo dz] }, raw_material: { type: :string }, cut: { type: :string, nullable: true }, sector: { type: :string, nullable: true } } },
           OrderLine: { type: :object, required: %w[product unit date quantity],
                        properties: { product: { type: :string, description: "Código do produto" }, unit: { type: :string }, date: { type: :string, format: :date },
                                      quantity: { type: :number }, note: { type: :string, nullable: true } } },

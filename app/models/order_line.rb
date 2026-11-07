@@ -1,5 +1,6 @@
 class OrderLine < ApplicationRecord
-  UNITS = %w[kg un cx mç].freeze
+  # Crivo (ou pente, 30 ovos) e dúzia vêm da R1.21 (D9).
+  UNITS = %w[kg un cx mç crivo dz].freeze
   # Teto de digitação, bem abaixo do que cabe em decimal(10,3): um número maior é erro de digitação.
   MAX_QUANTITY = 1_000_000
 

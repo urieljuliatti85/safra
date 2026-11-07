@@ -13,7 +13,9 @@ module OrderImports
       "kg" => "kg", "quilograma" => "kg", "quilo" => "kg", "quilogramas" => "kg",
       "mç" => "mç", "mc" => "mç", "maço" => "mç", "maco" => "mç",
       "un" => "un", "und" => "un", "unid" => "un", "unidade" => "un", "unidades" => "un",
-      "cx" => "cx", "caixa" => "cx"
+      "cx" => "cx", "caixa" => "cx",
+      "crivo" => "crivo", "crivos" => "crivo", "pente" => "crivo", "pentes" => "crivo",
+      "dz" => "dz", "duzia" => "dz", "dúzia" => "dz", "duzias" => "dz", "dúzias" => "dz"
     }.freeze
     SKIP_NAMES = /\A(total|valor|validade|periodo|período|fornecedor|contato|descri[cç][aã]o|produtos?)\b/i
     DATE_PATTERN = %r{\A(\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4})\z}
@@ -57,12 +59,15 @@ module OrderImports
         next if product_name.empty? || product_name.match?(SKIP_NAMES)
 
         warnings = []
-        quantities = date_columns.to_h { |col, date| [ date, parse_quantity(sheet.cell(line, col), line, date, warnings, errors) ] }
-        if quantities.values.all?(&:nil?)
+        unit_warnings = []
+        unit = read_unit(sheet, line, unit_col, unit_warnings)
+        quantities = date_columns.to_h { |col, date| [ date, parse_quantity(sheet.cell(line, col), line, date, warnings, errors, unit) ] }
+        # Linha só com célula deixada de fora por unidade diferente continua na conferência, para o aviso aparecer.
+        if quantities.values.all?(&:nil?) && warnings.empty?
           ignored_blank += 1
           next
         end
-        Row.new(line: line, name: product_name, unit: read_unit(sheet, line, unit_col, warnings), quantities: quantities, warnings: warnings)
+        Row.new(line: line, name: product_name, unit: unit, quantities: quantities, warnings: warnings + unit_warnings)
       end
       Result.new(sheet: name, title: title_of(sheet, date_row), dates: date_columns.values, rows: rows, errors: errors, ignored_blank: ignored_blank)
     end
@@ -118,19 +123,23 @@ module OrderImports
       nil
     end
 
-    def parse_quantity(value, line, date, warnings, errors)
+    def parse_quantity(value, line, date, warnings, errors, unit)
       case value
       when nil then nil
       when Numeric then positive(BigDecimal(value.to_s))
-      when String then parse_text(value.strip, line, date, warnings, errors)
+      when String then parse_text(value.strip, line, date, warnings, errors, unit)
       else
         errors << cell_error(line, date, value)
         nil
       end
     end
 
-    def parse_text(text, line, date, warnings, errors)
+    def parse_text(text, line, date, warnings, errors, unit)
       return nil if text.empty?
+
+      with_unit = text.match(/\A(\d+(?:[.,]\d+)?)\s*([[:alpha:]ç.]+)\z/i)
+      cell_unit = with_unit && UNITS[with_unit[2].downcase.delete(".")]
+      return quantity_with_unit(BigDecimal(with_unit[1].tr(",", ".")), cell_unit, text, date, warnings, unit) if cell_unit
 
       normalized = text.tr(",", ".")
       if normalized.match?(/\A\d+(\.\d+)?\z/)
@@ -144,6 +153,19 @@ module OrderImports
         errors << cell_error(line, date, text)
         nil
       end
+    end
+
+    # "60 Un" numa coluna de quantidade (R1.23, D11): o pedido guarda a unidade em que chegou. Na mesma unidade da linha,
+    # o número entra com aviso; em outra, a célula fica de fora e o aviso pede para esclarecer com o cliente (R1.12).
+    def quantity_with_unit(number, cell_unit, text, date, warnings, unit)
+      if cell_unit == unit
+        warnings << "#{short(date)}: veio como texto \"#{text}\""
+        return positive(number)
+      end
+
+      line_unit = unit ? "a linha é em #{unit}" : "a linha não tem unidade"
+      warnings << "#{short(date)}: \"#{text}\" está em #{cell_unit} e #{line_unit}; não entrou. Esclareça com o cliente."
+      nil
     end
 
     def positive(number)
