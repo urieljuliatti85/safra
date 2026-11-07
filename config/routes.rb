@@ -37,6 +37,7 @@ Rails.application.routes.draw do
 
   get "orders", to: "orders#index"
   patch "orders", to: "orders#update"
+  patch "orders/received", to: "orders#received", as: :order_received
   resources :order_versions, only: :show do
     post :restore, on: :member
   end

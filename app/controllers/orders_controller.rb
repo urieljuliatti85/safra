@@ -24,6 +24,18 @@ class OrdersController < ApplicationController
     end
   end
 
+  # Quando o pedido chegou do cliente (R1.4, D7). O aviso de prazo na conferência compara com esta hora.
+  def received
+    return head(:unprocessable_entity) if @customer.nil?
+
+    back = orders_path(customer: @customer.code, week: @week_start)
+    time = Time.zone.parse(params[:received_at].to_s)
+    return redirect_to(back, alert: "Informe a data e a hora em que o pedido chegou.") if time.nil?
+
+    @order.update!(received_at: time)
+    redirect_to back, notice: "Pedido recebido em #{Formatting.short_date(time)} às #{time.strftime('%H:%M')}."
+  end
+
   private
 
   def load_context

@@ -30,7 +30,7 @@ class ConferenceChecker
       lines = lines.includes({ order: :customer }, product: [ :cut, { raw_material: :supplier } ])
       alerts = line_note_alerts(lines) + missing_factor_alerts(lines) + unit_alerts(lines) +
                supplier_alerts(lines) + factor_note_alerts(lines) + uncovered_alerts + sunday_alerts(lines) +
-               outlier_alerts(lines)
+               outlier_alerts(lines) + deadline_alerts
       alerts.sort_by { |a| [ a.level == :warn ? 0 : 1, a.kind, a.message ] }
     end
   end
@@ -131,8 +131,21 @@ class ConferenceChecker
   end
 
   # Abre a semana do pedido onde o problema aparece (a linha mais antiga).
-  def order_action(line)
-    order = line.order
+  # Pedido semanal recebido depois das 15h da quinta anterior (R1.4, D7). Só avisa: nada é bloqueado.
+  def deadline_alerts
+    orders = Order.where.not(received_at: nil).includes(:customer)
+    orders = orders.where(week_start: @week) if @week
+    orders.select(&:late?).map do |order|
+      received = order.received_at
+      alert(:warn, "Prazo", "#{order.customer.short_name}: pedido da semana de #{Formatting.short_date(order.week_start)} recebido em " \
+                            "#{Formatting.weekday_date(received.to_date)} às #{received.strftime('%H:%M')}, depois do prazo " \
+                            "(#{Formatting.weekday_date(order.deadline.to_date)}, 15h).", action: order_link(order))
+    end
+  end
+
+  def order_action(line) = order_link(line.order)
+
+  def order_link(order)
     Action.new("Abrir pedido de #{order.customer.short_name}", routes.orders_path(customer: order.customer.code, week: order.week_start.iso8601))
   end
 end

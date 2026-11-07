@@ -13,6 +13,14 @@
   <div>
     <h1 class="page-title">Pedidos de <%= @customer.name %></h1>
     <p class="page-sub"><strong>Origem do pedido</strong> · <%= @customer.order_source %>. Só o pedido é digitado: programação, produção e compras são calculadas.</p>
+    <%= form_with url: order_received_path(customer: @customer.code, week: @week_start), method: :patch, class: "mt-2 flex flex-wrap items-center gap-2 text-sm" do |f| %>
+      <label for="received_at" class="muted">Pedido recebido em</label>
+      <%= f.datetime_local_field :received_at, value: @order.received_at&.strftime("%Y-%m-%dT%H:%M"), id: "received_at", class: "field" %>
+      <%= f.submit "Salvar", class: "btn" %>
+      <% if @order.late? %>
+        <strong>Depois do prazo (<%= Formatting.weekday_date(@order.deadline.to_date) %>, 15h)</strong>
+      <% end %>
+    <% end %>
   </div>
   <div class="flex w-full flex-col gap-2 sm:w-auto">
     <div class="flex flex-wrap items-center gap-2">

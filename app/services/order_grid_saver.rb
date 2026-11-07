@@ -64,6 +64,8 @@ class OrderGridSaver
     end
     after = @order.lines.reload.group(:product_id, :unit, :delivery_date).sum(:quantity)
     create_version(next_version + 1, @source, snapshot(after), changes_list(changes))
+    # Sem data de chegada informada, o pedido conta como recebido no primeiro salvamento (D7); quem lança pode corrigir.
+    @order.update!(received_at: Time.current) if @order.received_at.nil?
   end
 
   def create_version(number, source, lines, changes, actor: true)
