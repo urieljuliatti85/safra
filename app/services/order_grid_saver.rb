@@ -14,7 +14,13 @@ class OrderGridSaver
 
   # source: de onde veio o salvamento (OrderVersion::SOURCES). import e restored_from só para registrar na versão.
   # measures: { "<product_id>|<unit>" => "10 mm" }, a medida pedida de cada linha da grade (R1.14, D12). Vazia apaga.
-  def initialize(order:, quantities:, measures: {}, source: "grid", import: nil, restored_from: nil)
+  # Prazo padrão de alteração (R1.26, D8). Restaurar versão e desfazer importação são correções e não pedem confirmação.
+  ALTERATION_NOTICE = 48.hours
+  CONFIRMED_SOURCES = %w[grid image import api].freeze
+
+  # late_confirmed: a Hortifruti Modelo confirmou a alteração com menos de 48 h da entrega.
+  def initialize(order:, quantities:, measures: {}, source: "grid", import: nil, restored_from: nil, late_confirmed: false)
+    @late_confirmed = late_confirmed
     @order = order
     @quantities = quantities
     @measures = measures
@@ -38,6 +44,9 @@ class OrderGridSaver
       # Nada foi gravado ainda: sair aqui não deixa o pedido pela metade.
       outside = outside_week_errors(parsed, before)
       return Result.new(errors: outside, changed_dates: []) if outside.any?
+
+      late = late_alterations(parsed, before)
+      return Result.new(errors: late, changed_dates: []) if late.any? && !@late_confirmed
 
       parsed.each do |(product_id, unit, date), quantity|
         lines = existing.fetch([ product_id, unit, date ], [])
@@ -63,6 +72,25 @@ class OrderGridSaver
 
   private
 
+  # Mudar ou cancelar uma quantidade que já existia, com menos de 48 h da entrega (R1.26, D8). Produto novo no dia
+  # (pedido extra) fica de fora até a pergunta A.5. As 48 h contam do início da janela de entrega do cliente
+  # ("entrega a partir de"); sem horário cadastrado, da meia-noite do dia.
+  def late_alterations(parsed, before)
+    return [] unless CONFIRMED_SOURCES.include?(@source)
+
+    from = @order.customer.delivery_from
+    parsed.filter_map do |(product_id, unit, date), quantity|
+      current = before.fetch([ product_id, unit, date ], 0)
+      next if current.zero? || current == quantity
+
+      delivery = date.in_time_zone.change(hour: from&.hour || 0, min: from&.min || 0)
+      next if delivery - ALTERATION_NOTICE > Time.current
+
+      "#{Product.find_by(id: product_id)&.name || 'Produto'} em #{Formatting.short_date(date)}: falta menos de 48 h para a entrega. " \
+        "Marque \"A Hortifruti Modelo confirmou a alteração\" para gravar."
+    end
+  end
+
   # A medida vale para a linha inteira da grade (todos os dias do produto naquela unidade). Não gera versão do pedido.
   def save_measures
     @measures.to_h.sum do |key, text|
@@ -80,15 +108,15 @@ class OrderGridSaver
       create_version(next_version += 1, "initial", snapshot(before), [], actor: false)
     end
     after = @order.lines.reload.group(:product_id, :unit, :delivery_date).sum(:quantity)
-    create_version(next_version + 1, @source, snapshot(after), changes_list(changes))
+    create_version(next_version + 1, @source, snapshot(after), changes_list(changes), late_confirmed: @late_confirmed)
     # Sem data de chegada informada, o pedido conta como recebido no primeiro salvamento (D7); quem lança pode corrigir.
     @order.update!(received_at: Time.current) if @order.received_at.nil?
   end
 
-  def create_version(number, source, lines, changes, actor: true)
+  def create_version(number, source, lines, changes, actor: true, late_confirmed: false)
     user = Current.user if actor
     @order.versions.create!(
-      version: number, source: source, lines: lines, changes_list: changes,
+      version: number, source: source, lines: lines, changes_list: changes, late_confirmed: late_confirmed,
       user: user, user_name: actor ? (user&.name || (Current.api_token && "API: #{Current.api_token.name}")) : nil,
       order_import: actor ? @import : nil, restored_from_version: actor ? @restored_from : nil
     )

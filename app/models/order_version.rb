@@ -22,7 +22,8 @@ class OrderVersion < ApplicationRecord
 
   def source_label
     label = SOURCES.fetch(source)
-    restored_from_version ? "#{label} (v#{restored_from_version})" : label
+    label = "#{label} (v#{restored_from_version})" if restored_from_version
+    late_confirmed? ? "#{label} · confirmada com menos de 48 h" : label
   end
 
   def latest?

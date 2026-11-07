@@ -54,6 +54,7 @@ class MobileTest < ApplicationSystemTestCase
   end
 
   test "na grade de pedidos um dia por vez, sem rolar para o lado, e o que foi digitado em outro dia é salvo junto" do
+    travel_to Time.zone.local(2026, 10, 5, 9) # antes das 48 h da entrega (R1.26)
     visit orders_path(customer: "hnorte", week: "2026-10-12")
     assert_equal 390, page.evaluate_script("document.documentElement.scrollWidth")
 
@@ -125,6 +126,7 @@ class MobileTest < ApplicationSystemTestCase
   end
 
   test "salvar no celular com dias e linhas escondidos não apaga nem muda o que não foi digitado" do
+    travel_to Time.zone.local(2026, 10, 5, 9) # antes das 48 h da entrega (R1.26)
     before = order_lines("hnorte")
     visit orders_path(customer: "hnorte", week: "2026-10-12")
     find(".day-pick", text: "Qua 14/10").click

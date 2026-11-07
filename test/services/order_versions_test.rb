@@ -2,6 +2,8 @@ require "test_helper"
 
 class OrderVersionsTest < ActiveSupport::TestCase
   setup do
+    # Antes das 48 h da entrega (R1.26, D8): estes testes não são sobre o prazo de alteração.
+    travel_to Time.zone.local(2026, 10, 5, 9)
     ActsAsTenant.current_tenant = company
     @customer = Customer.find_by!(code: "hbp")
     @order = Order.find_by!(customer: @customer, week_start: Date.new(2026, 10, 12))

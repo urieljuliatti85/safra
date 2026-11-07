@@ -77,6 +77,7 @@
   </div>
   <div class="savebar">
     <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar pedido<% end %>
+    <label class="flex items-center gap-2 text-sm"><%= check_box_tag :late_confirmed, "1", false, class: "size-5" %>A Hortifruti Modelo confirmou a alteração (menos de 48 h da entrega)</label>
     <span class="muted text-sm">Quantidade vazia ou 0 apaga a linha. Use vírgula para decimais.</span>
   </div>
 <% end %>

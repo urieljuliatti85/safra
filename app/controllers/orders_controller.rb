@@ -14,7 +14,8 @@ class OrdersController < ApplicationController
     return head(:unprocessable_entity) if @customer.nil?
 
     result = OrderGridSaver.new(order: @order, quantities: params.fetch(:quantities, {}).to_unsafe_h,
-                                measures: params.fetch(:measures, {}).to_unsafe_h).call
+                                measures: params.fetch(:measures, {}).to_unsafe_h,
+                                late_confirmed: params[:late_confirmed] == "1").call
     if result.ok?
       redirect_to orders_path(customer: @customer.code, week: @week_start), notice: saved_notice(result), alert: StalePlans.warning(current_company)
     else

@@ -68,7 +68,7 @@ ActsAsTenant.with_tenant(company) do
       customer = create_missing.call(
         Customer.find_or_initialize_by(code: row["codigo"]),
         name: row["nome"], short_name: row["nome_curto"], order_source: row["origem_pedido"],
-        monthly_orders: row["pedido_mensal"] || false
+        monthly_orders: row["pedido_mensal"] || false, delivery_from: row["entrega_de"]
       )
       [ row["codigo"], customer ]
     end

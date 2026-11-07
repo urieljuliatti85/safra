@@ -16,7 +16,7 @@ RSpec.configure do |config|
           **Autenticação:** envie `Authorization: Bearer <chave>`. Chaves de leitura consultam; chaves de escrita também gravam
           pedidos e contagens de estoque. Erros vêm como `{ "error": { "code", "message", "details" } }`.
 
-          **Formatos:** datas em AAAA-MM-DD; quantidades como número decimal (kg, un, cx, mç, crivo ou dz, conforme a unidade); a semana de
+          **Formatos:** datas em AAAA-MM-DD; quantidades como número decimal (kg, un, cx, mç, crivo ou dz, conforme a unidade) Mudar ou zerar uma quantidade com menos de 48 h da entrega exige `late_confirmed: true` (a Hortifruti Modelo confirmou a alteração);; a semana de
           pedido começa na segunda-feira e cobre 7 dias (segunda a domingo). O limite é de 300 requisições por minuto por chave.
         TEXT
       },

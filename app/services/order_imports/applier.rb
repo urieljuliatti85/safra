@@ -9,7 +9,8 @@ module OrderImports
     end
 
     # mappings: { "0" => "<product_id>" | "ignore", ... } pelo índice da linha no payload.
-    def initialize(import:, mappings:)
+    def initialize(import:, mappings:, late_confirmed: false)
+      @late_confirmed = late_confirmed
       @import = import
       @mappings = mappings
     end
@@ -26,7 +27,7 @@ module OrderImports
       before = snapshot(order, after)
       saved = nil
       OrderImport.transaction do
-        saved = OrderGridSaver.new(order: order, quantities: after, source: "import", import: @import).call
+        saved = OrderGridSaver.new(order: order, quantities: after, source: "import", import: @import, late_confirmed: @late_confirmed).call
         raise ActiveRecord::Rollback unless saved.ok?
 
         aliases = remember_names(chosen)

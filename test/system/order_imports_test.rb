@@ -1,7 +1,10 @@
 require "application_system_test_case"
 
 class OrderImportsTest < ApplicationSystemTestCase
-  setup { sign_in_through_form(:office) }
+  setup do
+    travel_to Time.zone.local(2026, 10, 5, 9) # antes das 48 h da entrega (R1.26)
+    sign_in_through_form(:office)
+  end
 
   # pedido_com_unidade.xlsx muda uma célula do Horizonte Norte: Batata em cubinhos em 15/10, de 1 para 7.
   test "importar uma planilha e desfazer pela grade devolve o pedido ao que era" do

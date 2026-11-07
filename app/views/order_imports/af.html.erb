@@ -44,5 +44,8 @@
 </section>
 
 <% unless @import.applied? %>
-  <%= button_to "Aplicar nos pedidos", apply_order_import_path(@import), method: :post, class: "btn btn-primary", disabled: unknown.any?, form: { data: { turbo: false } } %>
+  <%= form_with url: apply_order_import_path(@import), method: :post, class: "flex flex-wrap items-center gap-3", data: { turbo: false } do %>
+    <%= button_tag "Aplicar nos pedidos", type: "submit", class: "btn btn-primary", disabled: unknown.any? %>
+    <label class="flex items-center gap-2 text-sm"><%= check_box_tag :late_confirmed, "1", false, class: "size-5" %>A Hortifruti Modelo confirmou a alteração (menos de 48 h da entrega)</label>
+  <% end %>
 <% end %>

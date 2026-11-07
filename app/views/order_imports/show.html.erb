@@ -125,6 +125,7 @@
   <% unless @import.applied? %>
     <div class="savebar">
       <%= button_tag type: "submit", class: "btn btn-primary", disabled: @import.errors_list.any? do %><%= icon :check %>Importar no pedido<% end %>
+      <label class="flex items-center gap-2 text-sm"><%= check_box_tag :late_confirmed, "1", false, class: "size-5" %>A Hortifruti Modelo confirmou a alteração (menos de 48 h da entrega)</label>
       <span class="muted text-sm">Nomes novos viram apelido do cliente: da próxima vez são reconhecidos sozinhos.</span>
     </div>
   <% end %>

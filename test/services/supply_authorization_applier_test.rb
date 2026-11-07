@@ -3,6 +3,8 @@ require "test_helper"
 # AF da Nutrir (R1.27, D4), com o exemplo real: AF 0009100649, entrega 06/11/2026, vagem cubinho de 95 para 120 kg.
 class SupplyAuthorizationApplierTest < ActiveSupport::TestCase
   setup do
+    # Antes das 48 h da entrega (R1.26, D8): estes testes não são sobre o prazo de alteração.
+    travel_to Time.zone.local(2026, 10, 28, 9)
     ActsAsTenant.current_tenant = company
     @nutrir = Customer.find_by!(code: "nutrir")
     @vagem = Product.find_by!(code: "vagem_cubinhos")

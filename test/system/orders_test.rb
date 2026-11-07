@@ -14,6 +14,7 @@ class OrdersTest < ApplicationSystemTestCase
   end
 
   test "digitar um pedido na grade e salvar" do
+    travel_to Time.zone.local(2026, 10, 5, 9) # antes das 48 h da entrega (R1.26)
     visit orders_path(customer: "hnorte", week: "2026-10-12")
     assert_selector "h1", text: "Hospital Horizonte Norte"
 

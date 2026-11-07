@@ -73,7 +73,7 @@ class DashboardTest < ActionDispatch::IntegrationTest
       assert_select ".flash-alert", count: 0
 
       product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_ralada") }
-      patch orders_path(customer: "hnorte", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-13" => "99" } } }
+      patch orders_path(customer: "hnorte", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-13" => "99" } }, late_confirmed: "1" }
       get dashboard_path
       assert_select ".flow-step[data-state=changed] .flow-status", /1 item mudou depois do envio/
       assert_select ".flow-step[data-state=changed] a.btn-primary", text: "Ver diferença e reenviar"

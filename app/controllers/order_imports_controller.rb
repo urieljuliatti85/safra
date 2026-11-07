@@ -51,7 +51,8 @@ class OrderImportsController < ApplicationController
     return head(:not_found) unless @import.image?
 
     order = image_order
-    result = OrderGridSaver.new(order: order, quantities: params.fetch(:quantities, {}).to_unsafe_h, source: "image", import: @import).call
+    result = OrderGridSaver.new(order: order, quantities: params.fetch(:quantities, {}).to_unsafe_h, source: "image", import: @import,
+                                late_confirmed: params[:late_confirmed] == "1").call
     if result.ok?
       notice = result.changed_dates.empty? ? "Nada mudou no pedido: as quantidades já eram essas." : "Pedido salvo."
       redirect_to order_import_path(@import), notice: notice, alert: StalePlans.warning(current_company)
@@ -74,7 +75,8 @@ class OrderImportsController < ApplicationController
   def apply
     return apply_afs if @import.af?
 
-    result = OrderImports::Applier.new(import: @import, mappings: params.fetch(:mappings, {}).to_unsafe_h).call
+    result = OrderImports::Applier.new(import: @import, mappings: params.fetch(:mappings, {}).to_unsafe_h,
+                                      late_confirmed: params[:late_confirmed] == "1").call
     if result.ok?
       redirect_to orders_path(customer: @import.customer.code, week: @import.week_start),
                   notice: "Planilha importada no pedido de #{@import.customer.short_name}.", alert: StalePlans.warning(current_company)
@@ -107,7 +109,7 @@ class OrderImportsController < ApplicationController
 
   # PDF de AFs: cada AF no pedido da semana da entrega (D2, D3, D4).
   def apply_afs
-    result = OrderImports::AfApplier.new(import: @import).call
+    result = OrderImports::AfApplier.new(import: @import, late_confirmed: params[:late_confirmed] == "1").call
     if result.ok?
       weeks = result.weeks.map { |week| Formatting.short_date(week) }.to_sentence(last_word_connector: " e ")
       redirect_to orders_path(customer: @import.customer.code, week: result.weeks.first),

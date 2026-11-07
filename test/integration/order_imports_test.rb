@@ -1,6 +1,11 @@
 require "test_helper"
 
 class OrderImportsTest < ActionDispatch::IntegrationTest
+  setup do
+    # Antes das 48 h da entrega (R1.26, D8): estes testes não são sobre o prazo de alteração.
+    travel_to Time.zone.local(2026, 10, 5, 9)
+  end
+
   setup { sign_in_as(user_for(:office)) }
 
   def upload(name, customer)

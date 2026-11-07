@@ -5,6 +5,8 @@ require "prawn"
 # (entrega 06/11/2026, vagem cubinho de 95 para 120 kg), sem os dados de cadastro do cliente.
 class OrderImports::AfImportTest < ActiveSupport::TestCase
   setup do
+    # Antes das 48 h da entrega (R1.26, D8): estes testes não são sobre o prazo de alteração.
+    travel_to Time.zone.local(2026, 10, 28, 9)
     ActsAsTenant.current_tenant = company
     @nutrir = Customer.find_by!(code: "nutrir")
   end

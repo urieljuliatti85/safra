@@ -67,7 +67,7 @@ RSpec.describe "API v1: pedidos", type: :request do
       parameter name: :body, in: :body, required: true, schema: { "$ref" => "#/components/schemas/OrderUpdate" }
 
       let(:Authorization) { "Bearer #{issue_token(scope: 'write')}" }
-      let(:body) { { customer: "hnorte", week: "2026-10-12", lines: [ { product: "cenoura_ralada", date: "2026-10-14", quantity: "7,5" } ] } }
+      let(:body) { { customer: "hnorte", week: "2026-10-12", lines: [ { product: "cenoura_ralada", date: "2026-10-14", quantity: "7,5" } ], late_confirmed: true } }
 
       response "200", "pedido gravado" do
         schema "$ref" => "#/components/schemas/Order"
@@ -86,7 +86,7 @@ RSpec.describe "API v1: pedidos", type: :request do
 
       response "200", "quantidade zero apaga a linha" do
         schema "$ref" => "#/components/schemas/Order"
-        let(:body) { { customer: "hnorte", week: "2026-10-12", lines: [ { product: "cenoura_ralada", date: "2026-10-14", quantity: 0 } ] } }
+        let(:body) { { customer: "hnorte", week: "2026-10-12", lines: [ { product: "cenoura_ralada", date: "2026-10-14", quantity: 0 } ], late_confirmed: true } }
 
         run_test! do |response|
           expect(JSON.parse(response.body)["lines"].none? { |l| l["product"] == "cenoura_ralada" && l["date"] == "2026-10-14" }).to be(true)

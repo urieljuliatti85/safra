@@ -6,7 +6,8 @@ module OrderImports
       def ok? = errors.empty?
     end
 
-    def initialize(import:)
+    def initialize(import:, late_confirmed: false)
+      @late_confirmed = late_confirmed
       @import = import
     end
 
@@ -21,7 +22,7 @@ module OrderImports
         afs.sort_by { |af| af["date"] }.each do |af|
           items = af["items"].map { |item| { product: products.fetch(item["product_id"]), unit: item["unit"], quantity: item["quantity"] } }
           result = SupplyAuthorizationApplier.new(customer: @import.customer, number: af["number"], delivery_date: Date.iso8601(af["date"]),
-                                                  items: items, import: @import).call
+                                                  items: items, import: @import, late_confirmed: @late_confirmed).call
           errors.concat(result.errors.map { |e| "AF #{af['number']}: #{e}" })
         end
         raise ActiveRecord::Rollback if errors.any?
