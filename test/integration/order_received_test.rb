@@ -25,4 +25,13 @@ class OrderReceivedTest < ActionDispatch::IntegrationTest
     received = ActsAsTenant.with_tenant(company) { Order.joins(:customer).find_by!(customers: { code: "hbp" }, week_start: "2026-10-12").received_at }
     assert_not_equal Time.zone.local(2026, 10, 9, 16, 20), received
   end
+
+  test "a grade mostra e salva a medida pedida de cada linha (R1.14, D12)" do
+    sign_in_as(user_for(:office))
+    product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_cubinhos") }
+    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { measures: { "#{product.id}|kg" => "8 × 8 mm" } }
+    follow_redirect!
+    assert_match "Medida salva. As quantidades não mudaram", response.body
+    assert_select "input[name='measures[#{product.id}|kg]'][value='8 × 8 mm']"
+  end
 end

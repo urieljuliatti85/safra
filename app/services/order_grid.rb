@@ -5,7 +5,7 @@ class OrderGrid
   def initialize(order:, add_product: nil)
     @order = order
     @dates = order.week_dates.to_a
-    lines = order.lines.includes(:product).to_a
+    lines = order.lines.includes(product: :cut).to_a
     @cells = lines.group_by { |l| [ l.product_id, l.unit ] }
     rows = @cells.keys.map { |product_id, unit| [ lines.find { |l| l.product_id == product_id }.product, unit ] }
     rows << [ add_product, add_product.unit ] if add_product && rows.none? { |p, u| p == add_product && u == add_product.unit }

@@ -175,6 +175,7 @@
   .only-mobile { display: none; }
   .line-note { display: flex; align-items: flex-start; gap: .375rem; margin-top: .125rem; font-size: var(--text-small); font-weight: 500; line-height: 1.3; color: #e6cfa6; overflow-wrap: anywhere; }
   .line-note .icon { width: 1rem; height: 1rem; margin-top: .0625rem; }
+  .line-measure { display: block; width: 100%; max-width: 14rem; margin-top: .25rem; padding: .125rem .375rem; border: 1px solid var(--color-ink-soft); border-radius: .375rem; background: transparent; color: inherit; font-size: var(--text-small); font-weight: 400; }
   .line-note.is-clamped > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   /* Painel: quatro etapas em cartões; a que pede ação (falta enviar, mudou) é inundada de cor, o que está em ordem recua */
   .flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; list-style: none; }

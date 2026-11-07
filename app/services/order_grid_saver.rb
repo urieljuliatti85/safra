@@ -3,16 +3,21 @@
 # Quantidade vazia ou zero apaga a linha. Texto que não é número ("5 + 2") rejeita a gravação inteira.
 # Todo salvamento que muda alguma coisa vira uma versão do pedido (OrderVersion), com o retrato inteiro.
 class OrderGridSaver
-  Result = Data.define(:errors, :changed_dates) do
+  # measures_changed: a medida pedida de alguma linha mudou (D12), mesmo sem quantidade nova.
+  Result = Data.define(:errors, :changed_dates, :measures_changed) do
+    def initialize(errors:, changed_dates:, measures_changed: false) = super
+
     def ok?
       errors.empty?
     end
   end
 
   # source: de onde veio o salvamento (OrderVersion::SOURCES). import e restored_from só para registrar na versão.
-  def initialize(order:, quantities:, source: "grid", import: nil, restored_from: nil)
+  # measures: { "<product_id>|<unit>" => "10 mm" }, a medida pedida de cada linha da grade (R1.14, D12). Vazia apaga.
+  def initialize(order:, quantities:, measures: {}, source: "grid", import: nil, restored_from: nil)
     @order = order
     @quantities = quantities
+    @measures = measures
     @source = source
     @import = import
     @restored_from = restored_from
@@ -25,6 +30,7 @@ class OrderGridSaver
 
     changed_dates = []
     changes = []
+    measures_changed = false
     Order.transaction do
       @order.lock!
       existing = @order.lines.to_a.group_by { |l| [ l.product_id, l.unit, l.delivery_date ] }
@@ -50,11 +56,22 @@ class OrderGridSaver
         end
       end
       record_version(before, changes) if changes.any?
+      measures_changed = save_measures
     end
-    Result.new(errors: [], changed_dates: changed_dates.uniq.sort)
+    Result.new(errors: [], changed_dates: changed_dates.uniq.sort, measures_changed: measures_changed)
   end
 
   private
+
+  # A medida vale para a linha inteira da grade (todos os dias do produto naquela unidade). Não gera versão do pedido.
+  def save_measures
+    @measures.to_h.sum do |key, text|
+      product_id, unit = key.to_s.split("|", 2)
+      measure = text.to_s.strip.first(100).presence
+      stale = @order.lines.where(product_id: product_id, unit: unit).reject { |line| line.measure == measure }
+      OrderLine.where(id: stale.map(&:id)).update_all(measure: measure)
+    end.positive?
+  end
 
   # A primeira versão de um pedido que já tinha linhas guarda como ele estava, para dar para voltar a ele.
   def record_version(before, changes)

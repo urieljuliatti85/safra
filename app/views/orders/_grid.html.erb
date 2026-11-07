@@ -49,6 +49,11 @@
                 <%= product.name %>
                 <% note = lines.map(&:note).compact.first %>
                 <% if note %><span class="line-note is-clamped" title="Observação do pedido: <%= note %>"><%= icon :note %><span><span class="sr-only">Observação: </span><%= note %></span></span><% end %>
+                <%# Medida pedida (R1.14, D12): orienta o preparo; sem ela, vale a referência do corte. %>
+                <input type="text" autocomplete="off" maxlength="100" class="line-measure"
+                       name="measures[<%= product.id %>|<%= unit %>]" value="<%= lines.map(&:measure).compact.first %>"
+                       placeholder="<%= product.cut&.reference_measure.presence || 'medida pedida' %>"
+                       aria-label="Medida pedida de <%= product.name %>">
               </th>
               <td class="unit"><%= unit %></td>
               <% grid.dates.each_with_index do |date, index| %>

@@ -13,7 +13,8 @@ class OrdersController < ApplicationController
   def update
     return head(:unprocessable_entity) if @customer.nil?
 
-    result = OrderGridSaver.new(order: @order, quantities: params.fetch(:quantities, {}).to_unsafe_h).call
+    result = OrderGridSaver.new(order: @order, quantities: params.fetch(:quantities, {}).to_unsafe_h,
+                                measures: params.fetch(:measures, {}).to_unsafe_h).call
     if result.ok?
       redirect_to orders_path(customer: @customer.code, week: @week_start), notice: saved_notice(result), alert: StalePlans.warning(current_company)
     else
@@ -47,7 +48,11 @@ class OrdersController < ApplicationController
 
   # Salvar sem mudar nada não grava versão: a mensagem diz isso, para ninguém procurar a versão que não existe.
   def saved_notice(result)
-    return "Nada mudou no pedido: as quantidades já eram essas. Nenhuma versão nova." if result.changed_dates.empty?
+    if result.changed_dates.empty?
+      return "Medida salva. As quantidades não mudaram, então não há versão nova." if result.measures_changed
+
+      return "Nada mudou no pedido: as quantidades já eram essas. Nenhuma versão nova."
+    end
 
     version = @order.versions.maximum(:version)
     "Pedido salvo: versão #{version}, #{plural_changes(@order.versions.find_by(version: version))}."
