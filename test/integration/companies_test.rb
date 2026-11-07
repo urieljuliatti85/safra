@@ -189,6 +189,6 @@ class CompaniesTest < ActionDispatch::IntegrationTest
     get companies_path
     assert_select "td.name", text: /Hortifruti Modelo/
     assert_match "(a sua)", response.body
-    assert_select "tr", text: /Hortifruti Modelo.*Ativa.*3.*6.*95/m
+    assert_select "tr", text: /Hortifruti Modelo.*Ativa.*3.*7.*95/m
   end
 end

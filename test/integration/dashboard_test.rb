@@ -112,7 +112,8 @@ class DashboardTest < ActionDispatch::IntegrationTest
     ActsAsTenant.with_tenant(company) { Customer.create!(code: "novo", name: "Cliente Novo", short_name: "Novo") }
     sign_in_as(user_for(:office))
     travel_to(Time.zone.local(2026, 10, 13, 9)) { get dashboard_path }
-    assert_select ".flow-step[data-state=pending] .flow-status", /Falta 1 cliente na semana/
-    assert_select ".flow-facts li", /Falta: Novo/
+    # A Nutrir (seed) ainda não tem pedido semanal: o pedido mensal é a D3.
+    assert_select ".flow-step[data-state=pending] .flow-status", /Faltam 2 clientes na semana/
+    assert_select ".flow-facts li", /Falta: .*Novo/
   end
 end

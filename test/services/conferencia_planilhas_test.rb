@@ -10,7 +10,9 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
   test "seeds carregam cadastros e pedidos da semana" do
     ActsAsTenant.with_tenant(company) do
       assert_equal 95, Product.count
-      assert_equal 6, Customer.count
+      assert_equal 7, Customer.count
+      # R1.2 (D1): a Nutrir é um cliente só, com a unidade Usina Litoral (4471).
+      assert_equal "Nutrir · Usina Litoral", Customer.find_by!(code: "nutrir").name
       assert_equal 375, OrderLine.count
       assert_equal 3, PurchaseDay.count
       assert_equal 0, Product.where(product_group: "processed", cut_id: nil).count

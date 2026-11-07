@@ -23,7 +23,7 @@ class SeedsSafetyTest < ActiveSupport::TestCase
   test "um cadastro apagado volta no seed, mas pedido apagado não volta" do
     Customer.create!(code: "extra", name: "Extra", short_name: "Extra")
     load_seeds
-    assert_equal 6 + 1, Customer.count
+    assert_equal 7 + 1, Customer.count
     sr_order = Order.joins(:customer).find_by!(customers: { code: "hbp" })
     sr_order.lines.destroy_all
     load_seeds

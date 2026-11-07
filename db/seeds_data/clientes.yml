@@ -1,4 +1,4 @@
-# Clientes com pedido na semana de 12/10/2026. Escola Modelo aparece no balanço mensal, mas não tinha pedido nos arquivos.
+# Clientes com pedido na semana de 12/10/2026, mais a Nutrir (R1.2). Escola Modelo aparece no balanço mensal, mas não tinha pedido nos arquivos.
 - codigo: hbp
   nome: Hospital Bom Pastor
   nome_curto: Bom Pastor
@@ -23,3 +23,8 @@
   nome: Aurora · Fábrica
   nome_curto: Aurora Fábrica
   origem_pedido: Tabelas coladas como imagem
+# Nutrir: só a unidade Usina Litoral (4471) é atendida (R1.2; D1, docs/lacunas.md).
+- codigo: nutrir
+  nome: Nutrir · Usina Litoral
+  nome_curto: Nutrir UL
+  origem_pedido: PDF por e-mail com o pedido do mês inteiro, uma AF por data de entrega (unidade 4471)
