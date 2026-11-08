@@ -45,8 +45,9 @@ module OrderImports
     def customer_for(word)
       return @customer if word.blank?
 
-      token = NameNormalizer.call(word)
-      matches = Customer.all.select { |c| NameNormalizer.call(c.name).include?(token) }
+      # Letra repetida não conta: o título de 26/10 escreve "MOLINARI" para a Aurora Mollinari (D19).
+      token = NameNormalizer.call(word).squeeze
+      matches = Customer.all.select { |c| NameNormalizer.call(c.name).squeeze.include?(token) }
       matches.one? ? matches.first : @customer
     end
   end
