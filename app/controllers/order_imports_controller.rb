@@ -10,31 +10,26 @@ class OrderImportsController < ApplicationController
   SHEET_EXTENSIONS = %w[.xlsx .xls .ods .csv].freeze
   IMAGE_EXTENSIONS = %w[.odt .png .jpg .jpeg .webp .gif].freeze
 
+  # Quem lança escolhe o tipo (R1.29 a R1.33, D22). Na alteração e no extra o arquivo é opcional: sem arquivo,
+  # abre a grade do pedido da semana escolhida, no modo do tipo.
   def create
     @customer = @customers.find { |c| c.code == params[:customer] }
+    @entry_type = params[:entry_type].to_s
+    @week = date_param(:week, nil)
     file = params[:file]
-    if @customer.nil? || file.blank?
-      flash.now[:alert] = "Escolha o cliente e o arquivo."
-      @customer ||= @customers.first
-      return render :new, status: :unprocessable_entity
+    problem = if @customer.nil? then "Escolha o cliente."
+    elsif EntryType.missing(@entry_type) then EntryType::MESSAGE
+    elsif file.blank? && @entry_type == "new" then "Pedido novo: escolha o arquivo."
+    elsif file.blank? && @week.nil? then "Sem arquivo: informe a semana do pedido."
     end
+    return render_new_with(problem) if problem
+    return redirect_to(orders_path(customer: @customer.code, week: @week.beginning_of_week, tipo: @entry_type)) if file.blank?
 
-    extension = File.extname(file.original_filename).downcase
-    if SHEET_EXTENSIONS.include?(extension)
-      import = OrderImports::Importer.new(company: current_company, customer: @customer, path: file.tempfile.path, filename: file.original_filename).call
-    elsif extension == ".pdf"
-      import = OrderImports::AfImporter.new(company: current_company, customer: @customer, path: file.tempfile.path, filename: file.original_filename).call
-    elsif IMAGE_EXTENSIONS.include?(extension)
-      import = OrderImports::ImageBatch.new(company: current_company, customer: @customer, path: file.tempfile.path, filename: file.original_filename,
-                                            content_type: file.content_type, date: date_param(:date, nil)).call.first
-    else
-      raise OrderImports::SheetReader::Unreadable, "Formato não aceito. Envie xlsx, xls, ods, csv, um ODT, uma imagem ou o PDF de AFs."
-    end
-    redirect_to order_import_path(import)
+    imports = Array(read_file(file))
+    imports.each { |import| import.update!(payload: import.payload.merge("entry_type" => @entry_type)) unless import.af? }
+    redirect_to order_import_path(imports.first)
   rescue OrderImports::SheetReader::Unreadable, OrderImports::OdtReader::Unreadable, OrderImports::AfReader::Unreadable => e
-    flash.now[:alert] = e.message
-    @customer ||= @customers.first
-    render :new, status: :unprocessable_entity
+    render_new_with(e.message)
   end
 
   def show
@@ -52,8 +47,12 @@ class OrderImportsController < ApplicationController
     return head(:not_found) unless @import.image?
 
     order = image_order
-    result = OrderGridSaver.new(order: order, quantities: params.fetch(:quantities, {}).to_unsafe_h, source: "image", import: @import,
-                                late_confirmed: params[:late_confirmed] == "1").call
+    result = if (missing = EntryType.missing(params[:entry_type]))
+      OrderGridSaver::Result.new(errors: [ missing ], changed_dates: [])
+    else
+      OrderGridSaver.new(order: order, quantities: params.fetch(:quantities, {}).to_unsafe_h, source: "image", import: @import,
+                         entry_type: params[:entry_type], late_confirmed: params[:late_confirmed] == "1").call
+    end
     if result.ok?
       notice = result.changed_dates.empty? ? "Nada mudou no pedido: as quantidades já eram essas." : "Pedido salvo."
       redirect_to order_import_path(@import), notice: notice, alert: StalePlans.warning(current_company)
@@ -106,6 +105,26 @@ class OrderImportsController < ApplicationController
 
   private
 
+  def render_new_with(message)
+    flash.now[:alert] = message
+    @customer ||= @customers.first
+    render :new, status: :unprocessable_entity
+  end
+
+  def read_file(file)
+    extension = File.extname(file.original_filename).downcase
+    args = { company: current_company, customer: @customer, path: file.tempfile.path, filename: file.original_filename }
+    if SHEET_EXTENSIONS.include?(extension)
+      OrderImports::Importer.new(**args).call
+    elsif extension == ".pdf"
+      OrderImports::AfImporter.new(**args).call
+    elsif IMAGE_EXTENSIONS.include?(extension)
+      OrderImports::ImageBatch.new(**args, content_type: file.content_type, date: date_param(:date, nil)).call
+    else
+      raise OrderImports::SheetReader::Unreadable, "Formato não aceito. Envie xlsx, xls, ods, csv, um ODT, uma imagem ou o PDF de AFs."
+    end
+  end
+
   def load_customers
     @customers = Customer.order(:name).to_a
   end
@@ -144,7 +163,10 @@ class OrderImportsController < ApplicationController
     Order.find_or_create_by!(customer: @import.customer, week_start: @import.week_start)
   end
 
+  # Modo da grade: ?tipo=extra (acréscimo), ?tipo=total (grade do pedido) ou o tipo escolhido ao importar.
   def show_image(status: :ok)
+    @tipo = params[:entry_type].presence || (params[:tipo] == "total" ? nil : params[:tipo].presence || @import.payload["entry_type"])
+    @tipo = nil unless OrderVersion::ENTRY_TYPES.key?(@tipo)
     @add_product = Product.find_by(id: params[:add])
     @grid = OrderGrid.new(order: image_order, add_product: @add_product)
     render :image, status: status

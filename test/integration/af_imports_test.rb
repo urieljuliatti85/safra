@@ -7,7 +7,7 @@ class AfImportsTest < ActionDispatch::IntegrationTest
   test "enviar o PDF de AFs, conferir e aplicar nos pedidos das semanas" do
     sign_in_as(user_for(:office))
     path = OrderImports::AfImportTest.pdf_file(OrderImports::AfImportTest::MONTH)
-    post order_imports_path, params: { customer: "nutrir", file: Rack::Test::UploadedFile.new(path, "application/pdf", original_filename: "PEDIDOS NUTRIR NOVEMBRO 2026.pdf") }
+    post order_imports_path, params: { entry_type: "new", customer: "nutrir", file: Rack::Test::UploadedFile.new(path, "application/pdf", original_filename: "PEDIDOS NUTRIR NOVEMBRO 2026.pdf") }
     follow_redirect!
     assert_select "h1", "Conferir AFs"
     assert_match "3 AFs, de 05/11 a 09/11", response.body

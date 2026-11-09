@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_08_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_09_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -192,6 +192,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_110000) do
     t.jsonb "changes_list", default: [], null: false
     t.datetime "created_at", null: false
     t.boolean "late_confirmed", default: false, null: false
+    t.string "entry_type"
     t.index ["company_id"], name: "index_order_versions_on_company_id"
     t.index ["order_id", "version"], name: "index_order_versions_on_order_id_and_version", unique: true
     t.index ["order_import_id"], name: "index_order_versions_on_order_import_id"

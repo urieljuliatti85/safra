@@ -41,8 +41,10 @@ module OrderImports
       products = Product.where(id: afs.flat_map { |af| af["items"].map { |item| item["product_id"] } }).index_by(&:id)
       afs.sort_by { |af| af["date"] }.map do |af|
         items = af["items"].map { |item| { product: products.fetch(item["product_id"]), unit: item["unit"], quantity: item["quantity"] } }
+        # O PDF diz o tipo: AF nova é pedido novo; ALTERAÇÃO troca a lista da AF pelo novo total (R1.27, R1.31).
         [ af, SupplyAuthorizationApplier.new(customer: @import.customer, number: af["number"], delivery_date: Date.iso8601(af["date"]),
-                                             items: items, import: @import, late_confirmed: @late_confirmed) ]
+                                             items: items, import: @import, late_confirmed: @late_confirmed,
+                                             entry_type: af["alteration"] ? "alteration" : "new") ]
       end
     end
   end

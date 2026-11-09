@@ -353,6 +353,14 @@ components:
               unit:
                 type: string
                 description: 'Padrão: a unidade do produto'
+        entry_type:
+          type: string
+          enum:
+          - new
+          - alteration
+          - extra
+          description: Tipo de pedido. No extra, quantity é o acréscimo e é somada
+            ao pedido; vazio ou 0 não muda nada
     Change:
       type: object
       properties:

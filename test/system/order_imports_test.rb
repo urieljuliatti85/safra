@@ -11,9 +11,10 @@ class OrderImportsTest < ApplicationSystemTestCase
     visit orders_path(customer: "hnorte", week: "2026-10-12")
     assert_field "Batata em cubinhos em Qui 15/10", with: "1"
 
-    click_on "Importar planilha"
+    click_on "Importar", exact: true
+    choose "Alteração"
     attach_file "Arquivo", file_fixture("pedido_com_unidade.xlsx")
-    click_on "Enviar arquivo"
+    click_on "Continuar"
     click_on "Importar no pedido"
 
     assert_text "Planilha importada no pedido"

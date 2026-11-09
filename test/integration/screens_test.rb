@@ -51,7 +51,7 @@ class ScreensTest < ActionDispatch::IntegrationTest
     end
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_ralada") }
     customer = ActsAsTenant.with_tenant(company) { Customer.find_by!(code: "hnorte") }
-    patch orders_path(customer: customer.code, week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-13" => "9" } }, late_confirmed: "1" }
+    patch orders_path(customer: customer.code, week: "2026-10-12"), params: { entry_type: "alteration", quantities: { "#{product.id}|kg" => { "2026-10-13" => "9" } }, late_confirmed: "1" }
     assert_redirected_to orders_path(customer: "hnorte", week: "2026-10-12")
     follow_redirect!
     assert_match "Pedido salvo", response.body
@@ -60,7 +60,7 @@ class ScreensTest < ActionDispatch::IntegrationTest
 
   test "salvar com texto inválido não grava e mostra o erro" do
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_ralada") }
-    patch orders_path(customer: "hnorte", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-13" => "5 + 2" } } }
+    patch orders_path(customer: "hnorte", week: "2026-10-12"), params: { entry_type: "alteration", quantities: { "#{product.id}|kg" => { "2026-10-13" => "5 + 2" } } }
     assert_response :unprocessable_entity
     assert_match "não é um número", response.body
   end

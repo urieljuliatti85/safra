@@ -13,9 +13,13 @@ class OrdersController < ApplicationController
   def update
     return head(:unprocessable_entity) if @customer.nil?
 
-    result = OrderGridSaver.new(order: @order, quantities: params.fetch(:quantities, {}).to_unsafe_h,
-                                measures: params.fetch(:measures, {}).to_unsafe_h,
-                                late_confirmed: params[:late_confirmed] == "1").call
+    result = if (missing = EntryType.missing(params[:entry_type]))
+      OrderGridSaver::Result.new(errors: [ missing ], changed_dates: [])
+    else
+      OrderGridSaver.new(order: @order, quantities: params.fetch(:quantities, {}).to_unsafe_h,
+                         measures: params.fetch(:measures, {}).to_unsafe_h, entry_type: params[:entry_type],
+                         late_confirmed: params[:late_confirmed] == "1").call
+    end
     if result.ok?
       redirect_to orders_path(customer: @customer.code, week: @week_start), notice: saved_notice(result), alert: StalePlans.warning(current_company)
     else
@@ -45,6 +49,9 @@ class OrdersController < ApplicationController
     @customer = @customers.find { |c| c.code == params[:customer] } || @customers.first
     @week_start = date_param(:week, Date.current.beginning_of_week)
     @order = Order.find_or_create_by!(customer: @customer, week_start: @week_start) if @customer
+    # Grade do extra (?tipo=extra) ou tipo já escolhido na tela "Importar" (?tipo=new|alteration).
+    @tipo = OrderVersion::ENTRY_TYPES.key?(params[:tipo]) ? params[:tipo] : nil
+    @tipo = "extra" if params[:entry_type] == "extra"
   end
 
   # Salvar sem mudar nada não grava versão: a mensagem diz isso, para ninguém procurar a versão que não existe.

@@ -19,6 +19,7 @@ class OrdersTest < ApplicationSystemTestCase
     assert_selector "h1", text: "Hospital Horizonte Norte"
 
     fill_in "Cenoura ralada em Ter 13/10", with: "9,5"
+    choose "Alteração (novo total)"
     click_on "Salvar pedido"
 
     assert_text "Pedido salvo: versão 2, 1 alteração."
@@ -29,6 +30,7 @@ class OrdersTest < ApplicationSystemTestCase
     visit orders_path(customer: "hnorte", week: "2026-10-12")
 
     fill_in "Cenoura ralada em Ter 13/10", with: "5 + 2"
+    choose "Alteração (novo total)"
     click_on "Salvar pedido"
 
     assert_text "Nada foi salvo"

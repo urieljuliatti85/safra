@@ -9,6 +9,9 @@ class OrderVersion < ApplicationRecord
     "copy" => "Copiado da semana anterior"
   }.freeze
 
+  # Tipo de pedido escolhido por quem lança (R1.29 a R1.33, D22). O extra soma ao que já estava; os outros gravam o total.
+  ENTRY_TYPES = { "new" => "Pedido novo", "alteration" => "Alteração", "extra" => "Extra" }.freeze
+
   acts_as_tenant :company
 
   belongs_to :order
@@ -17,12 +20,14 @@ class OrderVersion < ApplicationRecord
 
   validates :version, presence: true, uniqueness: { scope: :order_id }
   validates :source, inclusion: { in: SOURCES.keys }
+  validates :entry_type, inclusion: { in: ENTRY_TYPES.keys }, allow_nil: true
 
   scope :newest_first, -> { order(version: :desc) }
 
   def source_label
     label = SOURCES.fetch(source)
     label = "#{label} (v#{restored_from_version})" if restored_from_version
+    label = "#{label} · #{ENTRY_TYPES.fetch(entry_type)}" if entry_type
     late_confirmed? ? "#{label} · confirmada com menos de 48 h" : label
   end
 

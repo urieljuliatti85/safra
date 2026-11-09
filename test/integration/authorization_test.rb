@@ -107,7 +107,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
       get path
       assert_redirected_to production_path, path
     end
-    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { quantities: {} }
+    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { entry_type: "alteration", quantities: {} }
     assert_redirected_to production_path
     post publish_purchase_path(date: "2026-10-13")
     assert_redirected_to production_path

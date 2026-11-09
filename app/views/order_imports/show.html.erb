@@ -6,6 +6,8 @@
     <p class="page-sub">
       <strong><%= @import.filename %></strong> · <%= @import.customer.name %> · semana de <%= short_date(@import.week_start) %>
       <% if @import.payload["sheet"].present? %>· aba <%= @import.payload["sheet"] %><% end %>
+      <% if @import.entry_type %>· <strong><%= OrderVersion::ENTRY_TYPES[@import.entry_type] %></strong><% end %>
+      <% if @import.extra? %>· as quantidades da planilha são somadas ao pedido<% end %>
     </p>
   </div>
   <%= link_to "Outra planilha", new_order_import_path(customer: @import.customer.code), class: "btn" %>

@@ -9,20 +9,20 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
   setup { sign_in_as(user_for(:office)) }
 
   def upload(name, customer)
-    post order_imports_path, params: { customer: customer, file: fixture_file_upload(name, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") }
+    post order_imports_path, params: { entry_type: "new", customer: customer, file: fixture_file_upload(name, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") }
   end
 
   test "formulário de importação" do
     get new_order_import_path(customer: "hbp")
     assert_response :success
-    assert_select "h1", /Importar planilha/
+    assert_select "h1", /Importar pedido/
     assert_select "option[selected]", /Hospital Bom Pastor/
     assert_select "input[type=file][accept*='.xlsx']"
   end
 
   test "link na grade de pedidos leva à importação" do
     get orders_path(customer: "hbp", week: "2026-10-12")
-    assert_select "a[href*='order_imports/new']", /Importar planilha/
+    assert_select "a[href*='order_imports/new']", /Importar/
   end
 
   test "enviar a planilha mostra a conferência com o que muda" do
@@ -108,7 +108,7 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     product, order = ActsAsTenant.with_tenant(company) do
       [ Product.find_by!(code: "cenoura_cubinhos"), Order.find_by!(customer: Customer.find_by!(code: "hbp"), week_start: Date.new(2026, 10, 12)) ]
     end
-    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-18" => "3" } } }
+    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { entry_type: "alteration", quantities: { "#{product.id}|kg" => { "2026-10-18" => "3" } } }
     follow_redirect!
     assert_match "Pedido salvo: versão 2, 1 alteração.", response.body
     assert_select "a[href='#versoes']", /Versões\s+v2/
@@ -135,7 +135,7 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
 
   test "salvar sem mudar nada avisa que não houve versão nova" do
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_cubinhos") }
-    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-30" => "" } } }
+    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { entry_type: "alteration", quantities: { "#{product.id}|kg" => { "2026-10-30" => "" } } }
     follow_redirect!
     assert_match "Nada mudou no pedido", response.body
     assert_select "section#versoes li", 0
@@ -154,14 +154,60 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_equal 1, ActsAsTenant.with_tenant(company) { version.order.versions.count }
   end
 
-  test "sem arquivo não envia" do
+  test "sem tipo não envia; pedido novo pede o arquivo; alteração sem arquivo pede a semana" do
     post order_imports_path, params: { customer: "hbp" }
     assert_response :unprocessable_entity
-    assert_match "Escolha o cliente e o arquivo", response.body
+    assert_match "Escolha o tipo: pedido novo, alteração (novo total) ou extra (soma).", response.body
+
+    post order_imports_path, params: { entry_type: "new", customer: "hbp" }
+    assert_match "Pedido novo: escolha o arquivo.", response.body
+
+    post order_imports_path, params: { entry_type: "alteration", customer: "hbp" }
+    assert_match "Sem arquivo: informe a semana do pedido.", response.body
+  end
+
+  test "alteração ou extra sem arquivo abre a grade do pedido da semana, no modo do tipo" do
+    post order_imports_path, params: { entry_type: "alteration", customer: "hbp", week: "2026-10-14" }
+    assert_redirected_to orders_path(customer: "hbp", week: Date.new(2026, 10, 12), tipo: "alteration")
+    follow_redirect!
+    assert_select "input[name=entry_type][value=alteration][checked]"
+
+    post order_imports_path, params: { entry_type: "extra", customer: "hbp", week: "2026-10-12" }
+    follow_redirect!
+    assert_select "input[type=hidden][name=entry_type][value=extra]"
+    assert_select "button", /Somar extra ao pedido/
+    assert_select "input.cell[value]", 0 # células vazias: digita-se só o acréscimo
+  end
+
+  test "grade sem tipo não grava" do
+    product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_cubinhos") }
+    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-18" => "3" } } }
+    assert_response :unprocessable_entity
+    assert_match "Escolha o tipo", response.body
+  end
+
+  test "extra pela grade soma e a versão diz Extra" do
+    product, order = ActsAsTenant.with_tenant(company) do
+      [ Product.find_by!(code: "cenoura_cubinhos"), Order.find_by!(customer: Customer.find_by!(code: "hbp"), week_start: Date.new(2026, 10, 12)) ]
+    end
+    line = ActsAsTenant.with_tenant(company) { order.lines.where(product: product).first }
+    patch orders_path(customer: "hbp", week: "2026-10-12"),
+          params: { entry_type: "extra", quantities: { "#{product.id}|#{line.unit}" => { line.delivery_date.iso8601 => "2" } } }
+    follow_redirect!
+    assert_select "section#versoes li", /Grade · Extra/
+    assert_equal line.quantity + 2, ActsAsTenant.with_tenant(company) { order.lines.where(product: product, delivery_date: line.delivery_date).sum(:quantity) }
+  end
+
+  test "imagem lançada como extra abre a grade do extra" do
+    post order_imports_path, params: { entry_type: "extra", customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
+    follow_redirect!
+    assert_select "button", /Somar extra ao pedido/
+    get request.path, params: { tipo: "total" }
+    assert_select "button", /Salvar pedido/
   end
 
   test "ODT com imagens leva à tela de digitação com a imagem ao lado da grade" do
-    post order_imports_path, params: { customer: "hbp", file: fixture_file_upload("pedidos_documento.odt", "application/vnd.oasis.opendocument.text") }
+    post order_imports_path, params: { entry_type: "new", customer: "hbp", file: fixture_file_upload("pedidos_documento.odt", "application/vnd.oasis.opendocument.text") }
     assert_response :redirect
     follow_redirect!
     assert_response :success
@@ -173,10 +219,10 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
   end
 
   test "digitar olhando a imagem grava no pedido do cliente e volta para a mesma imagem" do
-    post order_imports_path, params: { customer: "hbp", file: fixture_file_upload("pedidos_documento.odt", "application/vnd.oasis.opendocument.text") }
+    post order_imports_path, params: { entry_type: "new", customer: "hbp", file: fixture_file_upload("pedidos_documento.odt", "application/vnd.oasis.opendocument.text") }
     import = ActsAsTenant.with_tenant(company) { OrderImport.images.order(:id).first }
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "brocolis") }
-    patch grid_order_import_path(import), params: { quantities: { "#{product.id}|kg" => { "2026-10-12" => "30" } } }
+    patch grid_order_import_path(import), params: { entry_type: "alteration", quantities: { "#{product.id}|kg" => { "2026-10-12" => "30" } } }
     assert_redirected_to order_import_path(import)
     quantity = ActsAsTenant.with_tenant(company) do
       Order.find_by!(customer: import.customer, week_start: import.week_start).lines.where(product: product, delivery_date: "2026-10-12").sum(:quantity)
@@ -185,10 +231,10 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
   end
 
   test "a versão do pedido em imagem abre a imagem com a grade para editar" do
-    post order_imports_path, params: { customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
+    post order_imports_path, params: { entry_type: "new", customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
     import = ActsAsTenant.with_tenant(company) { OrderImport.images.order(:id).last }
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "brocolis") }
-    patch grid_order_import_path(import), params: { quantities: { "#{product.id}|kg" => { import.week_start.iso8601 => "30" } } }
+    patch grid_order_import_path(import), params: { entry_type: "alteration", quantities: { "#{product.id}|kg" => { import.week_start.iso8601 => "30" } } }
     version = ActsAsTenant.with_tenant(company) { Order.find_by!(customer: import.customer, week_start: import.week_start).versions.order(:version).last }
 
     get order_version_path(version)
@@ -199,17 +245,17 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
   end
 
   test "texto inválido na digitação não grava e mostra o erro na mesma tela" do
-    post order_imports_path, params: { customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
+    post order_imports_path, params: { entry_type: "new", customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
     import = ActsAsTenant.with_tenant(company) { OrderImport.images.order(:id).last }
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "brocolis") }
-    patch grid_order_import_path(import), params: { quantities: { "#{product.id}|kg" => { "2026-10-12" => "5 + 2" } } }
+    patch grid_order_import_path(import), params: { entry_type: "alteration", quantities: { "#{product.id}|kg" => { "2026-10-12" => "5 + 2" } } }
     assert_response :unprocessable_entity
     assert_match "não é um número", response.body
     assert_select "img[alt^='Pedido enviado pelo cliente']"
   end
 
   test "trocar o cliente e a semana e marcar como digitada" do
-    post order_imports_path, params: { customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
+    post order_imports_path, params: { entry_type: "new", customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
     import = ActsAsTenant.with_tenant(company) { OrderImport.images.order(:id).last }
     patch settings_order_import_path(import), params: { customer: "hsul", week: "2026-10-21" }
     import.reload
@@ -277,7 +323,7 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_ralada") }
     before = serra_order_state
 
-    patch orders_path(customer: "hnorte", week: "2026-10-12"), params: { quantities: { "#{product.id}|kg" => { "2026-10-13" => "9", "2026-10-20" => "3" } } }
+    patch orders_path(customer: "hnorte", week: "2026-10-12"), params: { entry_type: "alteration", quantities: { "#{product.id}|kg" => { "2026-10-13" => "9", "2026-10-20" => "3" } } }
 
     assert_response :unprocessable_entity
     assert_select "[role=alert]", /Nada foi salvo/
@@ -307,7 +353,7 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
   end
 
   test "arquivo de tipo não aceito volta ao formulário" do
-    post order_imports_path, params: { customer: "hbp", file: fixture_file_upload("documento_sem_imagens.odt", "application/vnd.oasis.opendocument.text") }
+    post order_imports_path, params: { entry_type: "new", customer: "hbp", file: fixture_file_upload("documento_sem_imagens.odt", "application/vnd.oasis.opendocument.text") }
     assert_response :unprocessable_entity
     assert_match "Não achei imagens", response.body
   end

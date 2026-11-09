@@ -27,10 +27,13 @@ module OrderImports
       before = snapshot(order, after)
       saved = nil
       OrderImport.transaction do
-        saved = OrderGridSaver.new(order: order, quantities: after, source: "import", import: @import, late_confirmed: @late_confirmed).call
+        saved = OrderGridSaver.new(order: order, quantities: after, source: "import", import: @import, late_confirmed: @late_confirmed,
+                                   entry_type: @import.entry_type).call
         raise ActiveRecord::Rollback unless saved.ok?
 
         aliases = remember_names(chosen)
+        # No extra a planilha traz o acréscimo; o desfazer compara com o total que ficou gravado.
+        after = snapshot(order, after) if @import.extra?
         @import.update!(status: "applied", applied_at: Time.current,
                         payload: @import.payload.merge("undo" => { "before" => before, "after" => after, "aliases" => aliases }))
       end
@@ -46,7 +49,7 @@ module OrderImports
       return [] unless order
 
       chosen, = choose_products
-      OrderGridSaver.new(order: order, quantities: grid(chosen), source: "import").late_alterations_preview
+      OrderGridSaver.new(order: order, quantities: grid(chosen), source: "import", entry_type: @import.entry_type).late_alterations_preview
     end
 
     private

@@ -1,4 +1,10 @@
-<%# locals: grid (OrderGrid), form_url, add_url, add_hidden (hash de campos ocultos do formulário de adicionar produto) %>
+<%# locals: grid (OrderGrid), form_url, add_url, add_hidden (hash de campos ocultos do formulário de adicionar produto),
+    extra (true: grade do extra, células vazias para o acréscimo), total_url e extra_url (os dois modos da grade),
+    selected_type (tipo já escolhido: "new" ou "alteration"). %>
+<%# Tipo de pedido (R1.29 a R1.33, D22): quem lança escolhe; o sistema não decide sozinho. Pedido novo e alteração
+    digitam o total; o extra digita só o acréscimo, e o sistema soma. %>
+<% extra = local_assigns[:extra] %>
+<% selected_type = local_assigns[:selected_type] %>
 <%# No celular a grade mostra um dia de entrega por vez (sem rolar para o lado), com filtro "Só com pedido".
     Os outros dias continuam no formulário, escondidos, e são salvos juntos. %>
 <% start_day = grid.dates.index(Date.current) || grid.dates.index { |date| grid.cells.values.flatten.any? { |line| line.delivery_date == date } } || 0 %>
@@ -58,10 +64,16 @@
               <td class="unit"><%= unit %></td>
               <% grid.dates.each_with_index do |date, index| %>
                 <td class="<%= 'is-sunday' if date.sunday? %>" data-col="<%= index %>">
-                  <input type="text" inputmode="decimal" autocomplete="off" class="cell" placeholder="·"
-                         name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]"
-                         value="<%= qty(by_date[date]) if by_date[date] %>"
-                         aria-label="<%= product.name %> em <%= weekday_date(date) %>">
+                  <% if extra %>
+                    <input type="text" inputmode="decimal" autocomplete="off" class="cell" placeholder="<%= by_date[date] ? "tem #{qty(by_date[date])}" : '·' %>"
+                           name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]"
+                           aria-label="Acréscimo de <%= product.name %> em <%= weekday_date(date) %><%= ", já tem #{qty(by_date[date])}" if by_date[date] %>">
+                  <% else %>
+                    <input type="text" inputmode="decimal" autocomplete="off" class="cell" placeholder="·"
+                           name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]"
+                           value="<%= qty(by_date[date]) if by_date[date] %>"
+                           aria-label="<%= product.name %> em <%= weekday_date(date) %>">
+                  <% end %>
                 </td>
               <% end %>
               <td class="total num"><%= qty(by_date.values.sum) %></td>
@@ -76,9 +88,24 @@
     <p class="only-mobile off-filter p-6 text-center muted" data-order-day-target="empty">Nenhum produto com pedido neste dia. Toque em Todos para digitar.</p>
   </div>
   <div class="savebar">
-    <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar pedido<% end %>
-    <%= render "orders/late_confirmation", items: grid.late_dates.map { |date| short_date(date) }, intro: "Mudar ou cancelar quantidade a menos de 48 h da entrega pede a confirmação. Dias:" %>
-    <span class="muted text-sm">Quantidade vazia ou 0 apaga a linha. Use vírgula para decimais.</span>
+    <% if extra %>
+      <%= hidden_field_tag :entry_type, "extra" %>
+      <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Somar extra ao pedido<% end %>
+      <span class="muted text-sm">Extra: digite só o acréscimo; o sistema soma ao que já está no pedido. Vazio não muda nada. Use vírgula para decimais.</span>
+      <% if local_assigns[:total_url] %><%= link_to "Voltar à grade do pedido", total_url, class: "btn" %><% end %>
+    <% else %>
+      <fieldset class="flex flex-wrap items-center gap-3 text-sm">
+        <legend class="sr-only">Tipo de pedido</legend>
+        <span class="font-bold">Tipo:</span>
+        <% { "new" => "Pedido novo", "alteration" => "Alteração (novo total)" }.each do |value, label| %>
+          <label class="flex items-center gap-1"><%= radio_button_tag :entry_type, value, selected_type == value, required: true, class: "size-4" %><%= label %></label>
+        <% end %>
+        <% if local_assigns[:extra_url] %><%= link_to "Lançar extra (soma)", extra_url, class: "btn" %><% end %>
+      </fieldset>
+      <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar pedido<% end %>
+      <%= render "orders/late_confirmation", items: grid.late_dates.map { |date| short_date(date) }, intro: "Mudar ou cancelar quantidade a menos de 48 h da entrega pede a confirmação. Dias:" %>
+      <span class="muted text-sm">Quantidade vazia ou 0 apaga a linha. Use vírgula para decimais.</span>
+    <% end %>
   </div>
 <% end %>
 

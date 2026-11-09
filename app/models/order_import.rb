@@ -50,6 +50,13 @@ class OrderImport < ApplicationRecord
     payload.fetch("errors", [])
   end
 
+  # Tipo de pedido escolhido na tela "Importar" (R1.29 a R1.33, D22). O PDF de AFs diz sozinho: AF nova ou ALTERAÇÃO.
+  def entry_type
+    payload["entry_type"].presence_in(OrderVersion::ENTRY_TYPES.keys)
+  end
+
+  def extra? = entry_type == "extra"
+
   private
 
   def image_content_type

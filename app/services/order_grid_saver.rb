@@ -19,8 +19,13 @@ class OrderGridSaver
   CONFIRMED_SOURCES = %w[grid image import api].freeze
 
   # late_confirmed: a Hortifruti Modelo confirmou a alteração com menos de 48 h da entrega.
-  def initialize(order:, quantities:, measures: {}, source: "grid", import: nil, restored_from: nil, late_confirmed: false)
+  # entry_type: tipo de pedido (OrderVersion::ENTRY_TYPES; R1.29 a R1.33, D22). No "extra", a quantidade digitada é o
+  # acréscimo: soma ao que já estava (produto que não estava entra com ela), e vazio ou 0 não muda nada. Nos outros
+  # tipos, e sem tipo, a quantidade digitada é o novo total.
+  def initialize(order:, quantities:, measures: {}, source: "grid", import: nil, restored_from: nil, late_confirmed: false,
+                 entry_type: nil)
     @late_confirmed = late_confirmed
+    @entry_type = entry_type.presence
     @order = order
     @quantities = quantities
     @measures = measures
@@ -40,11 +45,14 @@ class OrderGridSaver
   def late_alterations_preview
     parsed = parse([])
     before = @order.lines.group(:product_id, :unit, :delivery_date).sum(:quantity)
-    late_cells(parsed, before)
+    late_cells(totals(parsed, before), before)
   end
+
+  def extra? = @entry_type == "extra"
 
   def call
     errors = []
+    errors << "Tipo de pedido inválido." if @entry_type && OrderVersion::ENTRY_TYPES.exclude?(@entry_type)
     parsed = parse(errors)
     return Result.new(errors: errors, changed_dates: []) unless errors.empty?
 
@@ -55,6 +63,7 @@ class OrderGridSaver
       @order.lock!
       existing = @order.lines.to_a.group_by { |l| [ l.product_id, l.unit, l.delivery_date ] }
       before = existing.transform_values { |lines| lines.sum(&:quantity) }
+      parsed = totals(parsed, before)
       # Nada foi gravado ainda: sair aqui não deixa o pedido pela metade.
       outside = outside_week_errors(parsed, before)
       return Result.new(errors: outside, changed_dates: []) if outside.any?
@@ -95,8 +104,10 @@ class OrderGridSaver
   end
 
   # ["Cenoura ralada em 14/10", ...]: as células que pediriam a confirmação.
+  # O extra fica de fora: o prazo dele espera a A.5 (a R1.26 é da alteração).
   def late_cells(parsed, before)
     return [] unless CONFIRMED_SOURCES.include?(@source)
+    return [] if extra?
 
     parsed.filter_map do |(product_id, unit, date), quantity|
       current = before.fetch([ product_id, unit, date ], 0)
@@ -105,6 +116,13 @@ class OrderGridSaver
 
       "#{Product.find_by(id: product_id)&.name || 'Produto'} em #{Formatting.short_date(date)}"
     end
+  end
+
+  # No extra, o digitado é o acréscimo: vira o total (o que já estava + o digitado). Vazio ou 0 sai: não muda nada.
+  def totals(parsed, before)
+    return parsed unless extra?
+
+    parsed.filter_map { |key, quantity| [ key, before.fetch(key, 0) + quantity ] if quantity.positive? }.to_h
   end
 
   # A medida vale para a linha inteira da grade (todos os dias do produto naquela unidade). Não gera versão do pedido.
@@ -124,15 +142,16 @@ class OrderGridSaver
       create_version(next_version += 1, "initial", snapshot(before), [], actor: false)
     end
     after = @order.lines.reload.group(:product_id, :unit, :delivery_date).sum(:quantity)
-    create_version(next_version + 1, @source, snapshot(after), changes_list(changes), late_confirmed: @late_confirmed)
+    create_version(next_version + 1, @source, snapshot(after), changes_list(changes), late_confirmed: @late_confirmed,
+                                                                                      entry_type: @entry_type)
     # Sem data de chegada informada, o pedido conta como recebido no primeiro salvamento (D7); quem lança pode corrigir.
     @order.update!(received_at: Time.current) if @order.received_at.nil?
   end
 
-  def create_version(number, source, lines, changes, actor: true, late_confirmed: false)
+  def create_version(number, source, lines, changes, actor: true, late_confirmed: false, entry_type: nil)
     user = Current.user if actor
     @order.versions.create!(
-      version: number, source: source, lines: lines, changes_list: changes, late_confirmed: late_confirmed,
+      version: number, source: source, lines: lines, changes_list: changes, late_confirmed: late_confirmed, entry_type: entry_type,
       user: user, user_name: actor ? (user&.name || (Current.api_token && "API: #{Current.api_token.name}")) : nil,
       order_import: actor ? @import : nil, restored_from_version: actor ? @restored_from : nil
     )

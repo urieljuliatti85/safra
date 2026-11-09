@@ -84,6 +84,20 @@ RSpec.describe "API v1: pedidos", type: :request do
         end
       end
 
+      response "200", "extra soma ao pedido" do
+        schema "$ref" => "#/components/schemas/Order"
+        let(:body) { { customer: "hnorte", week: "2026-10-12", lines: [ { product: "cenoura_ralada", date: "2026-10-14", quantity: 2 } ], entry_type: "extra" } }
+
+        run_test! do
+          version = in_company do
+            Order.find_by!(customer: Customer.find_by!(code: "hnorte"), week_start: Date.new(2026, 10, 12)).versions.order(:version).last
+          end
+          change = version.changes_list.sole
+          expect(version.entry_type).to eq("extra")
+          expect(BigDecimal(change["after"]) - BigDecimal(change["before"])).to eq(2)
+        end
+      end
+
       response "200", "quantidade zero apaga a linha" do
         schema "$ref" => "#/components/schemas/Order"
         let(:body) { { customer: "hnorte", week: "2026-10-12", lines: [ { product: "cenoura_ralada", date: "2026-10-14", quantity: 0 } ], late_confirmed: true } }

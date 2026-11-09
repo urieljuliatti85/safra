@@ -29,7 +29,7 @@ class OrderReceivedTest < ActionDispatch::IntegrationTest
   test "a grade mostra e salva a medida pedida de cada linha (R1.14, D12)" do
     sign_in_as(user_for(:office))
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_cubinhos") }
-    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { measures: { "#{product.id}|kg" => "8 × 8 mm" } }
+    patch orders_path(customer: "hbp", week: "2026-10-12"), params: { entry_type: "alteration", measures: { "#{product.id}|kg" => "8 × 8 mm" } }
     follow_redirect!
     assert_match "Medida salva. As quantidades não mudaram", response.body
     assert_select "input[name='measures[#{product.id}|kg]'][value='8 × 8 mm']"

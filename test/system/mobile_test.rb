@@ -66,6 +66,7 @@ class MobileTest < ApplicationSystemTestCase
     find(".day-pick", text: "Qua 14/10").click
     assert_no_field "Cenoura ralada em Ter 13/10"
     fill_in "Cenoura ralada em Qua 14/10", with: "4"
+    choose "Alteração (novo total)"
     click_on "Salvar pedido"
 
     assert_text "Pedido salvo"
@@ -132,6 +133,7 @@ class MobileTest < ApplicationSystemTestCase
     find(".day-pick", text: "Qua 14/10").click
     click_on "Só com pedido"
     fill_in "Acelga picada em Qua 14/10", with: "10"
+    choose "Alteração (novo total)"
     click_on "Salvar pedido"
     assert_text "Pedido salvo: versão 2, 1 alteração."
 

@@ -6,7 +6,8 @@ module GuidesHelper
   def guide_steps
     [
       GuideStep.new("Importar o pedido", [
-        "Em Pedidos, escolha o cliente e clique em Importar planilha.",
+        "Em Pedidos, escolha o cliente e clique em Importar.",
+        "Escolha o tipo: pedido novo, alteração (novo total) ou extra (só o acréscimo; o sistema soma).",
         "Um arquivo por vez: processados e in natura vêm em planilhas separadas.",
         "Pedido em ODT ou print: a imagem fica ao lado da grade para digitar olhando.",
         "Pedido por telefone ou WhatsApp: digite direto na grade do cliente."
@@ -17,7 +18,7 @@ module GuidesHelper
         "Célula vazia numa linha com quantidades apaga aquele dia do pedido.",
         "Confira e clique em Importar no pedido.",
         "Importou errado? Em Pedidos, clique na pill Desfazer da planilha."
-      ], "Importar planilha", new_order_import_path),
+      ], "Importar", new_order_import_path),
       GuideStep.new("Conferência", [
         "Alertas da semana: matéria-prima sem fator, unidade diferente, data estranha.",
         "Alerta não bloqueia nada; cada um leva à tela onde se corrige."

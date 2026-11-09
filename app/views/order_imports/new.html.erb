@@ -1,6 +1,6 @@
-<% content_for :title, "Importar planilha · Safra" %>
+<% content_for :title, "Importar · Safra" %>
 <div class="mb-5">
-  <h1 class="page-title">Importar planilha de pedido</h1>
+  <h1 class="page-title">Importar pedido</h1>
   <p class="page-sub">Planilha (xlsx, xls, ods, csv): o sistema lê e você confere o que muda antes de gravar. ODT ou imagem (pedido colado como print): a imagem fica ao lado da grade para você digitar olhando.</p>
 </div>
 
@@ -13,17 +13,34 @@
       <% end %>
     </select>
   </div>
+  <%# Tipo de pedido (R1.29 a R1.33, D22): quem lança escolhe; o sistema não decide sozinho. %>
+  <fieldset>
+    <legend class="mb-1 font-bold">Tipo</legend>
+    <% [ [ "new", "Pedido novo", "cria o pedido do cliente" ],
+         [ "alteration", "Alteração", "muda um pedido existente: as quantidades são o novo total" ],
+         [ "extra", "Extra", "acréscimo ao pedido da mesma entrega: as quantidades são somadas" ] ].each do |value, label, hint| %>
+      <label class="flex items-start gap-2 py-1">
+        <%= radio_button_tag :entry_type, value, @entry_type == value, required: true, class: "mt-1 size-4" %>
+        <span><strong><%= label %></strong> <span class="muted text-sm">· <%= hint %></span></span>
+      </label>
+    <% end %>
+    <p class="muted mt-1 text-sm">Se o cliente escreveu só "preciso de 20 kg para hoje", pergunte se são mais 20 kg (extra) ou 20 kg no total (alteração) antes de escolher. O PDF de AFs diz o tipo sozinho: AF nova ou ALTERAÇÃO.</p>
+  </fieldset>
   <div>
-    <label for="file" class="mb-1 block font-bold">Arquivo</label>
-    <input id="file" type="file" name="file" accept=".xlsx,.xls,.ods,.csv,.odt,.png,.jpg,.jpeg,.webp,.gif,.pdf" required class="field w-full">
+    <label for="file" class="mb-1 block font-bold">Arquivo <span class="muted font-normal">(opcional na alteração e no extra)</span></label>
+    <input id="file" type="file" name="file" accept=".xlsx,.xls,.ods,.csv,.odt,.png,.jpg,.jpeg,.webp,.gif,.pdf" class="field w-full">
     <p class="muted mt-1 text-sm">Planilha: produtos nas linhas e dias da semana nas colunas, com as datas no cabeçalho; uma por vez (processados e in natura vêm em arquivos separados). ODT: cada imagem do documento vira uma tela de digitação, com o cliente e o dia indicados pelo texto quando houver. PDF de AFs (cliente de pedido mensal, como a Nutrir): o mês inteiro ou uma AF alterada; cada AF vai para o pedido da semana da entrega.</p>
+  </div>
+  <div>
+    <label for="week" class="mb-1 block font-bold">Semana do pedido <span class="muted font-normal">(alteração ou extra sem arquivo: abre a grade desse pedido)</span></label>
+    <input id="week" type="date" name="week" value="<%= @week&.iso8601 %>" class="field">
   </div>
   <div>
     <label for="date" class="mb-1 block font-bold">Data de entrega <span class="muted font-normal">(só para imagem avulsa, opcional)</span></label>
     <input id="date" type="date" name="date" class="field">
   </div>
   <div class="flex flex-wrap items-center gap-3">
-    <%= button_tag type: "submit", class: "btn btn-primary", data: { tour: "send-file" } do %><%= icon :check %>Enviar arquivo<% end %>
+    <%= button_tag type: "submit", class: "btn btn-primary", data: { tour: "send-file" } do %><%= icon :check %>Continuar<% end %>
     <%= link_to "Cancelar", orders_path(customer: @customer.code), class: "btn" %>
   </div>
 <% end %>

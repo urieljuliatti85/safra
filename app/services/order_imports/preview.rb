@@ -1,5 +1,6 @@
 module OrderImports
   # O que a importação mudaria no pedido: por linha do arquivo e por dia, quantidade nova × a de hoje.
+  # No extra (D22), a planilha traz o acréscimo: a quantidade nova é a de hoje + a da planilha, e célula vazia não apaga.
   class Preview
     Cell = Data.define(:date, :new_quantity, :current, :status) # status: :same | :new | :changed | :removed | :empty
     Line = Data.define(:index, :row, :product, :unit, :cells, :warnings)
@@ -31,6 +32,9 @@ module OrderImports
       text = row["quantities"][date.iso8601]
       new_quantity = text && BigDecimal(text)
       current = product ? @current.fetch([ product.id, unit, date ], nil) : nil
+      if @import.extra?
+        new_quantity = new_quantity&.positive? ? (current || 0) + new_quantity : current
+      end
       status = if new_quantity.nil? && current.nil? then :empty
       elsif new_quantity.nil? then :removed
       elsif current.nil? then :new

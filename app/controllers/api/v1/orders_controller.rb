@@ -14,7 +14,8 @@ module Api
         quantities, errors = quantities_from(params.require(:lines))
         return render_error(:unprocessable_entity, "invalid_lines", "Há linhas inválidas.", details: errors) if errors.any?
 
-        result = OrderGridSaver.new(order: @order, quantities: quantities, source: "api",
+        # entry_type (opcional): new | alteration | extra (R1.29 a R1.33, D22). No extra, quantity é o acréscimo e soma.
+        result = OrderGridSaver.new(order: @order, quantities: quantities, source: "api", entry_type: params[:entry_type],
                                     late_confirmed: ActiveModel::Type::Boolean.new.cast(params[:late_confirmed]) || false).call
         return render_error(:unprocessable_entity, "invalid_lines", "Há linhas inválidas.", details: result.errors) unless result.ok?
 

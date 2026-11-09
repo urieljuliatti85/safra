@@ -3,8 +3,9 @@
 # trocadas pelas da alteração (produto que sumiu vai a zero); o resto do pedido não muda. Fica uma versão nova.
 # items: [{ product:, unit:, quantity: }]
 class SupplyAuthorizationApplier
-  def initialize(customer:, number:, delivery_date:, items:, source: "import", import: nil, late_confirmed: false)
+  def initialize(customer:, number:, delivery_date:, items:, source: "import", import: nil, late_confirmed: false, entry_type: nil)
     @late_confirmed = late_confirmed
+    @entry_type = entry_type
     @customer = customer
     @number = number.to_s.strip
     @date = delivery_date
@@ -19,7 +20,8 @@ class SupplyAuthorizationApplier
 
     result = nil
     Order.transaction do
-      result = OrderGridSaver.new(order: order, quantities: quantities, source: @source, import: @import, late_confirmed: @late_confirmed).call
+      result = OrderGridSaver.new(order: order, quantities: quantities, source: @source, import: @import, late_confirmed: @late_confirmed,
+                                  entry_type: @entry_type).call
       raise ActiveRecord::Rollback unless result.ok?
 
       @items.each do |item|
