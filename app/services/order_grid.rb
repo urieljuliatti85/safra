@@ -13,4 +13,9 @@ class OrderGrid
     @sections = @rows.group_by { |product, _| product.product_group }
     @available_products = Product.order(:name).includes(:raw_material)
   end
+
+  # Dias com quantidade no pedido a menos de 48 h da entrega: só mudar ou cancelar neles pede a confirmação (R1.26).
+  def late_dates
+    @late_dates ||= @cells.values.flatten.map(&:delivery_date).uniq.select { |date| OrderGridSaver.late?(order.customer, date) }.sort
+  end
 end

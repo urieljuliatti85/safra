@@ -37,6 +37,29 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_select "button", /Importar no pedido/
   end
 
+  test "a caixa das 48 h só aparece quando a importação muda quantidade já pedida a menos de 48 h da entrega" do
+    upload("pedido_com_unidade.xlsx", "hnorte")
+    follow_redirect!
+    assert_select "input[name=late_confirmed]", count: 0
+
+    travel_to Time.zone.local(2026, 10, 19, 9) do
+      get request.path
+      assert_select "input[name=late_confirmed]", count: 1
+      assert_match "Muda quantidade a menos de 48 h da entrega:", response.body
+    end
+  end
+
+  test "a grade só mostra a caixa das 48 h com entrega a menos de 48 h" do
+    get orders_path(customer: "hnorte", week: "2026-10-12")
+    assert_select "input[name=late_confirmed]", count: 0
+
+    travel_to Time.zone.local(2026, 10, 12, 10) do
+      get orders_path(customer: "hnorte", week: "2026-10-12")
+      assert_select "input[name=late_confirmed]", count: 1
+      assert_match "14/10", response.body
+    end
+  end
+
   test "produto desconhecido aparece para escolher e aplicar sem escolher mostra o erro" do
     upload("pedido_sem_unidade.xlsx", "hbp")
     follow_redirect!
@@ -100,6 +123,7 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_select "h1", "Versão 2 do pedido"
     assert_select "td", "Cenoura em cubinhos kg"
     assert_select "button", { text: /Restaurar esta versão/, count: 0 }
+    assert_select "a.btn-primary[href=?]", orders_path(customer: "hbp", week: Date.new(2026, 10, 12)), text: /Abrir e editar/
 
     get order_version_path(initial)
     post restore_order_version_path(initial)
@@ -158,6 +182,20 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
       Order.find_by!(customer: import.customer, week_start: import.week_start).lines.where(product: product, delivery_date: "2026-10-12").sum(:quantity)
     end
     assert_equal 30, quantity
+  end
+
+  test "a versão do pedido em imagem abre a imagem com a grade para editar" do
+    post order_imports_path, params: { customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
+    import = ActsAsTenant.with_tenant(company) { OrderImport.images.order(:id).last }
+    product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "brocolis") }
+    patch grid_order_import_path(import), params: { quantities: { "#{product.id}|kg" => { import.week_start.iso8601 => "30" } } }
+    version = ActsAsTenant.with_tenant(company) { Order.find_by!(customer: import.customer, week_start: import.week_start).versions.order(:version).last }
+
+    get order_version_path(version)
+    assert_select "a.btn-primary[href=?]", order_import_path(import), text: /Abrir e editar com a imagem/
+    get order_import_path(import)
+    assert_select "h1", /Pedido em imagem/
+    assert_select "input[aria-label^='Brócolis']"
   end
 
   test "texto inválido na digitação não grava e mostra o erro na mesma tela" do

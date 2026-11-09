@@ -15,13 +15,7 @@ class SupplyAuthorizationApplier
 
   def call
     order = Order.find_or_create_by!(customer: @customer, week_start: @date.beginning_of_week)
-    quantities = Hash.new { |hash, key| hash[key] = {} }
-    order.lines.where(af_number: @number).find_each do |line|
-      quantities["#{line.product_id}|#{line.unit}"][line.delivery_date.iso8601] = "0"
-    end
-    @items.each do |item|
-      quantities["#{item[:product].id}|#{item[:unit]}"][@date.iso8601] = item[:quantity].to_s
-    end
+    quantities = quantities_for(order)
 
     result = nil
     Order.transaction do
@@ -33,5 +27,26 @@ class SupplyAuthorizationApplier
       end
     end
     result
+  end
+
+  # O que pediria a confirmação das 48 h, sem gravar nada.
+  def late_alterations
+    order = Order.find_by(customer: @customer, week_start: @date.beginning_of_week)
+    return [] unless order
+
+    OrderGridSaver.new(order: order, quantities: quantities_for(order), source: @source).late_alterations_preview
+  end
+
+  private
+
+  def quantities_for(order)
+    quantities = Hash.new { |hash, key| hash[key] = {} }
+    order.lines.where(af_number: @number).find_each do |line|
+      quantities["#{line.product_id}|#{line.unit}"][line.delivery_date.iso8601] = "0"
+    end
+    @items.each do |item|
+      quantities["#{item[:product].id}|#{item[:unit]}"][@date.iso8601] = item[:quantity].to_s
+    end
+    quantities
   end
 end

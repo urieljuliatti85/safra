@@ -39,6 +39,16 @@ module OrderImports
       Result.new(errors: [], changed_dates: saved.changed_dates)
     end
 
+    # ["Cenoura ralada em 14/10", ...]: o que a importação pediria de confirmação das 48 h, com os produtos já
+    # reconhecidos. Linha sem produto fica de fora até alguém escolher; se virar alteração, o aplicar recusa e avisa.
+    def late_alterations
+      order = Order.find_by(customer: @import.customer, week_start: @import.week_start)
+      return [] unless order
+
+      chosen, = choose_products
+      OrderGridSaver.new(order: order, quantities: grid(chosen), source: "import").late_alterations_preview
+    end
+
     private
 
     # [[row, product], ...] das linhas não ignoradas; erro quando falta escolher o produto.

@@ -29,6 +29,20 @@ class OrderGridSaver
     @restored_from = restored_from
   end
 
+  # As 48 h contam do início da janela de entrega do cliente ("entrega a partir de"); sem horário cadastrado,
+  # da meia-noite do dia.
+  def self.late?(customer, date, now: Time.current)
+    from = customer.delivery_from
+    date.in_time_zone.change(hour: from&.hour || 0, min: from&.min || 0) - ALTERATION_NOTICE <= now
+  end
+
+  # O que pediria a confirmação das 48 h, sem gravar nada: a tela só mostra a caixa quando ela vale.
+  def late_alterations_preview
+    parsed = parse([])
+    before = @order.lines.group(:product_id, :unit, :delivery_date).sum(:quantity)
+    late_cells(parsed, before)
+  end
+
   def call
     errors = []
     parsed = parse(errors)
@@ -73,21 +87,23 @@ class OrderGridSaver
   private
 
   # Mudar ou cancelar uma quantidade que já existia, com menos de 48 h da entrega (R1.26, D8). Produto novo no dia
-  # (pedido extra) fica de fora até a pergunta A.5. As 48 h contam do início da janela de entrega do cliente
-  # ("entrega a partir de"); sem horário cadastrado, da meia-noite do dia.
+  # (pedido extra) fica de fora até a pergunta A.5.
   def late_alterations(parsed, before)
+    late_cells(parsed, before).map do |label|
+      "#{label}: falta menos de 48 h para a entrega. Marque \"A Hortifruti Modelo confirmou a alteração\" para gravar."
+    end
+  end
+
+  # ["Cenoura ralada em 14/10", ...]: as células que pediriam a confirmação.
+  def late_cells(parsed, before)
     return [] unless CONFIRMED_SOURCES.include?(@source)
 
-    from = @order.customer.delivery_from
     parsed.filter_map do |(product_id, unit, date), quantity|
       current = before.fetch([ product_id, unit, date ], 0)
       next if current.zero? || current == quantity
+      next unless self.class.late?(@order.customer, date)
 
-      delivery = date.in_time_zone.change(hour: from&.hour || 0, min: from&.min || 0)
-      next if delivery - ALTERATION_NOTICE > Time.current
-
-      "#{Product.find_by(id: product_id)&.name || 'Produto'} em #{Formatting.short_date(date)}: falta menos de 48 h para a entrega. " \
-        "Marque \"A Hortifruti Modelo confirmou a alteração\" para gravar."
+      "#{Product.find_by(id: product_id)&.name || 'Produto'} em #{Formatting.short_date(date)}"
     end
   end
 

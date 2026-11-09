@@ -38,9 +38,10 @@ class OrderImportsController < ApplicationController
   end
 
   def show
-    return render(:af) if @import.af?
+    return show_afs if @import.af?
     return show_image if @import.image?
 
+    @late_alterations = @import.applied? ? [] : OrderImports::Applier.new(import: @import, mappings: {}).late_alterations
     @preview = OrderImports::Preview.new(@import)
     @products = Product.order(:name).group_by(&:product_group)
     load_undo
@@ -75,8 +76,9 @@ class OrderImportsController < ApplicationController
   def apply
     return apply_afs if @import.af?
 
-    result = OrderImports::Applier.new(import: @import, mappings: params.fetch(:mappings, {}).to_unsafe_h,
-                                      late_confirmed: params[:late_confirmed] == "1").call
+    applier = OrderImports::Applier.new(import: @import, mappings: params.fetch(:mappings, {}).to_unsafe_h,
+                                        late_confirmed: params[:late_confirmed] == "1")
+    result = applier.call
     if result.ok?
       redirect_to orders_path(customer: @import.customer.code, week: @import.week_start),
                   notice: "Planilha importada no pedido de #{@import.customer.short_name}.", alert: StalePlans.warning(current_company)
@@ -84,6 +86,7 @@ class OrderImportsController < ApplicationController
       @preview = OrderImports::Preview.new(@import)
       @products = Product.order(:name).group_by(&:product_group)
       @errors = result.errors
+      @late_alterations = applier.late_alterations
       render :show, status: :unprocessable_entity
     end
   end
@@ -116,7 +119,7 @@ class OrderImportsController < ApplicationController
                   notice: "AFs de #{@import.customer.short_name} aplicadas nos pedidos das semanas de #{weeks}.", alert: StalePlans.warning(current_company)
     else
       @errors = result.errors
-      render :af, status: :unprocessable_entity
+      show_afs(status: :unprocessable_entity)
     end
   end
 
@@ -130,6 +133,11 @@ class OrderImportsController < ApplicationController
 
     @later_edits = @undoer.later_edits
     @stale_after_undo = @undoer.stale_after_undo
+  end
+
+  def show_afs(status: :ok)
+    @late_alterations = @import.applied? ? [] : OrderImports::AfApplier.new(import: @import).late_alterations
+    render :af, status: status
   end
 
   def image_order

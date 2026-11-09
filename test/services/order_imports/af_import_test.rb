@@ -74,6 +74,21 @@ class OrderImports::AfImportTest < ActiveSupport::TestCase
                    [ "vagem_cubinhos", 6 ] => [ 120, "0009100649" ] }, quantities(Date.new(2026, 11, 2)))
   end
 
+  test "a caixa das 48 h só vale para AF que muda quantidade já pedida a menos de 48 h da entrega" do
+    month = import(MONTH, "mes.pdf")
+    travel_to(Time.zone.local(2026, 11, 5, 10)) { assert_empty OrderImports::AfApplier.new(import: month).late_alterations }
+    OrderImports::AfApplier.new(import: month).call
+
+    alteration = import(ALTERATION, "alteracao.pdf")
+    again = import(MONTH, "mes de novo.pdf")
+    travel_to Time.zone.local(2026, 11, 5, 10) do
+      late = OrderImports::AfApplier.new(import: alteration).late_alterations
+      assert_equal 2, late.size # vagem muda, beterraba sai
+      assert late.all? { |label| label.start_with?("AF 0009100649: ") && label.end_with?(" em 06/11") }, late.inspect
+      assert_empty OrderImports::AfApplier.new(import: again).late_alterations # mesmas quantidades
+    end
+  end
+
   test "nome sem produto não grava nada" do
     record = import([ MONTH.first + [ "PEPINO JAPONES PROCESSADO KG 5,000 3,00000 PADRAO / 15,00" ] ], "novo.pdf")
     result = OrderImports::AfApplier.new(import: record).call

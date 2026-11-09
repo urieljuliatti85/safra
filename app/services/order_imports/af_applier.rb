@@ -16,20 +16,34 @@ module OrderImports
       unknown = afs.flat_map { |af| af["items"] }.reject { |item| item["product_id"] }.map { |item| item["name"] }.uniq
       return Result.new(errors: unknown.map { |name| "\"#{name}\" não tem produto: cadastre o apelido e importe de novo." }, weeks: []) if unknown.any?
 
-      products = Product.where(id: afs.flat_map { |af| af["items"].map { |item| item["product_id"] } }).index_by(&:id)
       errors = []
       OrderImport.transaction do
-        afs.sort_by { |af| af["date"] }.each do |af|
-          items = af["items"].map { |item| { product: products.fetch(item["product_id"]), unit: item["unit"], quantity: item["quantity"] } }
-          result = SupplyAuthorizationApplier.new(customer: @import.customer, number: af["number"], delivery_date: Date.iso8601(af["date"]),
-                                                  items: items, import: @import, late_confirmed: @late_confirmed).call
-          errors.concat(result.errors.map { |e| "AF #{af['number']}: #{e}" })
+        appliers(afs).each do |af, applier|
+          errors.concat(applier.call.errors.map { |e| "AF #{af['number']}: #{e}" })
         end
         raise ActiveRecord::Rollback if errors.any?
 
         @import.update!(status: "applied", applied_at: Time.current)
       end
       Result.new(errors: errors, weeks: afs.map { |af| Date.iso8601(af["date"]).beginning_of_week }.uniq.sort)
+    end
+
+    # ["AF 0009100646: Chuchu em 03/11", ...]: o que pediria a confirmação das 48 h, sem gravar nada.
+    # AF nova ou igual à que já estava não pede; AF com nome sem produto fica de fora (não dá para aplicar).
+    def late_alterations
+      afs = @import.payload.fetch("afs").select { |af| af["items"].all? { |item| item["product_id"] } }
+      appliers(afs).flat_map { |af, applier| applier.late_alterations.map { |label| "AF #{af['number']}: #{label}" } }
+    end
+
+    private
+
+    def appliers(afs)
+      products = Product.where(id: afs.flat_map { |af| af["items"].map { |item| item["product_id"] } }).index_by(&:id)
+      afs.sort_by { |af| af["date"] }.map do |af|
+        items = af["items"].map { |item| { product: products.fetch(item["product_id"]), unit: item["unit"], quantity: item["quantity"] } }
+        [ af, SupplyAuthorizationApplier.new(customer: @import.customer, number: af["number"], delivery_date: Date.iso8601(af["date"]),
+                                             items: items, import: @import, late_confirmed: @late_confirmed) ]
+      end
     end
   end
 end

@@ -49,4 +49,18 @@ class OrderAlterationNoticeTest < ActiveSupport::TestCase
       assert OrderVersionRestorer.new(version: @order.versions.order(:version).first).call.ok?
     end
   end
+
+  test "a prévia diz o que pediria a confirmação, sem gravar; a grade mostra os dias" do
+    preview = ->(cells) { OrderGridSaver.new(order: @order, quantities: { @key => cells }).late_alterations_preview }
+    travel_to Time.zone.local(2026, 10, 12, 10) do
+      assert_equal [ "Cenoura ralada em 14/10" ], preview.call({ "2026-10-14" => "99" })
+      assert_empty preview.call({ "2026-10-14" => @current.to_s("F") })
+      assert_equal @current, @order.lines.where(product: @product, delivery_date: "2026-10-14").sum(:quantity)
+      assert_includes OrderGrid.new(order: @order).late_dates, Date.new(2026, 10, 14)
+    end
+    travel_to Time.zone.local(2026, 10, 5, 9) do
+      assert_empty preview.call({ "2026-10-14" => "99" })
+      assert_empty OrderGrid.new(order: @order).late_dates
+    end
+  end
 end
