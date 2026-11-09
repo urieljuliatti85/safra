@@ -244,6 +244,16 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_select "input[aria-label^='Brócolis']"
   end
 
+  test "o pedido em imagem aparece em Importado nesta semana, com o atalho para a imagem" do
+    post order_imports_path, params: { entry_type: "extra", customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
+    import = ActsAsTenant.with_tenant(company) { OrderImport.images.order(:id).last }
+    get orders_path(customer: "hbp", week: import.week_start)
+    assert_select "a[href=?]", order_import_path(import), text: /Abrir imagem\s+imagem_pedido.png/
+
+    get orders_path(customer: "hnorte", week: import.week_start)
+    assert_select "a[href=?]", order_import_path(import), count: 0
+  end
+
   test "texto inválido na digitação não grava e mostra o erro na mesma tela" do
     post order_imports_path, params: { entry_type: "new", customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
     import = ActsAsTenant.with_tenant(company) { OrderImport.images.order(:id).last }

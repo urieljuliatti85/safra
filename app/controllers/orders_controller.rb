@@ -7,6 +7,8 @@ class OrdersController < ApplicationController
 
     @add_product = Product.find_by(id: params[:add])
     @imports = OrderImport.where(customer: @customer, week_start: @week_start, kind: "sheet", status: "applied").order(applied_at: :desc)
+    # Pedidos em imagem do cliente e da semana: atalho para voltar ao print ao lado da grade.
+    @images = OrderImport.images.where(customer: @customer, week_start: @week_start).order(:created_at)
     build_grid
   end
 

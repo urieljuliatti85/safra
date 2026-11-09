@@ -41,12 +41,18 @@
   <% end %>
 </nav>
 
-<% if @imports.present? %>
-  <div class="mb-4 flex flex-wrap items-center gap-2" aria-label="Planilhas importadas nesta semana">
+<% if @imports.present? || @images.present? %>
+  <div class="mb-4 flex flex-wrap items-center gap-2" aria-label="Importado nesta semana">
     <span class="text-sm muted">Importado nesta semana:</span>
     <% @imports.each do |import| %>
       <%= link_to order_import_path(import, anchor: "desfazer"), class: "pill pill-undo", title: "Abrir #{import.filename} para conferir ou desfazer" do %>
         <%= icon :undo %>Desfazer <span class="font-normal"><%= import.filename %> · <%= l(import.applied_at, format: "%d/%m %H:%M") %></span>
+      <% end %>
+    <% end %>
+    <% @images.each do |image| %>
+      <% label = [ image.filename, (image.payload["label"] if image.siblings.count > 1) ].compact.join(" · ") %>
+      <%= link_to order_import_path(image), class: "pill pill-undo", title: "Abrir #{label} ao lado da grade" do %>
+        <%= icon :note %>Abrir imagem <span class="font-normal"><%= label %> · <%= l(image.created_at, format: "%d/%m %H:%M") %><%= " · digitada" if image.applied? %></span>
       <% end %>
     <% end %>
   </div>
