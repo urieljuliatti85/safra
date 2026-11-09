@@ -1,6 +1,8 @@
 require "application_system_test_case"
 
 class TourTest < ApplicationSystemTestCase
+  with_guides
+
   test "o tour abre sozinho no primeiro acesso e só na primeira vez" do
     user_for(:office).update!(tour_seen_at: nil)
     sign_in_through_form(:office)

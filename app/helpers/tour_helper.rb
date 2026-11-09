@@ -7,7 +7,7 @@ module TourHelper
   end
 
   def tour_steps
-    return [] unless authenticated? && policy(:tour).show?
+    return [] unless Rails.configuration.x.guides_enabled && authenticated? && policy(:tour).show?
 
     [
       { path: orders_path, target: "nav[aria-label='Clientes']", title: "Pedidos de cada cliente",

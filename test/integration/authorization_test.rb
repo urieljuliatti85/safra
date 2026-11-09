@@ -1,7 +1,7 @@
 require "test_helper"
 
 class AuthorizationTest < ActionDispatch::IntegrationTest
-  FULL = [ "/painel", "/orders", "/schedule", "/production", "/purchases", "/conference", "/conference/sheets", "/conference/sheets/import", "/order_imports/new", "/regras", "/estoque", "/como-funciona" ].freeze
+  FULL = [ "/painel", "/orders", "/schedule", "/production", "/purchases", "/conference", "/conference/sheets", "/conference/sheets/import", "/order_imports/new", "/regras", "/estoque" ].freeze
 
   test "admin e escritório abrem todas as telas de trabalho" do
     %i[admin office].each do |role|
@@ -147,7 +147,19 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_match "Nenhum cliente cadastrado", response.body
   end
 
+  test "como funciona e tour ficam escondidos com a chave desligada" do
+    office = user_for(:office)
+    office.update!(tour_seen_at: nil)
+    sign_in_as(office)
+    get orders_path
+    assert_select "body[data-controller='tour']", count: 0
+    assert_select "a.guide-link", count: 0
+    get guide_path
+    assert_redirected_to root_path
+  end
+
   test "tour: escritório marca que já viu; produção não tem tour" do
+    Rails.configuration.x.guides_enabled = true
     office = user_for(:office)
     office.update!(tour_seen_at: nil)
     sign_in_as(office)
@@ -173,5 +185,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_redirected_to production_path
     post tour_path
     assert_nil production.reload.tour_seen_at
+  ensure
+    Rails.configuration.x.guides_enabled = false
   end
 end

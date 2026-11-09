@@ -1,6 +1,7 @@
 require "test_helper"
 
 class GuideTest < ActionDispatch::IntegrationTest
+  with_guides
   setup { sign_in_as(user_for(:office)) }
 
   test "como funciona explica o que acontece depois da importação" do

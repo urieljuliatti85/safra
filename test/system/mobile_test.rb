@@ -103,7 +103,11 @@ class MobileTest < ApplicationSystemTestCase
     assert_selector "#setor-manual h2", text: "Cortes manuais"
     page.document.synchronize do
       top = page.evaluate_script("document.getElementById('setor-manual').getBoundingClientRect().top")
-      raise Capybara::ExpectationNotMet, "seção do setor em #{top}px, fora do topo" unless top.between?(0, 100)
+      # Perto do fim da página o navegador não rola mais: vale a seção na metade de cima, com a página no fim.
+      at_end = page.evaluate_script("window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1")
+      half = page.evaluate_script("window.innerHeight / 2")
+      ok = top.between?(0, 100) || (at_end && top.between?(0, half))
+      raise Capybara::ExpectationNotMet, "seção do setor em #{top}px, fora do topo" unless ok
     end
   end
 

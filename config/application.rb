@@ -22,6 +22,10 @@ module Safra
     # in config/environments, which are processed later.
     #
     config.time_zone = "America/Sao_Paulo"
+
+    # "Como funciona" e tour guiado escondidos por enquanto (09/11/2026): a implementação fica. Para mostrar de novo,
+    # SAFRA_GUIDES=1 no ambiente ou true aqui.
+    config.x.guides_enabled = ENV["SAFRA_GUIDES"] == "1"
     config.i18n.default_locale = :"pt-BR"
     config.i18n.available_locales = %i[pt-BR en]
     # config.eager_load_paths << Rails.root.join("extras")

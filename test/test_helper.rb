@@ -29,6 +29,12 @@ module ActiveSupport
     def user_for(role)
       User.find_by!(email_address: DEMO_EMAILS.fetch(role))
     end
+
+    # "Como funciona" e tour estão escondidos por padrão (config.x.guides_enabled); os testes deles ligam a chave.
+    def self.with_guides
+      setup { @guides_before = Rails.configuration.x.guides_enabled; Rails.configuration.x.guides_enabled = true }
+      teardown { Rails.configuration.x.guides_enabled = @guides_before }
+    end
   end
 end
 
