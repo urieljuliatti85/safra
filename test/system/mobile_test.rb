@@ -78,6 +78,25 @@ class MobileTest < ApplicationSystemTestCase
     assert_field "Cenoura ralada em Ter 13/10", with: "9,5"
   end
 
+  test "no celular, adicionar linha mostra o produto no dia aberto, mesmo com \"Só com pedido\"" do
+    travel_to Time.zone.local(2026, 10, 5, 9) # antes das 48 h da entrega (R1.26)
+    visit orders_path(customer: "hnorte", week: "2026-10-12")
+    go_to_day("Quarta 14/10")
+    click_on "Só com pedido"
+
+    select "Abacate (kg)", from: "Adicionar produto"
+    click_on "Adicionar linha"
+    assert_selector "button[aria-pressed='true']", text: "Todos"
+    fill_in "Abacate em Qua 14/10", with: "3"
+    assert_no_field "Abacate em Ter 13/10"
+    assert_selector ".day-label", text: "Quarta 14/10"
+
+    choose "Alteração (novo total)"
+    click_on "Salvar pedido"
+    assert_text "Pedido salvo"
+    assert_field "Abacate em Qua 14/10", with: "3"
+  end
+
   test "só com pedido mostra os produtos com quantidade no dia escolhido" do
     visit orders_path(customer: "hnorte", week: "2026-10-12")
     go_to_day("Quarta 14/10")

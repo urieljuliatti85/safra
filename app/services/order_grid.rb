@@ -11,7 +11,7 @@ class OrderGrid
     rows << [ add_product, add_product.unit ] if add_product && rows.none? { |p, u| p == add_product && u == add_product.unit }
     @rows = rows.sort_by { |product, unit| [ Product::GROUPS.index(product.product_group), product.name, unit ] }
     @sections = @rows.group_by { |product, _| product.product_group }
-    @available_products = Product.order(:name).includes(:raw_material)
+    @available_products = Product.order(:name).includes(:raw_material, :cut)
   end
 
   # Dias com quantidade no pedido a menos de 48 h da entrega: só mudar ou cancelar neles pede a confirmação (R1.26).

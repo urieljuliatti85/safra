@@ -7,9 +7,12 @@
 <% selected_type = local_assigns[:selected_type] %>
 <%# No celular a grade mostra um dia de entrega por vez (sem rolar para o lado), com filtro "Só com pedido".
     Os outros dias continuam no formulário, escondidos, e são salvos juntos. %>
+<%# "Adicionar linha" inclui o produto na grade sem recarregar (order-lines): dá para adicionar vários e salvar uma vez só,
+    numa versão só. Sem JavaScript, o formulário de baixo continua abrindo a grade com o produto (?add=). %>
+<div data-controller="order-lines">
 <% start_day = grid.dates.index(Date.current) || grid.dates.index { |date| grid.cells.values.flatten.any? { |line| line.delivery_date == date } } || 0 %>
 <%= form_with url: form_url, method: :patch, data: { turbo: false, controller: "order-day", order_day_index_value: start_day,
-                                                     action: "input->order-day#count" } do %>
+                                                     action: "input->order-day#count order-lines:added->order-day#showAll order-lines:removed->order-day#render" } do %>
   <div class="only-mobile mb-3">
     <%# Um dia por vez, com setas, como a troca de semana: "Segunda 09/11 · 1 item". %>
     <div class="day-step" role="group" aria-label="Dia de entrega">
@@ -49,12 +52,12 @@
       <% Product::GROUPS.each do |group| %>
         <% rows = grid.sections[group] %>
         <% next if rows.blank? %>
-        <tbody data-order-day-target="group">
+        <tbody data-order-day-target="group" data-order-lines-group="<%= group %>">
           <tr><th colspan="<%= grid.dates.size + 3 %>" class="group" scope="colgroup"><%= Product::GROUP_LABELS[group] %></th></tr>
           <% rows.each do |product, unit| %>
             <% lines = grid.cells[[product.id, unit]] || [] %>
             <% by_date = lines.group_by(&:delivery_date).transform_values { |ls| ls.sum(&:quantity) } %>
-            <tr data-order-day-target="row">
+            <tr data-order-day-target="row" data-order-lines-key="<%= product.id %>|<%= unit %>" data-order-lines-name="<%= product.name %>">
               <th scope="row" class="sticky-col font-medium">
                 <%= product.name %>
                 <% note = lines.map(&:note).compact.first %>
@@ -89,7 +92,7 @@
         </tbody>
       <% end %>
       <% if grid.rows.empty? %>
-        <tbody><tr><td colspan="<%= grid.dates.size + 3 %>" class="p-8 text-center muted">Nenhum produto nesta semana. Adicione uma linha abaixo.</td></tr></tbody>
+        <tbody data-order-lines-target="empty"><tr><td colspan="<%= grid.dates.size + 3 %>" class="p-8 text-center muted">Nenhum produto nesta semana. Adicione uma linha abaixo.</td></tr></tbody>
       <% end %>
     </table>
     <p class="only-mobile off-filter p-6 text-center muted" data-order-day-target="empty">Nenhum produto com pedido neste dia. Toque em Todos para digitar.</p>
@@ -118,20 +121,51 @@
   </div>
 <% end %>
 
-<%= form_with url: add_url, method: :get, class: "relative mt-8 flex flex-wrap items-end gap-3", data: { turbo: false } do %>
+<%= form_with url: add_url, method: :get, class: "relative mt-8 flex flex-wrap items-end gap-3", data: { turbo: false, action: "submit->order-lines#add" } do %>
   <% add_hidden.each do |name, value| %><%= hidden_field_tag name, value %><% end %>
   <div>
     <label for="add" class="mb-1 block text-sm font-bold">Adicionar produto</label>
-    <select id="add" name="add" class="field">
+    <select id="add" name="add" class="field" data-order-lines-target="select">
       <% grid.available_products.group_by(&:product_group).each do |group, products| %>
         <optgroup label="<%= Product::GROUP_LABELS[group] %>">
-          <% products.each do |product| %><option value="<%= product.id %>"><%= product.name %> (<%= product.unit %>)</option><% end %>
+          <% products.each do |product| %><option value="<%= product.id %>" data-group="<%= product.product_group %>" data-name="<%= product.name %>" data-unit="<%= product.unit %>"
+                    data-measure="<%= product.cut&.reference_measure.presence || 'medida pedida' %>"><%= product.name %> (<%= product.unit %>)</option><% end %>
         </optgroup>
       <% end %>
     </select>
   </div>
   <%= button_tag type: "submit", class: "btn" do %><%= icon :plus %>Adicionar linha<% end %>
   <%= render "orders/help_tip", label: "Como funciona?" do %>
-    <p>A linha nova aparece vazia. Preencha as quantidades e salve; sem quantidade, ela some.</p>
+    <p>A linha nova aparece vazia na grade. Dá para adicionar vários produtos, preencher as quantidades e salvar uma vez só: o pedido ganha uma versão só. Sem quantidade, a linha some ao salvar.</p>
   <% end %>
 <% end %>
+
+<%# Modelos da linha nova e do grupo que ainda não está na grade. __KEY__, __NAME__, __UNIT__ e __MEASURE__ são trocados pelo
+    produto escolhido, já escapados (order_lines_controller.js). %>
+<% Product::GROUPS.each do |group| %>
+  <template data-order-lines-target="groupTemplate" data-group="<%= group %>">
+    <tbody data-order-day-target="group" data-order-lines-group="<%= group %>">
+      <tr><th colspan="<%= grid.dates.size + 3 %>" class="group" scope="colgroup"><%= Product::GROUP_LABELS[group] %></th></tr>
+    </tbody>
+  </template>
+<% end %>
+<template data-order-lines-target="rowTemplate">
+  <tr data-order-day-target="row" data-order-lines-key="__KEY__" data-order-lines-name="__NAME__" class="is-new-line">
+    <th scope="row" class="sticky-col font-medium">
+      __NAME__ <span class="new-line-tag">nova</span>
+      <input type="text" autocomplete="off" maxlength="100" class="line-measure" name="measures[__KEY__]" placeholder="__MEASURE__"
+             aria-label="Medida pedida de __NAME__">
+      <button type="button" class="new-line-remove" data-action="order-lines#remove" aria-label="Remover __NAME__">Remover</button>
+    </th>
+    <td class="unit">__UNIT__</td>
+    <% grid.dates.each_with_index do |date, index| %>
+      <td class="<%= 'is-sunday' if date.sunday? %>" data-col="<%= index %>">
+        <input type="text" inputmode="decimal" autocomplete="off" class="cell<%= ' cell-extra' if extra %>" placeholder="·"
+               name="quantities[__KEY__][<%= date.iso8601 %>]"
+               aria-label="<%= 'Acréscimo de ' if extra %>__NAME__ em <%= weekday_date(date) %>">
+      </td>
+    <% end %>
+    <td class="total num">0</td>
+  </tr>
+</template>
+</div>

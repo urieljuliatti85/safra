@@ -26,6 +26,42 @@ class OrdersTest < ApplicationSystemTestCase
     assert_field "Cenoura ralada em Ter 13/10", with: "9,5"
   end
 
+  test "adicionar vários produtos sem recarregar e salvar uma vez só, numa versão só" do
+    travel_to Time.zone.local(2026, 10, 26, 9) # antes das 48 h da entrega (R1.26)
+    visit orders_path(customer: "hnorte", week: "2026-11-02")
+    assert_text "Nenhum produto nesta semana"
+
+    select "Acelga picada (kg)", from: "Adicionar produto"
+    click_on "Adicionar linha"
+    assert_selector "tr.is-new-line", text: "Acelga picada"
+    assert_no_text "Nenhum produto nesta semana"
+    fill_in "Acelga picada em Seg 02/11", with: "4"
+
+    select "Cenoura ralada (kg)", from: "Adicionar produto"
+    click_on "Adicionar linha"
+    assert_field "Acelga picada em Seg 02/11", with: "4" # o que já foi digitado fica
+    fill_in "Cenoura ralada em Ter 03/11", with: "2,5"
+    assert_selector "#add option[disabled]", text: "Acelga picada (kg)"
+
+    select "Abóbora em cubos (kg)", from: "Adicionar produto"
+    click_on "Adicionar linha"
+    click_on "Remover Abóbora em cubos"
+    assert_no_field "Abóbora em cubos em Seg 02/11"
+    assert_selector "#add option:not([disabled])", text: "Abóbora em cubos (kg)"
+
+    choose "Pedido novo"
+    click_on "Salvar pedido"
+    assert_text "Pedido salvo: versão 1"
+    assert_field "Acelga picada em Seg 02/11", with: "4"
+    assert_field "Cenoura ralada em Ter 03/11", with: "2,5"
+
+    ActsAsTenant.with_tenant(company) do
+      order = Order.joins(:customer).find_by!(customers: { code: "hnorte" }, week_start: Date.new(2026, 11, 2))
+      assert_equal 1, order.versions.count
+      assert_equal 2, order.lines.count
+    end
+  end
+
   test "texto inválido na grade não salva e aponta a célula" do
     visit orders_path(customer: "hnorte", week: "2026-10-12")
 

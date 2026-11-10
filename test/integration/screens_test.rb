@@ -26,7 +26,7 @@ class ScreensTest < ActionDispatch::IntegrationTest
     get orders_path(customer: "hbp", week: "2026-10-12")
     assert_select "form:has(select#add) details.help-tip" do
       assert_select "summary", text: /Como funciona\?/
-      assert_select ".help-tip-body", /A linha nova aparece vazia\. Preencha as quantidades e salve; sem quantidade, ela some\./
+      assert_select ".help-tip-body", /A linha nova aparece vazia na grade\. Dá para adicionar vários produtos.*salvar uma vez só.*uma versão só\. Sem quantidade, a linha some ao salvar\./
     end
   end
 
