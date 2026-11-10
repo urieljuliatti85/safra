@@ -11,14 +11,18 @@
 <%= form_with url: form_url, method: :patch, data: { turbo: false, controller: "order-day", order_day_index_value: start_day,
                                                      action: "input->order-day#count" } do %>
   <div class="only-mobile mb-3">
-    <div class="day-picks" role="group" aria-label="Dia de entrega">
-      <% grid.dates.each_with_index do |date, index| %>
-        <button type="button" class="day-pick <%= 'is-sunday' if date.sunday? %>" data-order-day-target="day"
-                data-action="order-day#pick" data-order-day-index-param="<%= index %>">
-          <span><%= Formatting::WEEKDAYS[date.wday] %> <span class="num"><%= date.strftime("%d/%m") %></span></span>
-          <span class="day-count num" data-order-day-target="count"></span>
-        </button>
-      <% end %>
+    <%# Um dia por vez, com setas, como a troca de semana: "Segunda 09/11 · 1 item". %>
+    <div class="day-step" role="group" aria-label="Dia de entrega">
+      <button type="button" class="icon-btn" data-order-day-target="previous" data-action="order-day#previous" aria-label="Dia anterior"><%= icon :chevron_left %></button>
+      <p class="day-current" aria-live="polite">
+        <% grid.dates.each_with_index do |date, index| %>
+          <span class="day-label <%= 'is-sunday' if date.sunday? %>" data-order-day-target="day" hidden>
+            <strong><%= Formatting::WEEKDAY_NAMES[date.wday] %> <span class="num"><%= date.strftime("%d/%m") %></span></strong>
+            <span class="day-count num"> · <span data-order-day-target="count"></span></span>
+          </span>
+        <% end %>
+      </p>
+      <button type="button" class="icon-btn" data-order-day-target="next" data-action="order-day#next" aria-label="Próximo dia"><%= icon :chevron_right %></button>
     </div>
     <div class="chips mt-2" role="group" aria-label="Produtos">
       <button type="button" class="chip" data-order-day-target="filter" data-action="order-day#showAll">Todos</button>
@@ -65,8 +69,11 @@
               <% grid.dates.each_with_index do |date, index| %>
                 <td class="<%= 'is-sunday' if date.sunday? %>" data-col="<%= index %>">
                   <% if extra %>
-                    <input type="text" inputmode="decimal" autocomplete="off" class="cell" placeholder="<%= by_date[date] ? "tem #{qty(by_date[date])}" : '·' %>"
-                           name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]"
+                    <%# "tem X" no placeholder, como no celular. No computador a célula do extra é mais larga, para o número
+                        caber inteiro, e a frase toda fica no title, ao passar o mouse. %>
+                    <% has = by_date[date] && "Já tem #{qty(by_date[date])} #{unit} no pedido. Digite só o acréscimo." %>
+                    <input type="text" inputmode="decimal" autocomplete="off" class="cell cell-extra" placeholder="<%= by_date[date] ? "tem #{qty(by_date[date])}" : '·' %>"
+                           name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]" title="<%= has %>"
                            aria-label="Acréscimo de <%= product.name %> em <%= weekday_date(date) %><%= ", já tem #{qty(by_date[date])}" if by_date[date] %>">
                   <% else %>
                     <input type="text" inputmode="decimal" autocomplete="off" class="cell" placeholder="·"
@@ -92,6 +99,7 @@
       <%= hidden_field_tag :entry_type, "extra" %>
       <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Somar extra ao pedido<% end %>
       <span class="muted text-sm">Extra: digite só o acréscimo; o sistema soma ao que já está no pedido. Vazio não muda nada. Use vírgula para decimais.</span>
+      <%= render "orders/entry_type_help" %>
       <% if local_assigns[:total_url] %><%= link_to "Voltar à grade do pedido", total_url, class: "btn" %><% end %>
     <% else %>
       <fieldset class="flex flex-wrap items-center gap-3 text-sm">
@@ -101,6 +109,7 @@
           <label class="flex items-center gap-1"><%= radio_button_tag :entry_type, value, selected_type == value, required: true, class: "size-4" %><%= label %></label>
         <% end %>
         <% if local_assigns[:extra_url] %><%= link_to "Lançar extra (soma)", extra_url, class: "btn" %><% end %>
+        <%= render "orders/entry_type_help" %>
       </fieldset>
       <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar pedido<% end %>
       <%= render "orders/late_confirmation", items: grid.late_dates.map { |date| short_date(date) }, intro: "Mudar ou cancelar quantidade a menos de 48 h da entrega pede a confirmação. Dias:" %>
@@ -109,7 +118,7 @@
   </div>
 <% end %>
 
-<%= form_with url: add_url, method: :get, class: "mt-8 flex flex-wrap items-end gap-3", data: { turbo: false } do %>
+<%= form_with url: add_url, method: :get, class: "relative mt-8 flex flex-wrap items-end gap-3", data: { turbo: false } do %>
   <% add_hidden.each do |name, value| %><%= hidden_field_tag name, value %><% end %>
   <div>
     <label for="add" class="mb-1 block text-sm font-bold">Adicionar produto</label>
@@ -122,5 +131,7 @@
     </select>
   </div>
   <%= button_tag type: "submit", class: "btn" do %><%= icon :plus %>Adicionar linha<% end %>
-  <p class="basis-full muted text-sm">A linha nova aparece vazia. Preencha as quantidades e salve; sem quantidade, ela some.</p>
+  <%= render "orders/help_tip", label: "Como funciona?" do %>
+    <p>A linha nova aparece vazia. Preencha as quantidades e salve; sem quantidade, ela some.</p>
+  <% end %>
 <% end %>

@@ -1,6 +1,7 @@
 # Formatação pt-BR compartilhada entre views e PDFs.
 module Formatting
   WEEKDAYS = %w[Dom Seg Ter Qua Qui Sex Sáb].freeze
+  WEEKDAY_NAMES = %w[Domingo Segunda Terça Quarta Quinta Sexta Sábado].freeze
   PACKAGE_LABELS = { "cx" => "cx", "sc" => "sc", "kg" => "kg", "un" => "un" }.freeze
 
   module_function

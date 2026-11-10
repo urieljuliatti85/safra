@@ -327,22 +327,36 @@
   .sheet td.unit { color: var(--color-ink-soft); padding: 0 .5rem; }
   .sheet td.total { text-align: right; font-weight: 800; padding: 0 .75rem; }
   .cell { width: 3.75rem; min-height: 2.25rem; text-align: right; padding: .25rem .5rem; border: 1px solid transparent; border-radius: .375rem; background: transparent; font-variant-numeric: tabular-nums; }
+  /* Grade do extra no computador: célula mais larga, para "tem 640" caber inteiro no placeholder */
+  @media (min-width: 640px) { .cell.cell-extra { width: 5.75rem; } }
   .cell:hover { border-color: var(--color-line); background: var(--color-surface); }
   .cell:not(:placeholder-shown) { font-weight: 700; }
   .cell:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 0; background: var(--color-surface); }
   .savebar { position: sticky; bottom: 0; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: 1rem; padding: .75rem 0; background: linear-gradient(0deg, var(--color-leaf) 75%, transparent); }
   @media (max-width: 639px) { body:has(> .tabbar) .savebar { bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom)); } }
+  /* No celular a barra quebra em várias linhas: o degradê deixava o topo transparente e a grade aparecia atrás de "Tipo:".
+     Fundo sólido, com uma linha e uma sombra curta separando da grade. */
+  @media (max-width: 639px) { .savebar { background: var(--color-leaf); border-top: 1px solid var(--color-line); box-shadow: 0 -6px 12px rgb(0 0 0 / .25); padding-top: .75rem; } }
+  /* Ajuda dos tipos de pedido na barra de salvar: "?" que abre um balão para cima, ao tocar ou clicar */
+  .help-tip { position: relative; }
+  .help-tip summary { list-style: none; display: inline-flex; align-items: center; gap: .375rem; min-height: 2rem; padding: 0 .625rem 0 .25rem; border: 1px solid var(--color-accent); border-radius: 999px; color: var(--color-accent); font-weight: 700; font-size: var(--text-small); cursor: pointer; background: var(--color-surface); white-space: nowrap; }
+  .help-tip-mark { display: inline-grid; place-items: center; width: 1.375rem; height: 1.375rem; border-radius: 999px; background: var(--color-accent); color: var(--color-surface); font-weight: 800; }
+  .help-tip summary::-webkit-details-marker { display: none; }
+  .help-tip summary:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+  .help-tip-body { position: absolute; bottom: calc(100% + .5rem); left: 0; z-index: 5; width: min(26rem, calc(100vw - 2rem)); display: grid; gap: .375rem; padding: .75rem; border: 1px solid var(--color-line); border-radius: .5rem; background: var(--color-surface); box-shadow: 0 4px 16px rgb(0 0 0 / .12); font-size: var(--text-small); font-weight: 400; }
+  @media (max-width: 639px) { .help-tip { position: static; } .help-tip-body { left: 0; right: 0; width: auto; } }
   .field { min-height: 2.5rem; padding: .375rem .75rem; border: 1px solid var(--color-ink-soft); border-radius: .5rem; background: var(--color-surface); }
   /* Cliente do pedido no celular: select acima do título, trocar abre o pedido do outro cliente na mesma semana */
   .customer-select { width: 100%; min-height: 2.75rem; font-size: 1rem; font-weight: 700; color: var(--color-accent); border-color: var(--color-field); cursor: pointer; }
-  /* Grade de pedidos no celular: escolha do dia (duas fileiras de quatro, sem rolar) e um dia por vez na tabela */
-  .day-picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
-  .day-pick { display: flex; flex-direction: column; align-items: center; gap: .125rem; min-height: 3.25rem; padding: .375rem .25rem; border: 1px solid var(--color-line);
-              border-radius: .5rem; background: var(--color-surface); font-weight: 700; font-size: var(--text-small); white-space: nowrap; cursor: pointer; }
-  .day-pick.is-sunday { background-image: repeating-linear-gradient(135deg, transparent 0 6px, var(--color-line-soft) 6px 7px); }
-  .day-pick[aria-pressed="true"] { background: var(--color-field); border-color: var(--color-field); color: #fff; }
-  .day-count { font-size: var(--text-label); font-weight: 600; color: var(--color-ink-soft); }
-  .day-pick[aria-pressed="true"] .day-count { color: inherit; }
+  /* Grade de pedidos no celular: um dia por vez, trocado pelas setas, como a semana */
+  .day-step { display: flex; align-items: center; gap: .5rem; }
+  .day-step .icon-btn { flex: none; cursor: pointer; }
+  .day-step .icon-btn:disabled { opacity: .35; cursor: default; }
+  .day-current { flex: 1; min-width: 0; text-align: center; }
+  .day-label { display: block; padding: .375rem .5rem; border-radius: .5rem; white-space: nowrap; }
+  .day-label[hidden] { display: none; }
+  .day-label.is-sunday { background-image: repeating-linear-gradient(135deg, transparent 0 6px, var(--color-line-soft) 6px 7px); }
+  .day-count { font-weight: 600; color: var(--color-ink-soft); }
   button.chip { cursor: pointer; }
   @media (max-width: 639px) {
     /* Matérias-primas: cada uma vira um cartão com os campos rotulados em duas colunas (fornecedor na linha toda) */

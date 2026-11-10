@@ -11,6 +11,30 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_select "input[aria-label^='Cenoura em cubinhos']"
   end
 
+  test "grade de pedidos explica os tipos de pedido no ?" do
+    get orders_path(customer: "hbp", week: "2026-10-12")
+    assert_select ".savebar details.help-tip" do
+      assert_select "summary[aria-label='Qual tipo usar']", text: /Qual tipo usar\?/
+      assert_select ".help-tip-body", /Pedido novo:.*do zero.*importado.*Alteração:.*mudou um pedido que já existe.*novo total.*Extra \(soma\):.*pediu a mais.*só o acréscimo.*Não use "Pedido novo" para mudança do cliente/m
+    end
+
+    get orders_path(customer: "hbp", week: "2026-10-12", tipo: "extra")
+    assert_select ".savebar details.help-tip"
+  end
+
+  test "adicionar produto explica a linha nova no \"Como funciona?\"" do
+    get orders_path(customer: "hbp", week: "2026-10-12")
+    assert_select "form:has(select#add) details.help-tip" do
+      assert_select "summary", text: /Como funciona\?/
+      assert_select ".help-tip-body", /A linha nova aparece vazia\. Preencha as quantidades e salve; sem quantidade, ela some\./
+    end
+  end
+
+  test "no extra, o que já está no pedido fica no placeholder e, ao passar o mouse, a frase inteira" do
+    get orders_path(customer: "hbp", week: "2026-10-12", tipo: "extra")
+    assert_select "input.cell.cell-extra[placeholder^='tem '][title^='Já tem'][title$='no pedido. Digite só o acréscimo.']"
+  end
+
   test "no celular a grade abre no dia de hoje quando ele está na semana" do
     travel_to(Time.zone.local(2026, 10, 15, 9)) { get orders_path(customer: "ahotel", week: "2026-10-12") }
     assert_select "form[data-controller='order-day'][data-order-day-index-value='3']" # Qui 15/10

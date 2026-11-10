@@ -1,0 +1,7 @@
+<%# Ajuda dos tipos de pedido na grade (R1.30 a R1.33). %>
+<%= render "orders/help_tip", label: "Qual tipo usar?" do %>
+  <p><strong>Pedido novo:</strong> cria o pedido inicial do cliente. Use para lançar a semana do zero, digitando direto na grade (pedido que chegou por telefone ou mensagem), ou para completar o pedido que acabou de ser importado.</p>
+  <p><strong>Alteração:</strong> o cliente mudou um pedido que já existe. Digite o novo total. Tinha 10 kg e o cliente altera para 20 kg: o pedido fica com 20 kg.</p>
+  <p><strong>Extra (soma):</strong> o cliente pediu a mais. Use "Lançar extra (soma)" e digite só o acréscimo. Tinha 10 kg e o cliente pede mais 20 kg: o pedido fica com 30 kg. Produto que não estava no dia entra com a quantidade pedida.</p>
+  <p class="muted">Não use "Pedido novo" para mudança do cliente: é "Alteração" ou "Extra". Na dúvida ("preciso de 20 kg para hoje"), pergunte ao cliente se são mais 20 kg ou 20 kg no total, e escolha o tipo depois.</p>
+<% end %>

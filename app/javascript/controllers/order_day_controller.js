@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 // Grade de pedidos no celular: um dia de entrega por vez e, com "Só com pedido", só os produtos com quantidade nesse dia.
 // Só troca classes; as regras que escondem valem apenas no celular, então no computador a grade continua inteira.
 export default class extends Controller {
-  static targets = ["day", "count", "filter", "group", "row", "empty"]
+  static targets = ["day", "count", "filter", "group", "row", "empty", "previous", "next"]
   static values = { index: Number, onlyFilled: Boolean }
 
   connect() {
@@ -15,8 +15,14 @@ export default class extends Controller {
     this.render()
   }
 
-  pick({ params: { index } }) {
-    this.indexValue = index
+  // Setas do dia: param no primeiro e no último dia da semana (a troca de semana fica nas setas da semana).
+  previous() {
+    if (this.indexValue > 0) this.indexValue--
+    this.render()
+  }
+
+  next() {
+    if (this.indexValue < this.dayTargets.length - 1) this.indexValue++
     this.render()
   }
 
@@ -34,14 +40,16 @@ export default class extends Controller {
   count() {
     this.countTargets.forEach((target, index) => {
       const filled = this.rowTargets.filter((row) => this.filled(row, index)).length
-      target.textContent = filled ? `${filled} ${filled === 1 ? "item" : "itens"}` : "-"
+      target.textContent = filled ? `${filled} ${filled === 1 ? "item" : "itens"}` : "sem pedido"
     })
   }
 
   render() {
     const day = this.indexValue
     this.element.querySelectorAll("[data-col]").forEach((cell) => cell.classList.toggle("off-day", Number(cell.dataset.col) !== day))
-    this.dayTargets.forEach((button, index) => button.setAttribute("aria-pressed", index === day))
+    this.dayTargets.forEach((label, index) => { label.hidden = index !== day })
+    if (this.hasPreviousTarget) this.previousTarget.disabled = day === 0
+    if (this.hasNextTarget) this.nextTarget.disabled = day === this.dayTargets.length - 1
     this.filterTargets.forEach((button, index) => button.setAttribute("aria-pressed", index === (this.onlyFilledValue ? 1 : 0)))
 
     let visible = 0

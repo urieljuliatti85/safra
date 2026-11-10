@@ -1,0 +1,6 @@
+<%# Botão de ajuda "? <label>" que abre um balão acima dele, ao tocar ou clicar (funciona também no celular).
+    locals: label (texto do botão); o conteúdo do balão vem no bloco. %>
+<details class="help-tip">
+  <summary aria-label="<%= label.delete_suffix('?') %>"><span class="help-tip-mark" aria-hidden="true">?</span><span class="help-tip-text"><%= label %></span></summary>
+  <div class="help-tip-body" role="note"><%= yield %></div>
+</details>

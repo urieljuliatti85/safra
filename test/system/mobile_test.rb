@@ -58,12 +58,15 @@ class MobileTest < ApplicationSystemTestCase
     visit orders_path(customer: "hnorte", week: "2026-10-12")
     assert_equal 390, page.evaluate_script("document.documentElement.scrollWidth")
 
-    find(".day-pick", text: "Ter 13/10").click
+    assert_no_button "Dia anterior", disabled: false # a grade abre no primeiro dia com pedido
+    assert_selector ".day-label", text: "Segunda 12/10 · "
+    go_to_day("Terça 13/10")
+    assert_selector ".day-label", text: /Terça 13\/10 · \d+ itens/
     assert_field "Cenoura ralada em Ter 13/10"
     assert_no_field "Cenoura ralada em Qua 14/10"
     fill_in "Cenoura ralada em Ter 13/10", with: "9,5"
 
-    find(".day-pick", text: "Qua 14/10").click
+    go_to_day("Quarta 14/10")
     assert_no_field "Cenoura ralada em Ter 13/10"
     fill_in "Cenoura ralada em Qua 14/10", with: "4"
     choose "Alteração (novo total)"
@@ -71,13 +74,13 @@ class MobileTest < ApplicationSystemTestCase
 
     assert_text "Pedido salvo"
     assert_field "Cenoura ralada em Qua 14/10", with: "4" # volta no dia em que estava
-    find(".day-pick", text: "Ter 13/10").click
+    go_to_day("Terça 13/10")
     assert_field "Cenoura ralada em Ter 13/10", with: "9,5"
   end
 
   test "só com pedido mostra os produtos com quantidade no dia escolhido" do
     visit orders_path(customer: "hnorte", week: "2026-10-12")
-    find(".day-pick", text: "Qua 14/10").click
+    go_to_day("Quarta 14/10")
     assert_field "Abóbora em cubos em Qua 14/10"
     assert_field "Acelga picada em Qua 14/10"
 
@@ -88,7 +91,7 @@ class MobileTest < ApplicationSystemTestCase
 
     # Todo dia da semana de 12/10 tem pedido do Horizonte Norte; o Horizonte Sul não tem no sábado 17/10.
     visit orders_path(customer: "hsul", week: "2026-10-12")
-    find(".day-pick", text: "Sáb 17/10").click
+    go_to_day("Sábado 17/10")
     click_on "Só com pedido"
     assert_text "Nenhum produto com pedido neste dia"
     click_on "Todos"
@@ -134,7 +137,7 @@ class MobileTest < ApplicationSystemTestCase
     travel_to Time.zone.local(2026, 10, 5, 9) # antes das 48 h da entrega (R1.26)
     before = order_lines("hnorte")
     visit orders_path(customer: "hnorte", week: "2026-10-12")
-    find(".day-pick", text: "Qua 14/10").click
+    go_to_day("Quarta 14/10")
     click_on "Só com pedido"
     fill_in "Acelga picada em Qua 14/10", with: "10"
     choose "Alteração (novo total)"
@@ -158,6 +161,17 @@ class MobileTest < ApplicationSystemTestCase
   end
 
   private
+    # Grade de pedidos no celular: vai até o dia pelas setas ("Terça 13/10"), voltando primeiro ao início da semana.
+    def go_to_day(label)
+      click_on "Dia anterior" while has_button?("Dia anterior", disabled: false, wait: 0)
+      7.times do
+        break if has_selector?(".day-label", text: label, wait: 0)
+
+        click_on "Próximo dia"
+      end
+      assert_selector ".day-label", text: label
+    end
+
     # Linhas do pedido da semana de 12/10, para comparar antes e depois de salvar.
     def order_lines(customer_code)
       ActsAsTenant.with_tenant(company) do
