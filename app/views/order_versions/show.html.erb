@@ -31,7 +31,7 @@
             <td><%= change["product"] || "Produto removido" %> <span class="muted"><%= change["unit"] %></span></td>
             <td class="num"><%= short_date(Date.iso8601(change["date"])) %></td>
             <td class="num"><%= change["before"] || "-" %></td>
-            <td class="num font-bold"><%= change["after"] || "apagado" %></td>
+            <td class="num font-bold"><%= change["after"] || (change["cancelled"] ? "cancelado" : "apagado") %></td>
           </tr>
         <% end %>
       </tbody>

@@ -70,7 +70,8 @@
 
 <%= render "orders/grid", grid: @grid, form_url: orders_path(customer: @customer.code, week: @week_start),
                        add_url: orders_path, add_hidden: { customer: @customer.code, week: @week_start, tipo: @tipo }.compact,
-                       extra: @tipo == "extra", selected_type: @tipo,
+                       extra: @tipo == "extra", selected_type: @tipo, focus_date: @focus_date,
+                       cancel_url: order_cancel_items_path(customer: @customer.code, week: @week_start),
                        total_url: orders_path(customer: @customer.code, week: @week_start),
                        extra_url: orders_path(customer: @customer.code, week: @week_start, tipo: "extra") %>
 

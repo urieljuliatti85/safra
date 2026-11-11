@@ -1,6 +1,7 @@
 <%# locals: grid (OrderGrid), form_url, add_url, add_hidden (hash de campos ocultos do formulário de adicionar produto),
     extra (true: grade do extra, células vazias para o acréscimo), total_url e extra_url (os dois modos da grade),
-    selected_type (tipo já escolhido: "new" ou "alteration"). %>
+    selected_type (tipo já escolhido: "new" ou "alteration"), cancel_url (ação "Cancelar item", R1.38, D23),
+    focus_date (dia de entrega escolhido na tela "Importar": a grade abre nele). %>
 <%# Tipo de pedido (R1.29 a R1.33, D22): quem lança escolhe; o sistema não decide sozinho. Pedido novo e alteração
     digitam o total; o extra digita só o acréscimo, e o sistema soma. %>
 <% extra = local_assigns[:extra] %>
@@ -10,9 +11,11 @@
 <%# "Adicionar linha" inclui o produto na grade sem recarregar (order-lines): dá para adicionar vários e salvar uma vez só,
     numa versão só. Sem JavaScript, o formulário de baixo continua abrindo a grade com o produto (?add=). %>
 <div data-controller="order-lines">
-<% start_day = grid.dates.index(Date.current) || grid.dates.index { |date| grid.cells.values.flatten.any? { |line| line.delivery_date == date } } || 0 %>
-<%= form_with url: form_url, method: :patch, data: { turbo: false, controller: "order-day", order_day_index_value: start_day,
-                                                     action: "input->order-day#count order-lines:added->order-day#showAll order-lines:removed->order-day#render" } do %>
+<% focus_date = local_assigns[:focus_date] %>
+<% cancel_url = local_assigns[:cancel_url] %>
+<% start_day = (focus_date && grid.dates.index(focus_date)) || grid.dates.index(Date.current) || grid.dates.index { |date| grid.cells.values.flatten.any? { |line| line.delivery_date == date } } || 0 %>
+<%= form_with url: form_url, method: :patch, data: { turbo: false, controller: "order-day#{' extra-sum' if extra}", order_day_index_value: start_day,
+                                                     action: "input->order-day#count order-lines:added->order-day#showAll order-lines:removed->order-day#render#{' input->extra-sum#update' if extra}" } do %>
   <div class="only-mobile mb-3">
     <%# Um dia por vez, com setas, como a troca de semana: "Segunda 09/11 · 1 item". %>
     <div class="day-step" role="group" aria-label="Dia de entrega">
@@ -43,7 +46,7 @@
           <th class="sticky-col">Produto</th>
           <th scope="col">Un.</th>
           <% grid.dates.each_with_index do |date, index| %>
-            <% classes = [ ("is-today" if date == Date.current), ("is-sunday" if date.sunday?) ].compact.join(" ") %>
+            <% classes = [ ("is-today" if date == Date.current), ("is-sunday" if date.sunday?), ("is-focus" if date == focus_date) ].compact.join(" ") %>
             <th scope="col" class="day <%= classes %>" data-col="<%= index %>"><span class="block"><%= Formatting::WEEKDAYS[date.wday] %></span><span class="num"><%= date.strftime("%d/%m") %></span></th>
           <% end %>
           <th scope="col" class="text-right pr-3">Total</th>
@@ -67,6 +70,26 @@
                        name="measures[<%= product.id %>|<%= unit %>]" value="<%= lines.map(&:measure).compact.first %>"
                        placeholder="<%= product.cut&.reference_measure.presence || 'medida pedida' %>"
                        aria-label="Medida pedida de <%= product.name %>">
+                <%# "Cancelar item" (R1.38, D23): vazio ou 0 não tira item que já estava. Abrir e marcar o dia é o primeiro
+                    passo; "Confirmar cancelamento" é a confirmação. Os campos são do formulário cancel-items, fora da grade. %>
+                <% if cancel_url && !extra && by_date.any? %>
+                  <% row_key = "#{product.id}|#{unit}" %>
+                  <details class="cancel-item">
+                    <summary>Cancelar item</summary>
+                    <div class="cancel-item-body">
+                      <p>Marque o dia e confirme. O item sai do pedido e a versão registra "cancelado".</p>
+                      <% by_date.sort.each do |date, quantity| %>
+                        <label><input type="checkbox" form="cancel-items-form" name="cancel[]" value="<%= row_key %>|<%= date.iso8601 %>" class="size-4">
+                          <%= Formatting::WEEKDAYS[date.wday] %> <%= date.strftime("%d/%m") %> · <%= qty(quantity) %> <%= unit %></label>
+                      <% end %>
+                      <% if by_date.keys.any? { |date| grid.late_dates.include?(date) } %>
+                        <label><input type="checkbox" form="cancel-items-form" name="late_confirmed[<%= row_key %>]" value="1" class="size-4">
+                          A Hortifruti Modelo confirmou (menos de 48 h da entrega)</label>
+                      <% end %>
+                      <button type="submit" form="cancel-items-form" name="row" value="<%= row_key %>" class="btn">Confirmar cancelamento</button>
+                    </div>
+                  </details>
+                <% end %>
               </th>
               <td class="unit"><%= unit %></td>
               <% grid.dates.each_with_index do |date, index| %>
@@ -76,8 +99,10 @@
                         caber inteiro, e a frase toda fica no title, ao passar o mouse. %>
                     <% has = by_date[date] && "Já tem #{qty(by_date[date])} #{unit} no pedido. Digite só o acréscimo." %>
                     <input type="text" inputmode="decimal" autocomplete="off" class="cell cell-extra" placeholder="<%= by_date[date] ? "tem #{qty(by_date[date])}" : '·' %>"
-                           name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]" title="<%= has %>"
+                           name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]" title="<%= has %>" data-current="<%= by_date[date]&.to_s("F") %>"
                            aria-label="Acréscimo de <%= product.name %> em <%= weekday_date(date) %><%= ", já tem #{qty(by_date[date])}" if by_date[date] %>">
+                    <%# Atual + acréscimo = total, enquanto se digita (R1.37, D23). %>
+                    <span class="extra-sum num" aria-live="polite"></span>
                   <% else %>
                     <input type="text" inputmode="decimal" autocomplete="off" class="cell" placeholder="·"
                            name="quantities[<%= product.id %>|<%= unit %>][<%= date.iso8601 %>]"
@@ -116,10 +141,12 @@
       </fieldset>
       <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar pedido<% end %>
       <%= render "orders/late_confirmation", items: grid.late_dates.map { |date| short_date(date) }, intro: "Mudar ou cancelar quantidade a menos de 48 h da entrega pede a confirmação. Dias:" %>
-      <span class="muted text-sm">Quantidade vazia ou 0 apaga a linha. Use vírgula para decimais.</span>
+      <span class="muted text-sm">Vazio ou 0 não tira item do pedido: use "Cancelar item" na linha. Use vírgula para decimais.</span>
     <% end %>
   </div>
 <% end %>
+
+<% if cancel_url %><%= form_with url: cancel_url, method: :patch, id: "cancel-items-form", data: { turbo: false } do %><% end %><% end %>
 
 <%= form_with url: add_url, method: :get, class: "relative mt-8 flex flex-wrap items-end gap-3", data: { turbo: false, action: "submit->order-lines#add" } do %>
   <% add_hidden.each do |name, value| %><%= hidden_field_tag name, value %><% end %>
@@ -163,6 +190,7 @@
         <input type="text" inputmode="decimal" autocomplete="off" class="cell<%= ' cell-extra' if extra %>" placeholder="·"
                name="quantities[__KEY__][<%= date.iso8601 %>]"
                aria-label="<%= 'Acréscimo de ' if extra %>__NAME__ em <%= weekday_date(date) %>">
+        <% if extra %><span class="extra-sum num" aria-live="polite"></span><% end %>
       </td>
     <% end %>
     <td class="total num">0</td>

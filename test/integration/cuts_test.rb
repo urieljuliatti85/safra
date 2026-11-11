@@ -105,10 +105,10 @@ class CutsTest < ActionDispatch::IntegrationTest
     sign_in_as(result.admin)
 
     get cuts_path
-    assert_select "tbody tr", 17
+    assert_select "tbody tr", 18
     post cuts_path, params: { cut: { name: "Só nossa", sector: "manual", lead_days: "1" } }
-    assert_equal 18, ActsAsTenant.with_tenant(result.company) { Cut.count }
-    assert_equal 17, Cut.count, "a empresa de origem não ganha corte"
+    assert_equal 19, ActsAsTenant.with_tenant(result.company) { Cut.count }
+    assert_equal 18, Cut.count, "a empresa de origem não ganha corte"
 
     get edit_cut_path(modelo_cut)
     assert_response :not_found

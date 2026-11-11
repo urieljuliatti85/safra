@@ -485,3 +485,7 @@
 - codigo: milho_verde
   nome: Milho verde
   embalagem_compra: kg
+# Batata bolinha (R1.34, D14): matéria-prima própria, sem fator nem fornecedor, como as de cima.
+- codigo: batata_bolinha
+  nome: Batata bolinha
+  embalagem_compra: kg

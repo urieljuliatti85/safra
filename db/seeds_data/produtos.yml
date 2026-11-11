@@ -522,8 +522,25 @@
   grupo: in_natura
   materia_prima: abacate
   unidade: kg
-# Produtos da tabela de cortes de 04/11/2026 que faltavam (R1.17, D14). Batata chips e batata bolinha ficam fora até
-# a pergunta sobre o corte delas ser respondida.
+# Produtos da tabela de cortes de 04/11/2026 que faltavam (R1.17, D14). Batata chips e batata bolinha entraram
+# com a 1.21 (R1.34): chips é a batata em rodelas de 3 mm; a bolinha é vendida in natura e processada, com casca.
+- codigo: batata_chips
+  nome: Batata chips (rodelas de 3 mm)
+  grupo: processado
+  materia_prima: batata
+  unidade: kg
+  corte: rodelas
+- codigo: in_batata_bolinha
+  nome: Batata bolinha
+  grupo: in_natura
+  materia_prima: batata_bolinha
+  unidade: kg
+- codigo: batata_bolinha_processada
+  nome: Batata bolinha com casca
+  grupo: processado
+  materia_prima: batata_bolinha
+  unidade: kg
+  corte: inteira_com_casca
 - codigo: abobrinha_palitos
   nome: Abobrinha em palitos
   grupo: processado

@@ -11,19 +11,20 @@ class OrderImportsController < ApplicationController
   IMAGE_EXTENSIONS = %w[.odt .png .jpg .jpeg .webp .gif].freeze
 
   # Quem lança escolhe o tipo (R1.29 a R1.33, D22). Na alteração e no extra o arquivo é opcional: sem arquivo,
-  # abre a grade do pedido da semana escolhida, no modo do tipo.
+  # abre a grade do pedido da semana da data de entrega escolhida, nesse dia, no modo do tipo (R1.35, R1.36, D23).
+  # "week" continua aceito no lugar da data.
   def create
     @customer = @customers.find { |c| c.code == params[:customer] }
     @entry_type = params[:entry_type].to_s
-    @week = date_param(:week, nil)
+    @date = date_param(:date, nil) || date_param(:week, nil)
     file = params[:file]
     problem = if @customer.nil? then "Escolha o cliente."
     elsif EntryType.missing(@entry_type) then EntryType::MESSAGE
     elsif file.blank? && @entry_type == "new" then "Pedido novo: escolha o arquivo."
-    elsif file.blank? && @week.nil? then "Sem arquivo: informe a semana do pedido."
+    elsif file.blank? && @date.nil? then "Sem arquivo: informe a data de entrega."
     end
     return render_new_with(problem) if problem
-    return redirect_to(orders_path(customer: @customer.code, week: @week.beginning_of_week, tipo: @entry_type)) if file.blank?
+    return redirect_to(orders_path(customer: @customer.code, week: @date.beginning_of_week, tipo: @entry_type, dia: @date)) if file.blank?
 
     imports = Array(read_file(file))
     imports.each { |import| import.update!(payload: import.payload.merge("entry_type" => @entry_type)) unless import.af? }
@@ -51,7 +52,8 @@ class OrderImportsController < ApplicationController
       OrderGridSaver::Result.new(errors: [ missing ], changed_dates: [])
     else
       OrderGridSaver.new(order: order, quantities: params.fetch(:quantities, {}).to_unsafe_h, source: "image", import: @import,
-                         entry_type: params[:entry_type], late_confirmed: params[:late_confirmed] == "1").call
+                         entry_type: params[:entry_type], late_confirmed: params[:late_confirmed] == "1",
+                         explicit_removal: true).call
     end
     if result.ok?
       notice = result.changed_dates.empty? ? "Nada mudou no pedido: as quantidades já eram essas." : "Pedido salvo."

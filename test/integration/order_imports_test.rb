@@ -154,7 +154,7 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_equal 1, ActsAsTenant.with_tenant(company) { version.order.versions.count }
   end
 
-  test "sem tipo não envia; pedido novo pede o arquivo; alteração sem arquivo pede a semana" do
+  test "sem tipo não envia; pedido novo pede o arquivo; alteração sem arquivo pede a data de entrega" do
     post order_imports_path, params: { customer: "hbp" }
     assert_response :unprocessable_entity
     assert_match "Escolha o tipo: pedido novo, alteração (novo total) ou extra (soma).", response.body
@@ -163,14 +163,16 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_match "Pedido novo: escolha o arquivo.", response.body
 
     post order_imports_path, params: { entry_type: "alteration", customer: "hbp" }
-    assert_match "Sem arquivo: informe a semana do pedido.", response.body
+    assert_match "Sem arquivo: informe a data de entrega.", response.body
   end
 
   test "alteração ou extra sem arquivo abre a grade do pedido da semana, no modo do tipo" do
-    post order_imports_path, params: { entry_type: "alteration", customer: "hbp", week: "2026-10-14" }
-    assert_redirected_to orders_path(customer: "hbp", week: Date.new(2026, 10, 12), tipo: "alteration")
+    # R1.35, D23: a data de entrega escolhe o pedido (a semana dela) e o dia em que a grade abre.
+    post order_imports_path, params: { entry_type: "alteration", customer: "hbp", date: "2026-10-14" }
+    assert_redirected_to orders_path(customer: "hbp", week: Date.new(2026, 10, 12), tipo: "alteration", dia: Date.new(2026, 10, 14))
     follow_redirect!
     assert_select "input[name=entry_type][value=alteration][checked]"
+    assert_select "th.day.is-focus", /14\/10/
 
     post order_imports_path, params: { entry_type: "extra", customer: "hbp", week: "2026-10-12" }
     follow_redirect!

@@ -1,6 +1,7 @@
 # Grava a grade de pedidos de um cliente/semana.
 # Entrada: { "<product_id>|<unit>" => { "2026-10-13" => "12,5", ... } }
-# Quantidade vazia ou zero apaga a linha. Texto que não é número ("5 + 2") rejeita a gravação inteira.
+# Quantidade vazia ou zero apaga a linha, salvo com explicit_removal (D23). Texto que não é número ("5 + 2") rejeita a
+# gravação inteira.
 # Todo salvamento que muda alguma coisa vira uma versão do pedido (OrderVersion), com o retrato inteiro.
 class OrderGridSaver
   # measures_changed: a medida pedida de alguma linha mudou (D12), mesmo sem quantidade nova.
@@ -16,14 +17,18 @@ class OrderGridSaver
   # measures: { "<product_id>|<unit>" => "10 mm" }, a medida pedida de cada linha da grade (R1.14, D12). Vazia apaga.
   # Prazo padrão de alteração (R1.26, D8). Restaurar versão e desfazer importação são correções e não pedem confirmação.
   ALTERATION_NOTICE = 48.hours
-  CONFIRMED_SOURCES = %w[grid image import api].freeze
+  CONFIRMED_SOURCES = %w[grid image import api cancel].freeze
 
   # late_confirmed: a Hortifruti Modelo confirmou a alteração com menos de 48 h da entrega.
   # entry_type: tipo de pedido (OrderVersion::ENTRY_TYPES; R1.29 a R1.33, D22). No "extra", a quantidade digitada é o
   # acréscimo: soma ao que já estava (produto que não estava entra com ela), e vazio ou 0 não muda nada. Nos outros
   # tipos, e sem tipo, a quantidade digitada é o novo total.
+  # explicit_removal: na grade e no pedido em imagem, item que já estava só sai pelo "Cancelar item" (R1.38, D23): vazio
+  # ou 0 numa célula que tinha quantidade recusa o salvamento. O "Cancelar item" usa source "cancel", e a versão marca
+  # cada item tirado como "cancelado".
   def initialize(order:, quantities:, measures: {}, source: "grid", import: nil, restored_from: nil, late_confirmed: false,
-                 entry_type: nil)
+                 entry_type: nil, explicit_removal: false)
+    @explicit_removal = explicit_removal
     @late_confirmed = late_confirmed
     @entry_type = entry_type.presence
     @order = order
@@ -68,6 +73,9 @@ class OrderGridSaver
       outside = outside_week_errors(parsed, before)
       return Result.new(errors: outside, changed_dates: []) if outside.any?
 
+      removed = removal_errors(parsed, before)
+      return Result.new(errors: removed, changed_dates: []) if removed.any?
+
       late = late_alterations(parsed, before)
       return Result.new(errors: late, changed_dates: []) if late.any? && !@late_confirmed
 
@@ -94,6 +102,18 @@ class OrderGridSaver
   end
 
   private
+
+  # Vazio ou 0 onde havia quantidade não tira o item: só o "Cancelar item" tira (R1.38, D23).
+  def removal_errors(parsed, before)
+    return [] unless @explicit_removal
+
+    parsed.filter_map do |(product_id, unit, date), quantity|
+      next unless quantity.zero? && before.fetch([ product_id, unit, date ], 0).positive?
+
+      "#{@products[product_id]&.name || 'Produto'} em #{Formatting.short_date(date)}: vazio ou 0 não tira item do pedido. " \
+        "Para tirar, use \"Cancelar item\" na linha."
+    end
+  end
 
   # Mudar ou cancelar uma quantidade que já existia, com menos de 48 h da entrega (R1.26, D8). Produto novo no dia
   # (pedido extra) fica de fora até a pergunta A.5.
@@ -165,8 +185,9 @@ class OrderGridSaver
   def changes_list(changes)
     names = Product.where(id: changes.map(&:first)).pluck(:id, :name).to_h
     changes.sort_by { |product_id, unit, date, _, _| [ names[product_id].to_s, unit, date ] }.map do |product_id, unit, date, before, after|
-      { "product_id" => product_id, "product" => names[product_id], "unit" => unit, "date" => date.iso8601,
-        "before" => before.positive? ? text(before) : nil, "after" => after.positive? ? text(after) : nil }
+      change = { "product_id" => product_id, "product" => names[product_id], "unit" => unit, "date" => date.iso8601,
+                 "before" => before.positive? ? text(before) : nil, "after" => after.positive? ? text(after) : nil }
+      @source == "cancel" && after.zero? ? change.merge("cancelled" => true) : change
     end
   end
 

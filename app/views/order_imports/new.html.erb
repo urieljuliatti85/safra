@@ -31,13 +31,10 @@
     <input id="file" type="file" name="file" accept=".xlsx,.xls,.ods,.csv,.odt,.png,.jpg,.jpeg,.webp,.gif,.pdf" class="field w-full">
     <p class="muted mt-1 text-sm">Planilha: produtos nas linhas e dias da semana nas colunas, com as datas no cabeçalho; uma por vez (processados e in natura vêm em arquivos separados). ODT: cada imagem do documento vira uma tela de digitação, com o cliente e o dia indicados pelo texto quando houver. PDF de AFs (cliente de pedido mensal, como a Nutrir): o mês inteiro ou uma AF alterada; cada AF vai para o pedido da semana da entrega.</p>
   </div>
+  <%# Na alteração e no extra, a data de entrega escolhe o pedido de referência (a semana dela) e o dia (R1.35, D23). %>
   <div>
-    <label for="week" class="mb-1 block font-bold">Semana do pedido <span class="muted font-normal">(alteração ou extra sem arquivo: abre a grade desse pedido)</span></label>
-    <input id="week" type="date" name="week" value="<%= @week&.iso8601 %>" class="field">
-  </div>
-  <div>
-    <label for="date" class="mb-1 block font-bold">Data de entrega <span class="muted font-normal">(só para imagem avulsa, opcional)</span></label>
-    <input id="date" type="date" name="date" class="field">
+    <label for="date" class="mb-1 block font-bold">Data de entrega <span class="muted font-normal">(alteração ou extra sem arquivo: abre a grade do pedido dessa semana, nesse dia; imagem avulsa: opcional)</span></label>
+    <input id="date" type="date" name="date" value="<%= @date&.iso8601 %>" class="field">
   </div>
   <div class="flex flex-wrap items-center gap-3">
     <%= button_tag type: "submit", class: "btn btn-primary", data: { tour: "send-file" } do %><%= icon :check %>Continuar<% end %>

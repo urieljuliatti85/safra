@@ -6,7 +6,7 @@ class OrderVersion < ApplicationRecord
   SOURCES = {
     "initial" => "Antes do primeiro salvamento", "grid" => "Grade", "import" => "Planilha importada",
     "image" => "Pedido em imagem", "undo" => "Importação desfeita", "restore" => "Versão restaurada", "api" => "API",
-    "copy" => "Copiado da semana anterior"
+    "copy" => "Copiado da semana anterior", "cancel" => "Item cancelado"
   }.freeze
 
   # Tipo de pedido escolhido por quem lança (R1.29 a R1.33, D22). O extra soma ao que já estava; os outros gravam o total.

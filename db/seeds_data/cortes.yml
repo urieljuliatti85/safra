@@ -102,3 +102,11 @@
   nome_setor: Cortes manuais
   antecedencia_dias: 1
   medida: '50 × 50 × 50 mm'
+# Batata bolinha processada (R1.34, D14): selecionar, lavar, higienizar, centrifugar e empacotar, com casca, sem corte.
+# Setor e antecedência por analogia com a inteira descascada: hipótese até as etapas 3 e 7.
+- codigo: inteira_com_casca
+  nome: Inteira com casca
+  setor: descasc
+  nome_setor: Descascados inteiros
+  antecedencia_dias: 1
+  medida: 'Sem corte, com casca'

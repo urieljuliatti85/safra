@@ -62,6 +62,31 @@ class OrdersTest < ApplicationSystemTestCase
     end
   end
 
+  test "no extra, a célula mostra atual + acréscimo = total antes de salvar" do
+    travel_to Time.zone.local(2026, 10, 5, 9) # antes das 48 h da entrega (R1.26)
+    visit orders_path(customer: "hnorte", week: "2026-10-12", tipo: "extra")
+    cell = find("input.cell-extra:not([data-current=''])", match: :first)
+    current = BigDecimal(cell["data-current"])
+    cell.fill_in with: "2,5"
+
+    total = (current + BigDecimal("2.5")).to_s("F").sub(/\.0\z/, "").tr(".", ",")
+    assert_selector ".extra-sum", text: /= #{Regexp.escape(total)}\z/
+    cell.fill_in with: ""
+    assert_no_selector ".extra-sum", visible: true
+  end
+
+  test "Cancelar item: marcar o dia e confirmar tira o item, e a versão registra cancelado" do
+    travel_to Time.zone.local(2026, 10, 5, 9) # antes das 48 h da entrega (R1.26)
+    visit orders_path(customer: "hnorte", week: "2026-10-12")
+    row = find("tr", text: "Cenoura ralada", match: :first)
+    row.find("summary", text: "Cancelar item").click
+    row.find("details.cancel-item input[type=checkbox]", match: :first).check
+    row.click_on "Confirmar cancelamento"
+
+    assert_text "Item cancelado: versão"
+    assert_selector "section#versoes li", text: "Item cancelado"
+  end
+
   test "texto inválido na grade não salva e aponta a célula" do
     visit orders_path(customer: "hnorte", week: "2026-10-12")
 

@@ -61,6 +61,7 @@
     <p class="mb-2 font-bold"><%= @import.customer.name %> · semana de <%= short_date(@import.week_start) %></p>
     <%= render "orders/grid", grid: @grid, form_url: grid_order_import_path(@import), add_url: order_import_path(@import),
                                add_hidden: { tipo: @tipo || "total" }, extra: @tipo == "extra", selected_type: @tipo,
+                               cancel_url: order_cancel_items_path(customer: @import.customer.code, week: @import.week_start, back: order_import_path(@import)),
                                total_url: order_import_path(@import, tipo: "total"), extra_url: order_import_path(@import, tipo: "extra") %>
     <div class="mt-4">
       <%= button_to settings_order_import_path(@import, status: (@import.applied? ? "pending" : "applied")), method: :patch, class: "btn" do %>
