@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Carrega os dados reais (docs/dados, do repositório privado safra-dominio) no banco de produção.
+# Envia a pasta compactada pela `railway ssh` e roda o seed dentro do container, numa pasta temporária que é
+# apagada no fim. Como todo seed, só cria o que falta. Uso: bin/seed-producao
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+dir=docs/dados
+if [ ! -f "$dir/empresa.yml" ]; then
+  echo "Não achei $dir/empresa.yml: clone o safra-dominio em docs/ (README, \"Dados reais\")." >&2
+  exit 1
+fi
+
+read -r -p "Vai gravar no banco de PRODUÇÃO o que faltar de $dir. Continuar? [s/N] " answer
+[ "$answer" = "s" ] || { echo "Nada foi feito."; exit 0; }
+
+# O tar do macOS acrescenta metadados que o tar do container não entende; estas opções os deixam de fora.
+mac_flags=()
+tar --version 2>/dev/null | grep -q bsdtar && mac_flags=(--no-mac-metadata --no-xattrs)
+
+COPYFILE_DISABLE=1 tar "${mac_flags[@]}" -C "$dir" -cz . | railway ssh --service safra -- \
+  'set -e; d=$(mktemp -d); trap "rm -rf \"$d\"" EXIT; tar -xz -C "$d"; SEEDS_DIR="$d" bin/rails db:seed'

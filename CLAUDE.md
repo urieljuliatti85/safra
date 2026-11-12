@@ -72,7 +72,7 @@ Fora: portal do cliente, leitura de pedido por foto/WhatsApp com IA, nota fiscal
 ## Arquivos
 
 - `db/seeds_data/`: empresa fictícia "Hortifruti Modelo" (semana de 12/10/2026) em YAML, para testes e desenvolvimento. Mesma estrutura dos dados reais, com nomes trocados.
-- `docs/dados/`: os dados reais, na mesma estrutura. Entram com `SEEDS_DIR=docs/dados` (README, "Dados reais").
+- `docs/dados/`: os dados reais, na mesma estrutura. Entram com `SEEDS_DIR=docs/dados` no banco local e com `bin/seed-producao` na produção (README, "Dados reais"). Rodar `bin/seed-producao` é gravar em produção: só com a permissão do Uriel.
 - `docs/prototipo/safra.html`: protótipo funcional (abrir no navegador). O cálculo dele foi modelado a partir das planilhas, antes da esteira: não é referência de regra (a referência é `docs/regras.md`).
 - `docs/referencia/planilhas/`: planilhas originais e pedidos dos clientes. `docs/referencia/esteira/`: documento original da esteira.
 - `docs/roteiro.md`: roteiro de execução, papel de cada documento e situação de cada etapa. Comece por aqui.
