@@ -5,6 +5,13 @@
 # seguro rodar de novo. Para recomeçar do zero em desenvolvimento: bin/rails db:reset.
 require "yaml"
 
+# Em produção, sem SEEDS_DIR, o seed não grava nada: os dados de db/seeds_data são da empresa fictícia e não podem
+# entrar no banco real. Os dados reais ficam fora do repositório (README, "Dados reais").
+if Rails.env.production? && ENV["SEEDS_DIR"].blank?
+  puts "Seed não rodou: em produção é preciso SEEDS_DIR com os dados reais (README, \"Dados reais\"). Nada foi gravado."
+  return
+end
+
 data_dir = Rails.root.join(ENV.fetch("SEEDS_DIR", "db/seeds_data"))
 product_groups = { "processado" => "processed", "in_natura" => "raw", "fruta" => "fruit" }
 week_start = Date.new(2026, 10, 12)

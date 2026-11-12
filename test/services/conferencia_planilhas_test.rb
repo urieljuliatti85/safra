@@ -52,6 +52,17 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
     end
   end
 
+  test "em produção, sem SEEDS_DIR, o seed não grava a empresa fictícia" do
+    # Com a empresa renomeada, um seed que rodasse criaria a "Hortifruti Modelo" de novo.
+    Company.find(company.id).update_columns(name: "Outra")
+    Rails.env = "production"
+    load_seeds
+    assert_not Company.exists?(name: "Hortifruti Modelo")
+  ensure
+    Rails.env = "test"
+    Company.where(name: "Outra").update_all(name: "Hortifruti Modelo")
+  end
+
   test "ralados, picados e rodelas batem 100% com a planilha (regra confirmada)" do
     rows = @conferencia.confirmed_same_day_rows
     assert_not_empty rows

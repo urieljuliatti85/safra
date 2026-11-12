@@ -73,7 +73,7 @@ Se o banco já existia antes do login, rode `bin/rails db:seed` para criá-los.
 
 **Dono da plataforma.** Além do papel dentro da empresa, um usuário pode ser o dono da plataforma: só ele cria, renomeia e suspende empresas (menu da conta > **Empresas**). Não é um papel que se conceda pela tela, e ele **não vê os dados** das outras empresas. O primeiro administrador do seed (`admin@safra.local` em desenvolvimento, `SAFRA_ADMIN_EMAIL` em produção) é o dono da plataforma. Num banco que já existia, a migration promove o primeiro administrador.
 
-**Em produção** não há usuário de exemplo. O primeiro administrador sai do seed, com `SAFRA_ADMIN_EMAIL` e `SAFRA_ADMIN_PASSWORD` definidos ao rodar `bin/rails db:seed`; a senha vale só até o primeiro acesso. Depois, o administrador cadastra os demais em **Usuários**.
+**Em produção** não há usuário de exemplo. O primeiro administrador sai do seed, com `SAFRA_ADMIN_EMAIL`, `SAFRA_ADMIN_PASSWORD` e `SEEDS_DIR` (os dados reais) definidos ao rodar `bin/rails db:seed`; a senha vale só até o primeiro acesso. Depois, o administrador cadastra os demais em **Usuários**.
 
 **Senha provisória.** Ao criar um usuário ou redefinir a senha, o sistema gera uma senha provisória e mostra **uma única vez**, na tela, para o administrador repassar. A pessoa é obrigada a trocar no primeiro acesso, e os acessos abertos dela caem. Não há recuperação por e-mail: quem esquecer a senha pede ao administrador uma nova. Desativar um usuário também encerra as sessões dele.
 
@@ -225,11 +225,10 @@ git clone git@github.com:urieljuliatti85/safra-dominio.git docs
 Sem ele, o app, os testes e o CI funcionam normalmente com a "Hortifruti Modelo". Com ele, o seed carrega os dados reais pela variável `SEEDS_DIR`, que aponta para outra pasta com a mesma estrutura de `db/seeds_data/`:
 
 ```bash
-SEEDS_DIR=docs/dados bin/rails db:seed                  # banco local
-SEEDS_DIR=docs/dados railway run bin/rails db:seed      # produção, rodando do computador
+SEEDS_DIR=docs/dados bin/rails db:seed      # banco local
 ```
 
-Como o deploy vem do GitHub público, a imagem da produção não tem `docs/`: cadastro novo de dados reais entra pelo comando acima ou pelas telas de cadastro.
+**Produção.** O deploy vem do GitHub público, então a imagem não tem `docs/`. O banco da Railway só aceita conexão de dentro da Railway, então `railway run` do computador não alcança o banco. Cadastro novo de dados reais (cliente, produto, corte, matéria-prima) entra pelas telas de cadastro. Em produção, `bin/rails db:seed` sem `SEEDS_DIR` não grava nada e avisa: os dados de `db/seeds_data/` são fictícios e não podem entrar no banco real.
 
 ## Deploy na Railway
 
@@ -266,9 +265,9 @@ Segredos (`SECRET_KEY_BASE`, `SAFRA_ADMIN_PASSWORD`, `VAPID_PRIVATE_KEY`) entram
 
 O envio não tem confirmação de leitura: com o celular sem internet o aviso atrasa ou não chega, então a lista na tela continua sendo a fonte de verdade.
 
-**Primeiro deploy.** O container roda `db:prepare` ao subir: cria os bancos, carrega os esquemas e roda o seed, que cria a empresa, os cadastros e o primeiro administrador. Entre com `SAFRA_ADMIN_EMAIL` e a senha provisória; o sistema pede para trocá-la. Depois, cadastre os demais em **Usuários**. As variáveis `SAFRA_ADMIN_*` podem ser removidas depois que o administrador existe.
+**Primeiro deploy.** O container roda `db:prepare` ao subir: cria os bancos, carrega os esquemas e roda o seed, que cria a empresa, os cadastros e o primeiro administrador. Sem `SEEDS_DIR`, o seed de produção não grava nada (seção "Dados reais"): uma instalação nova precisa dos dados da empresa disponíveis no container. Entre com `SAFRA_ADMIN_EMAIL` e a senha provisória; o sistema pede para trocá-la. Depois, cadastre os demais em **Usuários**. As variáveis `SAFRA_ADMIN_*` podem ser removidas depois que o administrador existe.
 
-**Atualizações.** Cada merge na `main` publica sozinho. A Railway **não espera o CI** hoje (a opção de aguardar as verificações do GitHub, `checkSuites`, está desligada no serviço `safra`; conferido em 17/10/2026), e o GitHub não bloqueia o merge por conta do plano. Por isso só mergeie com o CI verde. Para trancar de vez, ligue essa opção na origem do serviço `safra`. Migrations rodam no `db:prepare` da subida. Para rodar um comando no servidor (por exemplo `bin/rails db:seed` ou o console): `railway ssh` ou o painel da Railway.
+**Atualizações.** Cada merge na `main` publica sozinho. A Railway **não espera o CI** hoje (a opção de aguardar as verificações do GitHub, `checkSuites`, está desligada no serviço `safra`; conferido em 17/10/2026), mas o ruleset "Proteção da main" do GitHub só deixa mergear com os cinco jobs do CI verdes. Para trancar de vez, ligue essa opção na origem do serviço `safra`. Migrations rodam no `db:prepare` da subida. Para rodar um comando no servidor (por exemplo `bin/rails db:seed` ou o console): `railway ssh` ou o painel da Railway.
 
 **Migrations sem pausa.** A migration roda no início do container novo, enquanto a versão anterior ainda atende. Toda migration precisa, portanto, funcionar com o código antigo: primeiro um PR que adiciona (coluna, tabela, índice) e, com ele no ar, outro que passa a usar ou que remove o que ficou sem uso. Não renomeie nem apague coluna no mesmo PR que muda o código que a lê. Preencher dados na migration é aceitável se for rápido: ela roda antes do app responder e conta no tempo do healthcheck (120 s).
 
