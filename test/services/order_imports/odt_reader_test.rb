@@ -17,6 +17,27 @@ class OrderImports::OdtReaderTest < ActiveSupport::TestCase
     assert_nil entries.first.date_hint
   end
 
+  # XXE: entidade externa no content.xml não pode trazer arquivo do servidor para o texto do documento.
+  test "entidade externa no documento não lê arquivo do servidor" do
+    secret = Rails.root.join("tmp/segredo-#{SecureRandom.hex(4)}.txt")
+    File.write(secret, "PEDIDO SEGREDO 13/10/26")
+    path = odt_copy do |xml|
+      xml.sub(/<office:document-content/, %(<!DOCTYPE office:document-content [<!ENTITY x SYSTEM "file://#{secret}">]>\n<office:document-content))
+         .sub("PEDIDO MOLLINARI SEGUNDA FEIRA 12/10/26", "&x;")
+    end
+
+    entries = OrderImports::OdtReader.new(path).call
+    assert entries.none? { |e| e.hint.to_s.include?("SEGREDO") || e.customer_word.to_s.include?("SEGREDO") }
+  ensure
+    FileUtils.rm_f(secret) if secret
+  end
+
+  test "content.xml grande demais é recusado sem ler tudo" do
+    path = odt_copy { |xml| xml.sub("</office:document-content>", "<!-- #{'a' * (OrderImports::OdtReader::MAX_CONTENT_BYTES + 1)} --></office:document-content>") }
+    error = assert_raises(OrderImports::OdtReader::Unreadable) { OrderImports::OdtReader.new(path).call }
+    assert_match "grande demais", error.message
+  end
+
   test "documento sem imagens é recusado com mensagem" do
     error = assert_raises(OrderImports::OdtReader::Unreadable) { OrderImports::OdtReader.new(file_fixture("documento_sem_imagens.odt").to_s).call }
     assert_match "Não achei imagens", error.message
@@ -66,5 +87,21 @@ class OrderImports::OdtReaderTest < ActiveSupport::TestCase
   ensure
     ActsAsTenant.current_tenant = nil
     FileUtils.rm_f(path) if path
+  end
+
+  teardown { @odt_paths&.each { |path| FileUtils.rm_f(path) } }
+
+  private
+
+  # Cópia do documento de exemplo com o content.xml trocado pelo bloco.
+  def odt_copy
+    path = Rails.root.join("tmp/odt-#{SecureRandom.hex(4)}.odt").to_s
+    (@odt_paths ||= []) << path
+    FileUtils.cp(file_fixture("pedidos_documento.odt").to_s, path)
+    Zip::File.open(path) do |zip|
+      xml = yield zip.read("content.xml").force_encoding("UTF-8")
+      zip.get_output_stream("content.xml") { |io| io.write(xml) }
+    end
+    path
   end
 end

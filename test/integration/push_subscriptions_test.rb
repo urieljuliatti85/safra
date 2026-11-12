@@ -9,38 +9,56 @@ class PushSubscriptionsTest < ActionDispatch::IntegrationTest
 
   test "produção ativa os avisos do aparelho com os setores escolhidos" do
     sign_in_as(user_for(:production))
-    post push_subscription_path, params: subscribe_params("https://push.example/a", %w[ralpic aprontes]), as: :json
+    post push_subscription_path, params: subscribe_params("https://fcm.googleapis.com/fcm/send/a", %w[ralpic aprontes]), as: :json
     assert_response :success
     assert_equal %w[ralpic aprontes], response.parsed_body["sectors"]
 
-    get push_subscription_path(endpoint: "https://push.example/a"), as: :json
+    get push_subscription_path(endpoint: "https://fcm.googleapis.com/fcm/send/a"), as: :json
     assert_equal %w[ralpic aprontes], response.parsed_body["sectors"]
 
-    post push_subscription_path, params: subscribe_params("https://push.example/a", %w[palito]), as: :json
-    assert_equal 1, ActsAsTenant.with_tenant(company) { PushSubscription.where(endpoint: "https://push.example/a").count }
-    get push_subscription_path(endpoint: "https://push.example/a"), as: :json
+    post push_subscription_path, params: subscribe_params("https://fcm.googleapis.com/fcm/send/a", %w[palito]), as: :json
+    assert_equal 1, ActsAsTenant.with_tenant(company) { PushSubscription.where(endpoint: "https://fcm.googleapis.com/fcm/send/a").count }
+    get push_subscription_path(endpoint: "https://fcm.googleapis.com/fcm/send/a"), as: :json
     assert_equal %w[palito], response.parsed_body["sectors"]
   end
 
   test "sem setor ou com setor desconhecido não grava" do
     sign_in_as(user_for(:production))
-    post push_subscription_path, params: subscribe_params("https://push.example/b", []), as: :json
+    post push_subscription_path, params: subscribe_params("https://fcm.googleapis.com/fcm/send/b", []), as: :json
     assert_response :unprocessable_entity
-    post push_subscription_path, params: subscribe_params("https://push.example/b", %w[lixo]), as: :json
+    post push_subscription_path, params: subscribe_params("https://fcm.googleapis.com/fcm/send/b", %w[lixo]), as: :json
     assert_response :unprocessable_entity
     assert_equal 0, ActsAsTenant.with_tenant(company) { PushSubscription.count }
   end
 
+  # SSRF: o servidor faz POST no endpoint; só serviços de push dos navegadores.
+  test "endpoint fora dos serviços de push não grava" do
+    sign_in_as(user_for(:production))
+    [ "http://169.254.169.254/latest/meta-data", "https://localhost/push", "http://fcm.googleapis.com/fcm/send/x",
+      "https://fcm.googleapis.com:8443/fcm/send/x", "https://fcm.googleapis.com.evil.example/x", "https://user@fcm.googleapis.com/x",
+      "https://10.0.0.5/push", "nada" ].each do |endpoint|
+      post push_subscription_path, params: subscribe_params(endpoint, %w[ralpic]), as: :json
+      assert_response :unprocessable_entity, endpoint
+    end
+    assert_equal 0, ActsAsTenant.with_tenant(company) { PushSubscription.count }
+
+    %w[https://updates.push.services.mozilla.com/wpush/v2/x https://wns2-bl2p.notify.windows.com/w/?token=x
+       https://web.push.apple.com/QGx].each do |endpoint|
+      post push_subscription_path, params: subscribe_params(endpoint, %w[ralpic]), as: :json
+      assert_response :success, endpoint
+    end
+  end
+
   test "chaves do aparelho malformadas não gravam" do
     sign_in_as(user_for(:production))
-    post push_subscription_path, params: { endpoint: "https://push.example/d", keys: { p256dh: "abc", auth: "def" }, sectors: %w[ralpic] }, as: :json
+    post push_subscription_path, params: { endpoint: "https://fcm.googleapis.com/fcm/send/d", keys: { p256dh: "abc", auth: "def" }, sectors: %w[ralpic] }, as: :json
     assert_response :unprocessable_entity
     assert_equal 0, ActsAsTenant.with_tenant(company) { PushSubscription.count }
   end
 
   test "desativar apaga só o aparelho da própria pessoa" do
-    mine = subscribe(user_for(:production), sectors: %w[ralpic], endpoint: "https://push.example/mine")
-    theirs = subscribe(user_for(:office), sectors: %w[ralpic], endpoint: "https://push.example/theirs")
+    mine = subscribe(user_for(:production), sectors: %w[ralpic], endpoint: "https://fcm.googleapis.com/fcm/send/mine")
+    theirs = subscribe(user_for(:office), sectors: %w[ralpic], endpoint: "https://fcm.googleapis.com/fcm/send/theirs")
     sign_in_as(user_for(:production))
 
     delete push_subscription_path(endpoint: theirs.endpoint), as: :json
@@ -54,16 +72,16 @@ class PushSubscriptionsTest < ActionDispatch::IntegrationTest
   end
 
   test "aparelho compartilhado passa para quem ativou por último" do
-    subscribe(user_for(:office), sectors: %w[ralpic], endpoint: "https://push.example/shared")
+    subscribe(user_for(:office), sectors: %w[ralpic], endpoint: "https://fcm.googleapis.com/fcm/send/shared")
     sign_in_as(user_for(:production))
-    post push_subscription_path, params: subscribe_params("https://push.example/shared", %w[palito]), as: :json
+    post push_subscription_path, params: subscribe_params("https://fcm.googleapis.com/fcm/send/shared", %w[palito]), as: :json
     assert_response :success
-    owner = ActsAsTenant.with_tenant(company) { PushSubscription.find_by!(endpoint: "https://push.example/shared").user }
+    owner = ActsAsTenant.with_tenant(company) { PushSubscription.find_by!(endpoint: "https://fcm.googleapis.com/fcm/send/shared").user }
     assert_equal user_for(:production), owner
   end
 
   test "sem login não ativa" do
-    post push_subscription_path, params: subscribe_params("https://push.example/c", %w[ralpic]), as: :json
+    post push_subscription_path, params: subscribe_params("https://fcm.googleapis.com/fcm/send/c", %w[ralpic]), as: :json
     assert_response :redirect
     assert_equal 0, ActsAsTenant.with_tenant(company) { PushSubscription.count }
   end

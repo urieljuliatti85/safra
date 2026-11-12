@@ -12,6 +12,8 @@ class PushSender
 
   # :ok, :gone (aparelho cancelou ou a inscrição venceu: pode apagar) ou :error (tenta de novo no próximo envio).
   def self.deliver(subscription, payload)
+    return :gone unless PushSubscription.push_service?(subscription.endpoint) # inscrição de antes da validação do endpoint
+
     WebPush.payload_send(
       message: payload.to_json, endpoint: subscription.endpoint, p256dh: subscription.p256dh, auth: subscription.auth,
       ttl: TTL, urgency: "high",

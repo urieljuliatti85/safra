@@ -21,15 +21,22 @@ Selenium::WebDriver::Remote::Response.prepend(DetachedNodeAsStale)
 
 # Celular de 390 px num navegador separado: o Chrome headless não abre janela com menos de 500 px, então a tela é
 # emulada pelo ChromeDriver. Sessão própria: a largura e o sessionStorage do celular não passam para os outros testes.
+# Sem animação: a grade rola até a linha nova com scroll suave (order_lines_controller#focus), e um clique durante a
+# rolagem pega o botão fora do lugar e falha às vezes no CI. Com movimento reduzido a rolagem é instantânea.
+REDUCED_MOTION = "--force-prefers-reduced-motion".freeze
+
 Capybara.register_driver :mobile_chrome do |app|
   options = Selenium::WebDriver::Chrome::Options.new
   options.add_argument("--headless=new")
+  options.add_argument(REDUCED_MOTION)
   options.add_emulation(device_metrics: { width: 390, height: 844, pixelRatio: 1, mobile: true, touch: true })
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 900 ]
+  driven_by :selenium, using: :headless_chrome, screen_size: [ 1400, 900 ] do |options|
+    options.add_argument(REDUCED_MOTION)
+  end
 
   # O tour abre sozinho no primeiro acesso; fora do teste do tour, todo mundo já viu.
   setup { User.update_all(tour_seen_at: Time.current) }

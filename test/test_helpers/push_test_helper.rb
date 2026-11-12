@@ -20,7 +20,7 @@ module PushTestHelper
     saved&.each { |key, value| ENV[key] = value }
   end
 
-  def subscribe(user, sectors:, endpoint: "https://push.example/#{SecureRandom.hex(4)}")
+  def subscribe(user, sectors:, endpoint: "https://fcm.googleapis.com/fcm/send/#{SecureRandom.hex(4)}")
     ActsAsTenant.with_tenant(user.company) do
       PushSubscription.create!(user: user, endpoint: endpoint, p256dh: VALID_P256DH, auth: VALID_AUTH, sectors: sectors)
     end

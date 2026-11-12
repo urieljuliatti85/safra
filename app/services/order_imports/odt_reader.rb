@@ -12,6 +12,7 @@ module OrderImports
     TYPES = { ".png" => "image/png", ".jpg" => "image/jpeg", ".jpeg" => "image/jpeg", ".webp" => "image/webp", ".gif" => "image/gif" }.freeze
     MAX_IMAGES = 20
     MAX_IMAGE_BYTES = 10 * 1024 * 1024
+    MAX_CONTENT_BYTES = 5 * 1024 * 1024
 
     class Unreadable < StandardError; end
 
@@ -22,7 +23,8 @@ module OrderImports
     def call
       Zip::File.open(@path) do |zip|
         content = zip.find_entry("content.xml") or raise Unreadable, "O arquivo não parece um documento ODT."
-        doc = Nokogiri::XML(content.get_input_stream.read) { |config| config.nonet.noent.strict }
+        # Sem `noent`: entidade do documento nunca é expandida, então um ODT montado não lê arquivo do servidor (XXE).
+        doc = Nokogiri::XML(read_limited(content, MAX_CONTENT_BYTES) || raise(Unreadable, "O documento ODT é grande demais.")) { |config| config.nonet.strict }
         doc.remove_namespaces!
         entries(zip, doc)
       end
@@ -40,12 +42,19 @@ module OrderImports
       images.each_with_index.filter_map do |href, index|
         blob = zip.find_entry(href)
         type = TYPES[File.extname(href).downcase]
-        next if blob.nil? || type.nil? || blob.size > MAX_IMAGE_BYTES
+        next if blob.nil? || type.nil?
 
+        data = read_limited(blob, MAX_IMAGE_BYTES) or next
         match = headings[index] if headings.size == images.size
-        Entry.new(index: index, filename: File.basename(href), content_type: type, data: blob.get_input_stream.read,
+        Entry.new(index: index, filename: File.basename(href), content_type: type, data: data,
                   hint: match && match[0].squeeze(" ").strip, customer_word: match && match[:who].strip, date_hint: match && parse_date(match[:date]))
       end
+    end
+
+    # Lê no máximo `limit` bytes descompactados: o tamanho declarado no zip pode mentir (zip bomb). Maior que o limite: nil.
+    def read_limited(entry, limit)
+      data = entry.get_input_stream.read(limit + 1).to_s
+      data.bytesize > limit ? nil : data
     end
 
     # Sem o ano ("26/10"), vale o ano que deixa a data mais perto de hoje.
