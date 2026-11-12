@@ -42,7 +42,7 @@ gem "image_processing", "~> 2.2"
 
 group :development, :test do
   # Specs de request da API v1 (rswag gera o OpenAPI a partir deles); o resto do app é Minitest
-  gem "rspec-rails", "~> 8.0"
+  gem "rspec-rails", "~> 8.1"
   gem "rswag-specs", "~> 2.17"
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
