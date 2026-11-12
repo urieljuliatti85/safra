@@ -63,6 +63,45 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
     Company.where(name: "Outra").update_all(name: "Hortifruti Modelo")
   end
 
+  test "em produção, com a empresa renomeada, o seed não cria outra empresa" do
+    Company.find(company.id).update_columns(name: "Outra")
+    assert_no_difference -> { Company.count } do
+      load_seeds_in_production
+    end
+    assert_not Company.exists?(name: "Hortifruti Modelo")
+  ensure
+    Company.where(name: "Outra").update_all(name: "Hortifruti Modelo")
+  end
+
+  test "em produção, o seed carrega só os cadastros, sem a semana de exemplo" do
+    ActsAsTenant.with_tenant(company) do
+      Order.joins(:customer).where(customers: { code: "nutrir" }).destroy_all
+      PurchaseDay.delete_all
+      CustomerAlias.find_by!(name_in_order: "SELETA PRIMAVERA").destroy!
+
+      load_seeds_in_production
+
+      assert CustomerAlias.exists?(name_in_order: "SELETA PRIMAVERA")
+      assert_not Order.joins(:customer).exists?(customers: { code: "nutrir" })
+      assert_equal 0, PurchaseDay.count
+    end
+  end
+
+  private
+
+  # Roda o seed como em produção, com SEEDS_DIR apontando para os dados fictícios (mesma estrutura dos reais).
+  def load_seeds_in_production
+    previous_dir = ENV["SEEDS_DIR"]
+    ENV["SEEDS_DIR"] = "db/seeds_data"
+    Rails.env = "production"
+    load_seeds
+  ensure
+    Rails.env = "test"
+    ENV["SEEDS_DIR"] = previous_dir
+  end
+
+  public
+
   test "ralados, picados e rodelas batem 100% com a planilha (regra confirmada)" do
     rows = @conferencia.confirmed_same_day_rows
     assert_not_empty rows

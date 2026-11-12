@@ -27,7 +27,19 @@ create_missing = lambda do |record, attributes|
   record
 end
 
-company = Company.find_or_create_by!(name: load_yaml.call("empresa.yml").fetch("nome"))
+# Em produção, o seed só cria a empresa numa instalação nova (sem nenhuma empresa). Num banco que já tem empresas, ela
+# precisa existir com o nome do empresa.yml: a empresa pode ter sido renomeada na tela, e criar outra com o nome antigo
+# duplicaria todos os cadastros num tenant novo.
+company_name = load_yaml.call("empresa.yml").fetch("nome")
+company = Company.find_by(name: company_name)
+if company.nil? && Rails.env.production? && Company.exists?
+  puts "Seed não rodou: não há empresa \"#{company_name}\" em produção (foi renomeada?). Ajuste o empresa.yml. Nada foi gravado."
+  return
+end
+company ||= Company.create!(name: company_name)
+# Em produção, só os cadastros. A semana de exemplo (dias de compra, planilhas de referência e pedidos de 12/10/2026)
+# serve aos testes e ao desenvolvimento e não entra no banco real.
+sample_week = !Rails.env.production?
 
 ActsAsTenant.with_tenant(company) do
   ActiveRecord::Base.transaction do
@@ -96,7 +108,7 @@ ActsAsTenant.with_tenant(company) do
       )
     end
 
-    purchase_dates.each { |date| PurchaseDay.find_or_create_by!(date: date) }
+    purchase_dates.each { |date| PurchaseDay.find_or_create_by!(date: date) } if sample_week
 
     load_yaml.call("apelidos_planilhas.yml").each do |row|
       target, records = { "produto" => [ "product", products ], "materia_prima" => [ "raw_material", raw_materials ], "cliente" => [ "customer", customers ] }.fetch(row["alvo"])
@@ -107,45 +119,47 @@ ActsAsTenant.with_tenant(company) do
       )
     end
 
-    # Números das planilhas de 13 e 15/10/2026, só se o dia ainda não foi importado de um arquivo.
-    reference = load_yaml.call("referencia_planilhas.yml")
-    { "production" => reference.fetch("producao_planilha"), "purchase" => reference.fetch("compras_ceasa_planilha") }.each do |kind, days|
-      days.each do |date, entries|
-        sheet = ReferenceSheet.find_or_initialize_by(kind: kind, date: Date.parse(date.to_s))
-        next unless sheet.new_record?
+    if sample_week
+      # Números das planilhas de 13 e 15/10/2026, só se o dia ainda não foi importado de um arquivo.
+      reference = load_yaml.call("referencia_planilhas.yml")
+      { "production" => reference.fetch("producao_planilha"), "purchase" => reference.fetch("compras_ceasa_planilha") }.each do |kind, days|
+        days.each do |date, entries|
+          sheet = ReferenceSheet.find_or_initialize_by(kind: kind, date: Date.parse(date.to_s))
+          next unless sheet.new_record?
 
-        sheet.update!(filename: "referencia_planilhas.yml")
-        lines = if kind == "production"
-          entries.map { |code, quantity| [ "cortes", products.fetch(code).name, quantity.to_s, quantity, products.fetch(code).unit ] }
-        else
-          entries.map do |entry|
-            match = entry["quantidade"].to_s.match(/\A(\d+(?:[.,]\d+)?)\s*(cx|sc|kg|g|un)\z/)
-            [ "compras", raw_materials.fetch(entry["materia_prima"]).name, entry["quantidade"].to_s, match && match[1].tr(",", "."), match && match[2] ]
+          sheet.update!(filename: "referencia_planilhas.yml")
+          lines = if kind == "production"
+            entries.map { |code, quantity| [ "cortes", products.fetch(code).name, quantity.to_s, quantity, products.fetch(code).unit ] }
+          else
+            entries.map do |entry|
+              match = entry["quantidade"].to_s.match(/\A(\d+(?:[.,]\d+)?)\s*(cx|sc|kg|g|un)\z/)
+              [ "compras", raw_materials.fetch(entry["materia_prima"]).name, entry["quantidade"].to_s, match && match[1].tr(",", "."), match && match[2] ]
+            end
+          end
+          lines.each_with_index do |(section, label, text, quantity, unit), index|
+            sheet.lines.create!(section: section, label: label, quantity_text: text, quantity: quantity, unit: unit, position: index)
           end
         end
-        lines.each_with_index do |(section, label, text, quantity, unit), index|
-          sheet.lines.create!(section: section, label: label, quantity_text: text, quantity: quantity, unit: unit, position: index)
-        end
       end
-    end
 
-    # Os pedidos da semana só entram na primeira carga de cada cliente: depois disso quem manda é o que foi lançado.
-    orders = customers.transform_values { |customer| Order.find_or_create_by!(customer: customer, week_start: week_start) }
-    fresh_orders = orders.select { |_, order| order.previously_new_record? }
-    load_yaml.call("pedidos_2026-10-12.yml").each do |row|
-      next unless fresh_orders.key?(row["cliente"])
+      # Os pedidos da semana só entram na primeira carga de cada cliente: depois disso quem manda é o que foi lançado.
+      orders = customers.transform_values { |customer| Order.find_or_create_by!(customer: customer, week_start: week_start) }
+      fresh_orders = orders.select { |_, order| order.previously_new_record? }
+      load_yaml.call("pedidos_2026-10-12.yml").each do |row|
+        next unless fresh_orders.key?(row["cliente"])
 
-      # A semana do pedido vai de segunda a domingo (R1.6): entrega na segunda seguinte vai para o pedido daquela semana.
-      order = orders.fetch(row["cliente"])
-      delivery = Date.parse(row["entrega"].to_s)
-      order = Order.find_or_create_by!(customer: order.customer, week_start: delivery.beginning_of_week) unless order.week_dates.cover?(delivery)
-      order.lines.create!(
-        product: products.fetch(row["produto"]),
-        delivery_date: row["entrega"],
-        quantity: row["quantidade"],
-        unit: row["unidade"],
-        note: row["observacao"]
-      )
+        # A semana do pedido vai de segunda a domingo (R1.6): entrega na segunda seguinte vai para o pedido daquela semana.
+        order = orders.fetch(row["cliente"])
+        delivery = Date.parse(row["entrega"].to_s)
+        order = Order.find_or_create_by!(customer: order.customer, week_start: delivery.beginning_of_week) unless order.week_dates.cover?(delivery)
+        order.lines.create!(
+          product: products.fetch(row["produto"]),
+          delivery_date: row["entrega"],
+          quantity: row["quantidade"],
+          unit: row["unidade"],
+          note: row["observacao"]
+        )
+      end
     end
   end
 end

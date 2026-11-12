@@ -234,7 +234,7 @@ SEEDS_DIR=docs/dados bin/rails db:seed      # banco local
 bin/seed-producao
 ```
 
-Ele pede confirmação, envia `docs/dados` compactado pela `railway ssh` e roda o seed dentro do container, numa pasta temporária apagada no fim. Como todo seed, só cria o que falta. (Testado em 12/11/2026: os arquivos chegam idênticos ao container.)
+Ele pede confirmação, envia `docs/dados` compactado pela `railway ssh` e roda o seed dentro do container, numa pasta temporária apagada no fim. Como todo seed, só cria o que falta. Em produção ele carrega só os cadastros (fornecedores, matérias-primas, cortes, produtos, misturas, clientes e apelidos): a semana de exemplo de 12/10/2026 (pedidos, dias de compra e planilhas de referência) fica para o desenvolvimento. A empresa precisa existir com o nome do `empresa.yml`; se foi renomeada na tela, o seed para sem gravar nada, em vez de criar uma segunda empresa. (Testado em 12/11/2026: os arquivos chegam idênticos ao container.)
 
 Em produção, `bin/rails db:seed` sem `SEEDS_DIR` não grava nada e avisa: os dados de `db/seeds_data/` são fictícios e não podem entrar no banco real.
 
