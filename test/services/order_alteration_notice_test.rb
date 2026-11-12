@@ -18,7 +18,7 @@ class OrderAlterationNoticeTest < ActiveSupport::TestCase
   test "mudar com menos de 48 h é recusado sem a confirmação e gravado com ela, que fica na versão" do
     travel_to Time.zone.local(2026, 10, 12, 10) do
       result = save({ "2026-10-14" => "99" })
-      assert_equal [ "Cenoura ralada em 14/10: falta menos de 48 h para a entrega. Marque \"A Hortifruti Modelo confirmou a alteração\" para gravar." ],
+      assert_equal [ "Cenoura ralada em 14/10: falta menos de 48 h para a entrega. Marque \"Hortifruti Modelo confirmou a alteração\" para gravar." ],
                    result.errors
       assert_equal @current, @order.lines.where(product: @product, delivery_date: "2026-10-14").sum(:quantity)
 

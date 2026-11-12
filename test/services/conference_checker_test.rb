@@ -123,10 +123,10 @@ class ConferenceCheckerTest < ActiveSupport::TestCase
 
   test "quantidade bem acima do normal do cliente avisa e abre o pedido" do
     alerts = quantity_alerts
-    assert_equal [ "Horiz. Norte: Batata em cubos com 80 kg em 15/10, quando o normal é 16 kg. Confira se não é erro de digitação.",
-                   "Bom Pastor: Cenoura em palitos com 76 kg em 13/10, quando o normal é 2 kg. Confira se não é erro de digitação." ], alerts.map(&:message)
+    assert_equal [ "Bom Pastor: Cenoura em palitos com 76 kg em 13/10, quando o normal é 2 kg. Confira se não é erro de digitação.",
+                   "Horiz. Norte: Batata em cubos com 80 kg em 15/10, quando o normal é 16 kg. Confira se não é erro de digitação." ], alerts.map(&:message)
     assert alerts.all? { |a| a.level == :warn }
-    assert_includes alerts.first.action.path, "customer=hnorte"
+    assert_includes alerts.last.action.path, "customer=hnorte"
   end
 
   test "zero a mais vira aviso; zero a menos e números pequenos não" do

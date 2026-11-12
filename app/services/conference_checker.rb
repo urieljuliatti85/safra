@@ -1,5 +1,5 @@
 # Conferência de quantidades, unidades e datas. Gera alertas (nunca erros) a partir dos pedidos.
-# Referência: função alertas() de prototipo/safra.html.
+# Referência: função alertas() do protótipo (docs/prototipo/safra.html, privado).
 class ConferenceChecker
   # level: :warn | :mute. action: para onde ir corrigir (nil quando não há um lugar certo).
   Action = Data.define(:label, :path)

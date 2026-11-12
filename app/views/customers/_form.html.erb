@@ -16,7 +16,12 @@
   </div>
   <div>
     <label class="flex items-center gap-2 font-bold"><%= form.check_box :monthly_orders, class: "size-5" %>Manda o pedido do mês inteiro</label>
-    <p class="muted mt-1 text-sm">Como a Nutrir: o pedido não segue o prazo da quinta-feira.</p>
+    <p class="muted mt-1 text-sm">O pedido não segue o prazo da quinta-feira.</p>
+  </div>
+  <div>
+    <%= form.label :af_unit_code, "Unidade nas AFs", class: "font-bold" %>
+    <%= form.text_field :af_unit_code, maxlength: 20, inputmode: "numeric", class: "field mt-1 w-full max-w-xs" %>
+    <p class="muted mt-1 text-sm">Código da unidade de destino que vem no PDF de AFs. Com ele preenchido, o PDF de outra unidade é recusado.</p>
   </div>
   <fieldset class="grid gap-4 border-t border-line pt-4">
     <legend class="font-bold">Entrega</legend>

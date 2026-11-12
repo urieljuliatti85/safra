@@ -19,7 +19,7 @@ class OrderGridSaver
   ALTERATION_NOTICE = 48.hours
   CONFIRMED_SOURCES = %w[grid image import api cancel].freeze
 
-  # late_confirmed: a Hortifruti Modelo confirmou a alteração com menos de 48 h da entrega.
+  # late_confirmed: a empresa confirmou a alteração com menos de 48 h da entrega.
   # entry_type: tipo de pedido (OrderVersion::ENTRY_TYPES; R1.29 a R1.33, D22). No "extra", a quantidade digitada é o
   # acréscimo: soma ao que já estava (produto que não estava entra com ela), e vazio ou 0 não muda nada. Nos outros
   # tipos, e sem tipo, a quantidade digitada é o novo total.
@@ -119,7 +119,7 @@ class OrderGridSaver
   # (pedido extra) fica de fora até a pergunta A.5.
   def late_alterations(parsed, before)
     late_cells(parsed, before).map do |label|
-      "#{label}: falta menos de 48 h para a entrega. Marque \"A Hortifruti Modelo confirmou a alteração\" para gravar."
+      "#{label}: falta menos de 48 h para a entrega. Marque \"#{@order.company.name} confirmou a alteração\" para gravar."
     end
   end
 

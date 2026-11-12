@@ -1,9 +1,11 @@
-# Carrega os cadastros e os pedidos da semana de 12/10/2026 a partir de db/seeds_data/*.yml.
+# Carrega os cadastros e os pedidos da semana de 12/10/2026 a partir de db/seeds_data/*.yml: a empresa fictícia
+# "Hortifruti Modelo", usada nos testes e no desenvolvimento. Os dados reais ficam no repositório privado
+# (docs/dados/) e entram com SEEDS_DIR=docs/dados (README, "Dados reais").
 # Só cria o que falta: nunca sobrescreve um cadastro editado na tela nem apaga pedidos já lançados, então é
 # seguro rodar de novo. Para recomeçar do zero em desenvolvimento: bin/rails db:reset.
 require "yaml"
 
-data_dir = Rails.root.join("db/seeds_data")
+data_dir = Rails.root.join(ENV.fetch("SEEDS_DIR", "db/seeds_data"))
 product_groups = { "processado" => "processed", "in_natura" => "raw", "fruta" => "fruit" }
 week_start = Date.new(2026, 10, 12)
 # Dias de compra na CEASA da semana (planilha 03 - COMPRAS CEASA e protótipo).
@@ -18,7 +20,7 @@ create_missing = lambda do |record, attributes|
   record
 end
 
-company = Company.find_or_create_by!(name: "Hortifruti Modelo")
+company = Company.find_or_create_by!(name: load_yaml.call("empresa.yml").fetch("nome"))
 
 ActsAsTenant.with_tenant(company) do
   ActiveRecord::Base.transaction do
@@ -68,7 +70,7 @@ ActsAsTenant.with_tenant(company) do
       customer = create_missing.call(
         Customer.find_or_initialize_by(code: row["codigo"]),
         name: row["nome"], short_name: row["nome_curto"], order_source: row["origem_pedido"],
-        monthly_orders: row["pedido_mensal"] || false, delivery_from: row["entrega_de"]
+        monthly_orders: row["pedido_mensal"] || false, delivery_from: row["entrega_de"], af_unit_code: row["unidade_af"]
       )
       [ row["codigo"], customer ]
     end

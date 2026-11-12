@@ -31,7 +31,7 @@ module OrderImports
 
     def sources
       if File.extname(@filename).casecmp(".odt").zero?
-        OdtReader.new(@path).call.map do |e|
+        OdtReader.new(@path, prefixes: heading_prefixes).call.map do |e|
           { data: e.data, filename: e.filename, content_type: e.content_type, hint: e.hint, customer_word: e.customer_word, date_hint: e.date_hint }
         end
       else
@@ -40,6 +40,11 @@ module OrderImports
 
         [ { data: File.binread(@path), filename: @filename, content_type: type } ]
       end
+    end
+
+    # Primeira palavra do nome de cada cliente ("Aurora · Hotel" → "Aurora"): o título do ODT pode começar por ela.
+    def heading_prefixes
+      Customer.pluck(:name).filter_map { |name| name[/\A\p{L}+/] }
     end
 
     def customer_for(word)

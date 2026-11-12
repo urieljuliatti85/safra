@@ -48,3 +48,7 @@
 
 # macOS
 .DS_Store
+
+# Documentos de domínio e dados reais: repositório privado safra-dominio, clonado em docs/ (CLAUDE.md, "O repositório é público").
+/docs/
+/prototipo/

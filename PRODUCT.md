@@ -8,7 +8,7 @@ web
 
 ## Users
 
-Primário: a equipe de escritório de um atacadista de hortifrúti / processadora de vegetais minimamente processados (primeiro cliente: Hortifruti Modelo). No computador, recebe os pedidos semanais dos clientes (planilha, ODT/PDF, print), lança e confere, envia aos setores e fecha as compras.
+Primário: a equipe de escritório de um atacadista de hortifrúti / processadora de vegetais minimamente processados (no repositório público, a empresa fictícia Hortifruti Modelo). No computador, recebe os pedidos semanais dos clientes (planilha, ODT/PDF, print), lança e confere, envia aos setores e fecha as compras.
 
 Secundário: a produção. Usa a lista do setor **impressa em PDF** na bancada, em ambiente de luz forte ou refletida e de área úmida / câmara fria. Não consulta a tela como ferramenta principal.
 
@@ -36,7 +36,7 @@ Nome do produto: Safra. A mesma marca para todas as empresas (não é white-labe
 
 ## Evidence on Hand
 
-Dados reais da semana de 12/10/2026 em `db/seeds_data/`, protótipo em `prototipo/safra.html`, planilhas originais em `referencia/planilhas/` (não versionadas). Não há logo, paleta nem guia de marca.
+Dados da semana de 12/10/2026 em `db/seeds_data/` (empresa fictícia; os reais ficam no repositório privado, em `docs/dados/`), protótipo em `docs/prototipo/safra.html` e planilhas originais em `docs/referencia/planilhas/`, ambos privados. Não há logo, paleta nem guia de marca.
 
 ## Product Principles
 

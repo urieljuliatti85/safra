@@ -48,15 +48,6 @@ class OrderImports::OdtReaderTest < ActiveSupport::TestCase
     assert_match "ODT", error.message
   end
 
-  test "documento real da Aurora traz quatro imagens com cliente e dia" do
-    path = Rails.root.join("referencia/planilhas/12-10-26_PEDIDOS_AURORA.odt")
-    skip "referencia/planilhas não está no repositório" unless path.exist?
-
-    entries = OrderImports::OdtReader.new(path.to_s).call
-    assert_equal %w[MOLLINARI HOTEL FÁBRICA FÁBRICA], entries.map(&:customer_word)
-    assert_equal [ [ 10, 12 ], [ 10, 13 ], [ 10, 13 ], [ 10, 15 ] ], entries.map { |e| [ e.date_hint.month, e.date_hint.day ] }
-  end
-
   # D19: desde 26/10/2026 a Aurora escreve "AURORA HOTEL SEGUNDA 26/10", sem "PEDIDO" e sem o ano.
   test "título novo da Aurora, sem PEDIDO e sem ano, também dá cliente e dia" do
     ActsAsTenant.current_tenant = company
@@ -69,7 +60,7 @@ class OrderImports::OdtReaderTest < ActiveSupport::TestCase
       zip.get_output_stream("content.xml") { |io| io.write(xml) }
     end
 
-    entries = travel_to(Time.zone.local(2026, 10, 24, 9)) { OrderImports::OdtReader.new(path).call }
+    entries = travel_to(Time.zone.local(2026, 10, 24, 9)) { OrderImports::OdtReader.new(path, prefixes: [ "Aurora" ]).call }
     assert_equal %w[MOLLINARI HOTEL], entries.map(&:customer_word)
     assert_equal [ Date.new(2026, 10, 26), Date.new(2026, 10, 27) ], entries.map(&:date_hint)
     assert_equal "AURORA MOLLINARI SEGUNDA 26/10", entries.first.hint

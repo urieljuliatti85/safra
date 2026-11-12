@@ -1,7 +1,7 @@
 # Calcula a necessidade de compra por dia de compra (CEASA) e matéria-prima.
 # Cada compra abastece a produção do dia da compra até a véspera da compra seguinte.
 # O estoque da câmara fria é abatido antes, na ordem das compras.
-# Referência: função necessidade() de prototipo/safra.html.
+# Referência: função necessidade() do protótipo (docs/prototipo/safra.html, privado).
 class PurchasePlanner
   Need = Data.define(
     :raw_material, :unit,

@@ -1,8 +1,8 @@
 require "test_helper"
 require "prawn"
 
-# PDF de AFs da Nutrir (D2, D3, D4). As linhas imitam o PDF real de novembro/2026 e a AF alterada 0009100649
-# (entrega 06/11/2026, vagem cubinho de 95 para 120 kg), sem os dados de cadastro do cliente.
+# PDF de AFs da Nutrir (D2, D3, D4). As linhas imitam o formato do PDF de AFs (números, datas e preços inventados) e a AF
+# alterada 0009100649 (entrega 06/11/2026, vagem cubinho de 95 para 120 kg).
 class OrderImports::AfImportTest < ActiveSupport::TestCase
   setup do
     # Antes das 48 h da entrega (R1.26, D8): estes testes não são sobre o prazo de alteração.
@@ -18,15 +18,15 @@ class OrderImports::AfImportTest < ActiveSupport::TestCase
 
   MONTH = [
     [ "Autorização de Fornecimento AF: 0009100648", "Filial Destino: USINA LITORAL Código: 4471", "DATA DE ENTREGA: 05/11/2026",
-      "CENOURA PROCESSADA CUBO (20MM) KG 17,000 7,80000 PADRAO / 132,60", "LARANJA PERA DESCASCADA-UN 1.380,000 1,00000 PADRAO / 1.380,00",
-      "Total: 1.512,60" ],
+      "CENOURA PROCESSADA CUBO (20MM) KG 17,000 5,00000 PADRAO / 85,00", "LARANJA PERA DESCASCADA-UN 1.380,000 2,00000 PADRAO / 2.760,00",
+      "Total: 2.845,00" ],
     [ "Autorização de Fornecimento AF: 0009100649", "Filial Destino: USINA LITORAL Código: 4471", "DATA DE ENTREGA: 06/11/2026",
-      "VAGEM PROCESSADA CUBINHO KG 95,000 15,40000 PADRAO / 1.463,00", "BETERRABA PROCESSADA PALITO KG 300,000 7,20000 PADRAO / 2.160,00" ],
+      "VAGEM PROCESSADA CUBINHO KG 95,000 9,00000 PADRAO / 855,00", "BETERRABA PROCESSADA PALITO KG 300,000 4,00000 PADRAO / 1.200,00" ],
     [ "Autorização de Fornecimento AF: 0009100650", "Filial Destino: USINA LITORAL Código: 4471", "DATA DE ENTREGA: 09/11/2026",
-      "BATATA PROCESSADA DESCASCADA INT KG 80,000 6,10000 PADRAO / 488,00" ]
+      "BATATA PROCESSADA DESCASCADA INT KG 80,000 3,00000 PADRAO / 240,00" ]
   ].freeze
   ALTERATION = [ [ "Autorização de Fornecimento ALTERAÇÃO", "Unidade Destino: 4471 - USINA LITORAL", "Data de Entrega: 06/11/2026",
-                   "Autorização de Fornecimento: 0009100649", "* VAGEM PROCESSADA CUBINHO KG - KG 120,000 15,40 PADRAO 1848,00" ] ].freeze
+                   "Autorização de Fornecimento: 0009100649", "* VAGEM PROCESSADA CUBINHO KG - KG 120,000 9,00 PADRAO 1080,00" ] ].freeze
 
   def pdf(pages)
     path = Rails.root.join("tmp/af-#{SecureRandom.hex(4)}.pdf")
@@ -47,6 +47,14 @@ class OrderImports::AfImportTest < ActiveSupport::TestCase
 
   def quantities(week) = Order.find_by!(customer: @nutrir, week_start: week).lines.reload.includes(:product)
                               .to_h { |l| [ [ l.product.code, l.delivery_date.day ], [ l.quantity.to_i, l.af_number ] ] }
+
+  test "PDF de outra unidade é recusado quando o cadastro do cliente tem a unidade das AFs" do
+    other_unit = MONTH.map { |page| page.map { |line| line.sub("Código: 4471", "Código: 9001") } }
+    assert_equal [ "O PDF é da unidade 9001; o cadastro de Nutrir UL atende a 4471." ], import(other_unit, "outra.pdf").payload["errors"]
+
+    @nutrir.update!(af_unit_code: nil)
+    assert_empty import(other_unit, "outra.pdf").payload["errors"]
+  end
 
   test "o PDF do mês vai para o pedido de cada semana, com o número da AF" do
     record = import(MONTH, "PEDIDOS NUTRIR NOVEMBRO 2026.pdf")

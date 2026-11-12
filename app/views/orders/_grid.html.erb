@@ -84,7 +84,7 @@
                       <% end %>
                       <% if by_date.keys.any? { |date| grid.late_dates.include?(date) } %>
                         <label><input type="checkbox" form="cancel-items-form" name="late_confirmed[<%= row_key %>]" value="1" class="size-4">
-                          A Hortifruti Modelo confirmou (menos de 48 h da entrega)</label>
+                          <%= current_company.name %> confirmou (menos de 48 h da entrega)</label>
                       <% end %>
                       <button type="submit" form="cancel-items-form" name="row" value="<%= row_key %>" class="btn">Confirmar cancelamento</button>
                     </div>

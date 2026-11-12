@@ -1,6 +1,6 @@
 # Calcula a produção de um dia: o que produzir por produto (com a abertura por cliente e entrega)
 # e as caixas a aprontar por matéria-prima. Nada é digitado: tudo sai das linhas de pedido.
-# Referência: funções producao() e aprontes() de prototipo/safra.html.
+# Referência: funções producao() e aprontes() do protótipo (docs/prototipo/safra.html, privado).
 class ProductionPlanner
   Item = Data.define(:product, :quantity, :unit, :breakdown)
   Breakdown = Data.define(:customer, :delivery_date, :quantity)

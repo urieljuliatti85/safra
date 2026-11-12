@@ -65,23 +65,36 @@ Planos são gerados por um serviço (`ProductionPlanner`, `PurchasePlanner`) e s
 
 ## Escopo do MVP
 
-Dentro: cadastros (carregados dos seeds), lançamento de pedidos em grade por cliente, importação dos Excel de Bom Pastor e Horizonte, programação, produção por setor, aprontes, compras CEASA por fornecedor (texto para WhatsApp), estoque simples, versões e avisos de alteração, conferência, PDFs.
+Dentro: cadastros (carregados dos seeds), lançamento de pedidos em grade por cliente, importação das planilhas, PDFs e imagens dos clientes, programação, produção por setor, aprontes, compras CEASA por fornecedor (texto para WhatsApp), estoque simples, versões e avisos de alteração, conferência, PDFs.
 
 Fora: portal do cliente, leitura de pedido por foto/WhatsApp com IA, nota fiscal, preços, rastreabilidade de lotes, integração com ERP.
 
 ## Arquivos
 
-- `db/seeds_data/`: dados reais da semana de 12/10/2026 em YAML.
-- `prototipo/safra.html`: protótipo funcional (abrir no navegador). O cálculo dele foi modelado a partir das planilhas, antes da esteira: não é referência de regra (a referência é `docs/regras.md`).
-- `referencia/planilhas/`: planilhas originais da Hortifruti Modelo e pedidos dos clientes. `referencia/esteira/`: documento original da esteira. Não versionar no Git (dados de clientes).
+- `db/seeds_data/`: empresa fictícia "Hortifruti Modelo" (semana de 12/10/2026) em YAML, para testes e desenvolvimento. Mesma estrutura dos dados reais, com nomes trocados.
+- `docs/dados/`: os dados reais, na mesma estrutura. Entram com `SEEDS_DIR=docs/dados` (README, "Dados reais").
+- `docs/prototipo/safra.html`: protótipo funcional (abrir no navegador). O cálculo dele foi modelado a partir das planilhas, antes da esteira: não é referência de regra (a referência é `docs/regras.md`).
+- `docs/referencia/planilhas/`: planilhas originais e pedidos dos clientes. `docs/referencia/esteira/`: documento original da esteira.
 - `docs/roteiro.md`: roteiro de execução, papel de cada documento e situação de cada etapa. Comece por aqui.
 - `docs/esteira.md`: esteira operacional, referência de domínio.
 - `docs/regras.md`: regras confirmadas, com a referência da resposta que as confirmou.
 - `docs/duvidas.md`: pauta com o Gerente de Produção, por etapa da esteira, com as respostas confirmadas.
 - `docs/lacunas.md`: o que o sistema faz hoje em cada etapa, comparado com a esteira.
 - `docs/analise-planilhas.md`: o que as planilhas de outubro/2026 contêm (observação, não regra).
-- `docs/skills.md`: skills de revisão e QA do Claude Code (`.claude/skills/`), quando usar cada uma e por que só rodam quando chamadas.
+- `.claude/skills/README.md`: skills de revisão e QA do Claude Code (`.claude/skills/`), quando usar cada uma e por que só rodam quando chamadas.
+
+## O repositório é público
+
+O `safra` é público: qualquer pessoa lê os arquivos, o histórico, as mensagens de commit e os títulos, descrições e comentários de PR. **Nome, dado ou processo de cliente real não entra no `safra`**, nem em arquivo, nem em commit, nem em PR. Isso vale para o nome da empresa cliente, dos clientes dela, de fornecedores e de pessoas, números de documentos (AF, unidade), quantidades reais e o conteúdo das conversas com o Gerente de Produção.
+
+Esse conteúdo vive no repositório **privado `safra-dominio`**, clonado em `docs/` (o `.gitignore` do `safra` ignora a pasta): os documentos de domínio (`esteira.md`, `duvidas.md`, `regras.md`, `roteiro.md`, `lacunas.md`, `analise-planilhas.md`, `mudancas.md`), os dados reais (`dados/`), o protótipo e as planilhas originais (`referencia/`). Os caminhos `docs/...` deste arquivo continuam valendo na máquina de desenvolvimento.
+
+- O `safra-dominio` **não tem `.github/`** e o Actions fica desligado nele: não há créditos de Actions para repositório privado. Nunca crie workflow lá.
+- Mudou algo em `docs/`? Commit e push no `safra-dominio` na mesma hora (com a permissão de sempre), para o GitHub ficar igual ao computador.
+- No `safra`, código, testes, seeds e comentários usam só a empresa fictícia "Hortifruti Modelo" e os clientes dela (Hospital Bom Pastor, Hospital Horizonte Norte e Sul, Grupo Aurora, Nutrir · Usina Litoral). Regra citada no código aparece pelo número (R1.20, D14), sem o nome real.
+- Na dúvida, antes de commitar no `safra`: isso identifica a empresa cliente, um cliente dela ou uma pessoa? Se sim, vai para o `safra-dominio`.
+- Commits do `safra` e do `safra-dominio` usam o e-mail `noreply` do GitHub, configurado no `git config` local de cada um.
 
 ## Pull requests
 
-Todo PR ganha uma entrada em `docs/mudancas.md`, no próprio PR: o que mudou para quem usa, por quê, dados gravados e como reverter. Regra e formato no topo do arquivo; o modelo de descrição está em `.github/pull_request_template.md`.
+Todo PR ganha uma entrada em `docs/mudancas.md` (no `safra-dominio`), com commit no `safra-dominio` junto com o PR: o que mudou para quem usa, por quê, dados gravados e como reverter. Regra e formato no topo do arquivo; o modelo de descrição está em `.github/pull_request_template.md`.

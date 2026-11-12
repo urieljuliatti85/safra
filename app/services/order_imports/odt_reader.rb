@@ -4,11 +4,12 @@ module OrderImports
   # Lê um documento ODT em que o cliente cola o pedido como imagem (print de tela, tabela colada, PDF).
   # Devolve as imagens na ordem do documento, cada uma com o cliente e a data que o texto indica
   # ("PEDIDO FÁBRICA TERÇA FEIRA 13/10/26" ou, desde 26/10/2026, "AURORA HOTEL SEGUNDA 26/10", sem o ano; D19).
+  # O título começa por "PEDIDO" ou pela primeira palavra do nome de um cliente (`prefixes`).
   # O texto é só uma pista: a data dentro da imagem vale mais.
   class OdtReader
     Entry = Data.define(:index, :filename, :content_type, :data, :hint, :customer_word, :date_hint)
 
-    HEADING = %r{(?:PEDIDO|AURORA)\s+(?<who>[\p{L} ]+?)\s+(?:(?:SEGUNDA|TERÇA|TERCA|QUARTA|QUINTA|SEXTA|S[ÁA]BADO|DOMINGO)(?:\s+FEIRA)?\s+)?(?<date>\d{2}/\d{2}(?:/\d{2,4})?)(?!\d)}i
+    DAY = /(?:(?:SEGUNDA|TERÇA|TERCA|QUARTA|QUINTA|SEXTA|S[ÁA]BADO|DOMINGO)(?:\s+FEIRA)?\s+)?/i
     TYPES = { ".png" => "image/png", ".jpg" => "image/jpeg", ".jpeg" => "image/jpeg", ".webp" => "image/webp", ".gif" => "image/gif" }.freeze
     MAX_IMAGES = 20
     MAX_IMAGE_BYTES = 10 * 1024 * 1024
@@ -16,8 +17,10 @@ module OrderImports
 
     class Unreadable < StandardError; end
 
-    def initialize(path)
+    def initialize(path, prefixes: [])
       @path = path
+      words = [ "PEDIDO", *prefixes ].map { |word| Regexp.escape(word.to_s.strip) }.reject(&:empty?).uniq
+      @heading = %r{(?:#{words.join("|")})\s+(?<who>[\p{L} ]+?)\s+#{DAY}(?<date>\d{2}/\d{2}(?:/\d{2,4})?)(?!\d)}i
     end
 
     def call
@@ -35,7 +38,7 @@ module OrderImports
     private
 
     def entries(zip, doc)
-      headings = doc.xpath("//body//p|//body//h").flat_map { |node| node.text.to_enum(:scan, HEADING).map { Regexp.last_match } }
+      headings = doc.xpath("//body//p|//body//h").flat_map { |node| node.text.to_enum(:scan, @heading).map { Regexp.last_match } }
       images = doc.xpath("//frame/image").filter_map { |node| node["href"] }.first(MAX_IMAGES)
       raise Unreadable, "Não achei imagens neste documento." if images.empty?
 

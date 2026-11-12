@@ -49,3 +49,8 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+# Documentos de domínio e dados reais (safra-dominio): nunca entram na imagem.
+/docs/
+/referencia/
+/prototipo/

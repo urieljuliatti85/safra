@@ -29,7 +29,7 @@ Nos próximos dias, só os passos 1 e 3 (o passo 1 é seguro repetir: se o conta
 
 Em desenvolvimento e teste a conexão usa `localhost`, usuário `postgres`, senha `postgres`. Para outro servidor, defina `DATABASE_HOST`, `DATABASE_USERNAME` e `DATABASE_PASSWORD`.
 
-Os dados vêm de `db/seeds_data/*.yml` (fornecedores, matérias-primas, cortes, produtos, clientes, apelidos e os pedidos da semana). O seed **só cria o que falta**: nunca sobrescreve um cadastro editado na tela nem apaga pedidos já lançados, então é seguro rodar de novo, inclusive em produção. Os pedidos da semana entram só na primeira carga de cada cliente.
+Os dados vêm de `db/seeds_data/*.yml`, da empresa fictícia "Hortifruti Modelo" (fornecedores, matérias-primas, cortes, produtos, clientes, apelidos e os pedidos da semana). O seed **só cria o que falta**: nunca sobrescreve um cadastro editado na tela nem apaga pedidos já lançados, então é seguro rodar de novo, inclusive em produção. Os pedidos da semana entram só na primeira carga de cada cliente.
 
 ```bash
 bin/rails db:seed          # cria o que falta (cadastros, pedidos da primeira carga e usuários de desenvolvimento)
@@ -126,7 +126,6 @@ Regras que ajudam a entender a conferência:
 - A planilha precisa caber numa semana de pedido, da segunda até a segunda seguinte. Se passar disso (por exemplo, de sexta a terça), a conferência avisa e não deixa importar: separe em uma planilha por semana.
 - **Desfazer** (pílula na grade ou na tela da importação) devolve o pedido ao que era antes da planilha nos produtos e dias que ela tocou, apaga os apelidos que ela criou e reabre a importação. Alterações feitas no pedido depois da importação são listadas antes e se perdem.
 
-Planilhas de exemplo ficam em `referencia/planilhas` (fora do git). Se essa pasta existir, os testes importam as planilhas reais e conferem que reproduzem os pedidos dos seeds.
 
 ## Validar o teste com as planilhas
 
@@ -201,7 +200,7 @@ O `bin/setup` ativa o hook `.githooks/pre-commit`: Rubocop nos arquivos Ruby do 
 
 ## Fluxo de trabalho
 
-Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde antes do merge. Commits são juntados antes do push para evitar vários deploys. Mudança de comportamento ganha uma entrada em `docs/mudancas.md` (o que mudou, o que fica no banco e como reverter).
+Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde antes do merge. Commits são juntados antes do push para evitar vários deploys. Mudança de comportamento ganha uma entrada em `docs/mudancas.md` (o que mudou, o que fica no banco e como reverter), commitada no `safra-dominio`.
 
 ## Estrutura
 
@@ -211,10 +210,26 @@ Cada mudança vai em branch a partir da `main` atualizada, com PR e CI verde ant
 - `app/policies`: autorização com Pundit, negada por padrão e liberada por papel (`allow :admin, :office, to: ...`).
 - `app/services`: `ProductionPlanner`, `PurchasePlanner`, `WeekOverview`, `PlanPublisher`, `PlanDiff`, `ConferenceChecker`, `OrderGridSaver`, `SheetComparison` (planilhas × Safra, com os motivos e as notas), em `reference_sheets/` a leitura das planilhas 01, 02 e 03 (`Reader`, `Matcher`, `Importer`) e, em `order_imports/`, a leitura de planilhas (`SheetReader`), o reconhecimento de nomes (`Matcher`), a prévia (`Preview`) e a gravação (`Applier`).
 - `app/pdfs`: PDFs com Prawn (fonte Bricolage Grotesque embutida).
-- `db/seeds_data`: dados reais da semana de 12/10/2026 em YAML.
-- `referencia/planilhas`: planilhas originais dos clientes. Não são versionadas (dados de clientes).
-- `prototipo/safra.html`: protótipo funcional, referência da lógica de cálculo.
+- `db/seeds_data`: empresa fictícia "Hortifruti Modelo" (semana de 12/10/2026) em YAML, para testes e desenvolvimento.
+- `docs/`: documentos de domínio, dados reais, protótipo e planilhas originais. É o repositório privado `safra-dominio`, clonado aqui e ignorado pelo Git (seção "Dados reais").
 - `PRODUCT.md` e `DESIGN.md`: produto e sistema visual (Calendário de safra).
+
+## Dados reais
+
+O repositório é público e só tem a empresa fictícia. Os documentos de domínio e os dados reais ficam no repositório privado `safra-dominio`, clonado em `docs/`:
+
+```bash
+git clone git@github.com:urieljuliatti85/safra-dominio.git docs
+```
+
+Sem ele, o app, os testes e o CI funcionam normalmente com a "Hortifruti Modelo". Com ele, o seed carrega os dados reais pela variável `SEEDS_DIR`, que aponta para outra pasta com a mesma estrutura de `db/seeds_data/`:
+
+```bash
+SEEDS_DIR=docs/dados bin/rails db:seed                  # banco local
+SEEDS_DIR=docs/dados railway run bin/rails db:seed      # produção, rodando do computador
+```
+
+Como o deploy vem do GitHub público, a imagem da produção não tem `docs/`: cadastro novo de dados reais entra pelo comando acima ou pelas telas de cadastro.
 
 ## Deploy na Railway
 
@@ -259,7 +274,7 @@ O envio não tem confirmação de leitura: com o celular sem internet o aviso at
 
 **Saúde do app.** `/up` diz só que o Rails subiu. `/ready` responde 200 quando o banco responde e 503 quando não, sem login e sem detalhes. O healthcheck da Railway usa `/ready` (`railway.json`): uma versão que não alcança o banco não entra no ar, e a anterior segue atendendo.
 
-**Voltar atrás.** Para desfazer um PR específico (por exemplo, a Hortifruti Modelo não quer mais uma mudança), veja `docs/mudancas.md`: cada PR recente tem o que mudou, o que fica no banco e como reverter. Para uma emergência, no painel da Railway: projeto `safra` > serviço `safra` > Deployments > o último deploy que funcionava > Rollback (ou Redeploy). O código volta; o banco não, porque migrations não são desfeitas. Com a regra acima o código antigo funciona com o banco novo, então voltar é seguro, exceto depois de uma migration que removeu algo. Os dados do banco e do volume não mudam. O rollback vale até o próximo merge: ele publica a `main` de novo, então corrija o problema na `main` antes de mergear qualquer coisa.
+**Voltar atrás.** Para desfazer um PR específico (por exemplo, a empresa não quer mais uma mudança), veja `docs/mudancas.md`: cada PR recente tem o que mudou, o que fica no banco e como reverter. Para uma emergência, no painel da Railway: projeto `safra` > serviço `safra` > Deployments > o último deploy que funcionava > Rollback (ou Redeploy). O código volta; o banco não, porque migrations não são desfeitas. Com a regra acima o código antigo funciona com o banco novo, então voltar é seguro, exceto depois de uma migration que removeu algo. Os dados do banco e do volume não mudam. O rollback vale até o próximo merge: ele publica a `main` de novo, então corrija o problema na `main` antes de mergear qualquer coisa.
 
 **Limite conhecido.** O volume só pode ser montado em uma instância: não escale o app para mais de uma réplica enquanto as imagens estiverem em disco local. Para várias réplicas, mover o Active Storage para um bucket S3.
 

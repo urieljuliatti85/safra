@@ -225,25 +225,4 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     record = import("pedido_com_unidade.xlsx", @hbp)
     assert_match "parece ser de Hospital Horizonte Norte", record.payload["customer_warning"]
   end
-
-  test "planilhas reais dos clientes reproduzem os pedidos já carregados nos seeds" do
-    dir = Rails.root.join("referencia/planilhas")
-    skip "referencia/planilhas não está no repositório" unless dir.directory?
-
-    {
-      "hbp" => %w[12-10-26_PEDIDO_HOSPITAL_ST_RITA_PROCESSADOS.ods 12-10-26_HOSPITAL_ST_RITA_PEDIDOS_IN_NATURA.xls],
-      "hnorte" => %w[12-10-26_PEDIDO_H_HORIZONTE_SERRA_PROCESSADOS.xlsx 12-10-26_PEDIDO_H_HORIZONTE_SERRA_IN_NATURA.xlsx],
-      "hsul" => %w[12-10-26_PEDIDO_H_HORIZONTE_VITORIA_PROCESSADOS.xlsx]
-    }.each do |code, names|
-      names.each do |name|
-        path = dir.join(name)
-        next unless path.exist?
-
-        record = OrderImports::Importer.new(company: company, customer: Customer.find_by!(code: code), path: path.to_s, filename: name).call
-        counts = OrderImports::Preview.new(record).counts
-        assert_equal({ new: 0, changed: 0, removed: 0, unmatched: 0 }, counts, name)
-        assert_empty record.errors_list, name
-      end
-    end
-  end
 end

@@ -34,7 +34,8 @@ module OrderImports
       errors = []
       errors << "#{@customer.short_name} não está marcado como cliente de pedido mensal no cadastro." unless @customer.monthly_orders?
       codes = afs.map(&:unit_code).compact.uniq
-      errors << "O PDF é da unidade #{codes.join(', ')}." if codes.any? && codes != [ "4471" ] && @customer.code == "nutrir"
+      unit = @customer.af_unit_code.presence
+      errors << "O PDF é da unidade #{codes.join(', ')}; o cadastro de #{@customer.short_name} atende a #{unit}." if unit && codes.any? && codes != [ unit ]
       errors
     end
   end

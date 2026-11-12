@@ -29,4 +29,5 @@
   nome_curto: Nutrir UL
   origem_pedido: PDF por e-mail com o pedido do mês inteiro, uma AF por data de entrega (unidade 4471)
   pedido_mensal: true
+  unidade_af: '4471'
   entrega_de: '07:00' # R1.8: a Nutrir recebe às 7h
