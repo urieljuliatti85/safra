@@ -228,7 +228,15 @@ Sem ele, o app, os testes e o CI funcionam normalmente com a "Hortifruti Modelo"
 SEEDS_DIR=docs/dados bin/rails db:seed      # banco local
 ```
 
-**Produção.** O deploy vem do GitHub público, então a imagem não tem `docs/`. O banco da Railway só aceita conexão de dentro da Railway, então `railway run` do computador não alcança o banco. Cadastro novo de dados reais (cliente, produto, corte, matéria-prima) entra pelas telas de cadastro. Em produção, `bin/rails db:seed` sem `SEEDS_DIR` não grava nada e avisa: os dados de `db/seeds_data/` são fictícios e não podem entrar no banco real.
+**Produção.** O deploy vem do GitHub público, então a imagem não tem `docs/`, e o banco da Railway só aceita conexão de dentro da Railway (`railway run` do computador não o alcança). Cadastro pontual entra pelas telas. Para carregar `docs/dados` de uma vez, do computador, com a Railway CLI logada:
+
+```bash
+bin/seed-producao
+```
+
+Ele pede confirmação, envia `docs/dados` compactado pela `railway ssh` e roda o seed dentro do container, numa pasta temporária apagada no fim. Como todo seed, só cria o que falta. (Testado em 12/11/2026: os arquivos chegam idênticos ao container.)
+
+Em produção, `bin/rails db:seed` sem `SEEDS_DIR` não grava nada e avisa: os dados de `db/seeds_data/` são fictícios e não podem entrar no banco real.
 
 ## Deploy na Railway
 
