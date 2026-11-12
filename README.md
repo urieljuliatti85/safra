@@ -149,7 +149,7 @@ As planilhas de 13 e 15/10/2026 (`db/seeds_data/referencia_planilhas.yml`) entra
 
 ## API para integrações (v1)
 
-JSON sob `/api/v1`, documentada em **`/api-docs`** (Swagger UI; o arquivo OpenAPI fica em `swagger/v1/swagger.yaml`).
+JSON sob `/api/v1`, documentada em **`/api-docs`** (Swagger UI; o arquivo OpenAPI fica em `swagger/v1/swagger.yaml`). A documentação abre só para administrador logado no navegador (`app/constraints/api_docs_access.rb`); para os outros, e sem login, a rota responde 404. Quem integra de fora recebe o `swagger/v1/swagger.yaml` do administrador.
 
 - **Chave por empresa.** O administrador cria e revoga em **Chaves de API** (menu da conta). O token (`safra_...`) aparece **uma única vez**; no banco fica só o hash (SHA-256). Duas permissões: *só leitura* e *leitura e escrita*. Cada chave enxerga só os dados da própria empresa; chave revogada ou empresa suspensa recebe 401. Envie `Authorization: Bearer <chave>`; guarde a chave como segredo (nunca em código nem em chat).
 - **Leitura:** cadastros (`customers`, `products`, `raw_materials`, `cuts`, `suppliers`), pedido de um cliente em uma semana (`GET /orders`), programação, produção e compras já calculadas, com a versão enviada e o que mudou depois (`/schedule`, `/production`, `/purchases`) e estoque (`/stock`).

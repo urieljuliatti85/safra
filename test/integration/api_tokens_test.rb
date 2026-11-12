@@ -84,7 +84,8 @@ class ApiTokensTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "a documentação OpenAPI é pública e descreve os endpoints" do
+  test "a documentação OpenAPI abre para o admin logado e descreve os endpoints" do
+    sign_in_as(user_for(:admin))
     get "/api-docs/v1/swagger.yaml"
     assert_response :success
     assert_match "API do Safra", response.body
@@ -95,5 +96,40 @@ class ApiTokensTest < ActionDispatch::IntegrationTest
     assert_select "title", "API do Safra"
     assert_match "Autorizar", response.body
     assert_no_match "fonts.googleapis.com", response.body
+  end
+
+  test "sem login a documentação da API não existe" do
+    %w[/api-docs /api-docs/index.html /api-docs/v1/swagger.yaml].each do |path|
+      get path
+      assert_response :not_found, path
+    end
+  end
+
+  test "escritório e produção não veem a documentação da API" do
+    %i[office production].each do |role|
+      sign_in_as(user_for(role))
+      get "/api-docs/v1/swagger.yaml"
+      assert_response :not_found, role
+      get "/api-docs/index.html"
+      assert_response :not_found, role
+    end
+  end
+
+  test "admin com senha provisória, desativado ou de empresa suspensa não vê a documentação da API" do
+    admin = user_for(:admin)
+    sign_in_as(admin)
+
+    admin.update_columns(must_change_password: true)
+    get "/api-docs/v1/swagger.yaml"
+    assert_response :not_found
+
+    admin.update_columns(must_change_password: false, active: false)
+    get "/api-docs/v1/swagger.yaml"
+    assert_response :not_found
+
+    admin.update_columns(active: true)
+    admin.company.update_columns(active: false)
+    get "/api-docs/v1/swagger.yaml"
+    assert_response :not_found
   end
 end

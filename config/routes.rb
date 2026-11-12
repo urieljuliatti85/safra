@@ -12,9 +12,12 @@ Rails.application.routes.draw do
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  # API v1 (JSON, token por empresa) e a documentação OpenAPI gerada pelos specs (rswag).
-  mount Rswag::Ui::Engine => "/api-docs"
-  mount Rswag::Api::Engine => "/api-docs"
+  # API v1 (JSON, token por empresa) e a documentação OpenAPI gerada pelos specs (rswag), só para administrador
+  # logado (ApiDocsAccess); para os outros, 404. O lambda acha a classe a cada pedido, e o reload do código continua valendo.
+  constraints(->(request) { ApiDocsAccess.matches?(request) }) do
+    mount Rswag::Ui::Engine => "/api-docs"
+    mount Rswag::Api::Engine => "/api-docs"
+  end
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       %w[customers products raw_materials cuts suppliers].each { |name| get name, to: "catalog##{name}" }
