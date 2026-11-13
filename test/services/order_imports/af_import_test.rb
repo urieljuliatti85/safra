@@ -103,4 +103,63 @@ class OrderImports::AfImportTest < ActiveSupport::TestCase
     assert_equal [ "\"PEPINO JAPONES PROCESSADO\" não tem produto: cadastre o apelido e importe de novo." ], result.errors
     assert_nil Order.find_by(customer: @nutrir, week_start: Date.new(2026, 11, 2))&.lines&.where(af_number: "0009100648")&.first
   end
+
+  # Desfazer o PDF de AFs (lacunas, "Desfazer para refazer", opção 1).
+  test "desfazer a alteração devolve a AF anterior: vagem volta a 95, beterraba volta com o número da AF" do
+    OrderImports::AfApplier.new(import: import(MONTH, "mes.pdf")).call
+    month = quantities(Date.new(2026, 11, 2))
+    record = import(ALTERATION, "alteracao.pdf")
+    OrderImports::AfApplier.new(import: record).call
+
+    result = OrderImports::Undoer.new(import: record).call
+    assert result.ok?, result.errors.inspect
+    assert_equal [ Date.new(2026, 11, 6) ], result.changed_dates
+    assert_equal month, quantities(Date.new(2026, 11, 2))
+    assert_equal "pending", record.reload.status
+    assert_nil record.payload["undo"]
+
+    # O número voltou: a alteração aplicada de novo troca a AF inteira, como da primeira vez.
+    assert OrderImports::AfApplier.new(import: record).call.ok?
+    assert_equal({ [ "cenoura_cubos", 5 ] => [ 17, "0009100648" ], [ "laranja_desc", 5 ] => [ 1380, "0009100648" ],
+                   [ "vagem_cubinhos", 6 ] => [ 120, "0009100649" ] }, quantities(Date.new(2026, 11, 2)))
+  end
+
+  test "desfazer o PDF do mês tira as AFs novas das duas semanas e mantém o que foi digitado antes" do
+    order = Order.create!(customer: @nutrir, week_start: Date.new(2026, 11, 2))
+    order.lines.create!(product: Product.find_by!(code: "brocolis"), unit: "kg", delivery_date: Date.new(2026, 11, 3), quantity: 12)
+    record = import(MONTH, "mes.pdf")
+    OrderImports::AfApplier.new(import: record).call
+
+    assert OrderImports::Undoer.new(import: record).call.ok?
+    assert_equal({ [ "brocolis", 3 ] => [ 12, nil ] }, quantities(Date.new(2026, 11, 2)))
+    assert_empty quantities(Date.new(2026, 11, 9))
+    assert_equal "undo", order.versions.newest_first.first.source
+  end
+
+  test "mudança feita depois do PDF aparece antes de desfazer e é desfeita junto" do
+    record = import(MONTH, "mes.pdf")
+    OrderImports::AfApplier.new(import: record).call
+    order = Order.find_by!(customer: @nutrir, week_start: Date.new(2026, 11, 9))
+    batata = Product.find_by!(code: "batata_inteira")
+    OrderGridSaver.new(order: order, quantities: { "#{batata.id}|kg" => { "2026-11-09" => "90" } }).call
+
+    undoer = OrderImports::Undoer.new(import: record)
+    edit = undoer.later_edits.sole
+    assert_equal [ "Batata inteira descascada", Date.new(2026, 11, 9), 80, 90 ], [ edit.product.name, edit.date, edit.imported, edit.current ]
+    assert undoer.call.ok?
+    assert_empty quantities(Date.new(2026, 11, 9))
+  end
+
+  test "PDF aplicado antes do retrato do número da AF não é desfeito; duas vezes também não" do
+    record = import(MONTH, "mes.pdf")
+    OrderImports::AfApplier.new(import: record).call
+    record.update!(payload: record.payload.except("undo"))
+    refute OrderImports::Undoer.new(import: record).undoable?
+    assert_equal [ "Esta importação não pode ser desfeita." ], OrderImports::Undoer.new(import: record).call.errors
+
+    other = import(MONTH, "mes de novo.pdf")
+    OrderImports::AfApplier.new(import: other).call
+    assert OrderImports::Undoer.new(import: other).call.ok?
+    refute OrderImports::Undoer.new(import: other.reload).call.ok?
+  end
 end

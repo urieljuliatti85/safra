@@ -18,12 +18,13 @@ module OrderImports
 
       errors = []
       OrderImport.transaction do
+        af_lines = af_lines_before(afs)
         appliers(afs).each do |af, applier|
           errors.concat(applier.call.errors.map { |e| "AF #{af['number']}: #{e}" })
         end
         raise ActiveRecord::Rollback if errors.any?
 
-        @import.update!(status: "applied", applied_at: Time.current)
+        @import.update!(status: "applied", applied_at: Time.current, payload: @import.payload.merge("undo" => { "af_lines" => af_lines }))
       end
       Result.new(errors: errors, weeks: afs.map { |af| Date.iso8601(af["date"]).beginning_of_week }.uniq.sort)
     end
@@ -36,6 +37,20 @@ module OrderImports
     end
 
     private
+
+    # O número da AF das linhas que o PDF vai tocar (as das AFs dele e as dos itens dele), antes de aplicar, para o
+    # Undoer devolver. As quantidades o Undoer lê das versões do pedido.
+    def af_lines_before(afs)
+      numbers = afs.map { |af| af["number"] }
+      cells = afs.flat_map { |af| af["items"].map { |item| [ item["product_id"], item["unit"], Date.iso8601(af["date"]) ] } }
+      weeks = afs.map { |af| Date.iso8601(af["date"]).beginning_of_week }.uniq
+      OrderLine.joins(:order).where(orders: { customer_id: @import.customer_id, week_start: weeks })
+               .pluck("orders.week_start", :product_id, :unit, :delivery_date, :af_number)
+               .select { |_, product_id, unit, date, number| numbers.include?(number) || cells.include?([ product_id, unit, date ]) }
+               .map do |week, product_id, unit, date, number|
+                 { "week" => week.iso8601, "product_id" => product_id, "unit" => unit, "date" => date.iso8601, "af_number" => number }
+               end
+    end
 
     def appliers(afs)
       products = Product.where(id: afs.flat_map { |af| af["items"].map { |item| item["product_id"] } }).index_by(&:id)

@@ -1,4 +1,5 @@
 require "test_helper"
+require_relative "../services/order_imports/af_import_test"
 
 class OrderImportsTest < ActionDispatch::IntegrationTest
   setup do
@@ -275,6 +276,90 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_equal Date.new(2026, 10, 19), import.week_start
     patch settings_order_import_path(import), params: { status: "applied" }
     assert_equal "applied", import.reload.status
+  end
+
+  # Desfazer o pedido em imagem (lacunas, "Desfazer para refazer", opção 1).
+  def image_quantities(customer, week)
+    ActsAsTenant.with_tenant(company) do
+      order = Order.find_by(customer: Customer.find_by!(code: customer), week_start: week)
+      order ? order.lines.includes(:product).to_h { |l| [ [ l.product.code, l.delivery_date.day ], l.quantity.to_i ] } : {}
+    end
+  end
+
+  test "lancei na semana errada: desfazer tira o que foi digitado pela imagem, e a imagem é digitada de novo na semana certa" do
+    brocolis, cenoura = ActsAsTenant.with_tenant(company) { [ Product.find_by!(code: "brocolis"), Product.find_by!(code: "cenoura_ralada") ] }
+    grid_path = ->(import) { grid_order_import_path(import) }
+    patch orders_path, params: { customer: "hbp", week: "2026-10-12", entry_type: "new", quantities: { "#{cenoura.id}|kg" => { "2026-10-13" => "8" } } }
+    before_image = image_quantities("hbp", Date.new(2026, 10, 12))
+    assert_equal 8, before_image[[ "cenoura_ralada", 13 ]]
+    post order_imports_path, params: { entry_type: "new", customer: "hbp", file: fixture_file_upload("imagem_pedido.png", "image/png") }
+    import = ActsAsTenant.with_tenant(company) { OrderImport.images.order(:id).last }
+    patch settings_order_import_path(import), params: { week: "2026-10-12" }
+
+    # Duas gravações a partir da imagem: brócolis novo e cenoura de 8 para 15; depois, cenoura para 20 na grade.
+    patch grid_path.(import), params: { entry_type: "new", quantities: { "#{brocolis.id}|kg" => { "2026-10-12" => "30" } } }
+    patch grid_path.(import), params: { entry_type: "alteration", quantities: { "#{cenoura.id}|kg" => { "2026-10-13" => "15" } } }
+    patch settings_order_import_path(import), params: { status: "applied" }
+    patch orders_path, params: { customer: "hbp", week: "2026-10-12", entry_type: "alteration", quantities: { "#{cenoura.id}|kg" => { "2026-10-13" => "20" } } }
+
+    get order_import_path(import)
+    assert_select "#desfazer h2", "Desfazer digitação"
+    assert_match "a digitação gravou 15, hoje está 20 kg", response.body
+
+    post undo_order_import_path(import)
+    assert_redirected_to order_import_path(import)
+    follow_redirect!
+    assert_match "Digitação da imagem desfeita: o pedido de", response.body
+    assert_equal before_image, image_quantities("hbp", Date.new(2026, 10, 12))
+    assert_equal "pending", ActsAsTenant.with_tenant(company) { import.reload.status }
+    assert_select "#desfazer", count: 0
+
+    # Duplo clique: nada mais a desfazer.
+    post undo_order_import_path(import)
+    follow_redirect!
+    assert_match "Esta importação não pode ser desfeita.", response.body
+
+    # Semana certa: digita de novo; desfazer agora só tira o que veio depois do primeiro desfazer.
+    patch settings_order_import_path(import), params: { week: "2026-10-19" }
+    patch grid_path.(import), params: { entry_type: "new", quantities: { "#{brocolis.id}|kg" => { "2026-10-19" => "30" } } }
+    assert_equal({ [ "brocolis", 19 ] => 30 }, image_quantities("hbp", Date.new(2026, 10, 19)))
+    post undo_order_import_path(import)
+    assert_empty image_quantities("hbp", Date.new(2026, 10, 19))
+    assert_equal before_image, image_quantities("hbp", Date.new(2026, 10, 12))
+  end
+
+  test "imagem trocada de cliente depois de digitada: desfazer tira do cliente onde foi digitado; produção não desfaz" do
+    brocolis = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "brocolis") }
+    post order_imports_path, params: { entry_type: "new", customer: "hsul", file: fixture_file_upload("imagem_pedido.png", "image/png") }
+    import = ActsAsTenant.with_tenant(company) { OrderImport.images.order(:id).last }
+    patch settings_order_import_path(import), params: { week: "2026-10-19" }
+    patch grid_order_import_path(import), params: { entry_type: "new", quantities: { "#{brocolis.id}|kg" => { "2026-10-19" => "30" } } }
+    patch settings_order_import_path(import), params: { customer: "hnorte" }
+
+    sign_in_as(user_for(:production))
+    post undo_order_import_path(import)
+    assert_equal({ [ "brocolis", 19 ] => 30 }, image_quantities("hsul", Date.new(2026, 10, 19)))
+
+    sign_in_as(user_for(:office))
+    post undo_order_import_path(import)
+    assert_empty image_quantities("hsul", Date.new(2026, 10, 19))
+  end
+
+  test "PDF de AFs aplicado mostra o desfazer e volta a ficar pendente" do
+    path = OrderImports::AfImportTest.pdf_file(OrderImports::AfImportTest::MONTH)
+    post order_imports_path, params: { entry_type: "new", customer: "nutrir", file: Rack::Test::UploadedFile.new(path, "application/pdf", original_filename: "mes.pdf") }
+    import = ActsAsTenant.with_tenant(company) { OrderImport.where(kind: "af").order(:id).last }
+    post apply_order_import_path(import)
+    get order_import_path(import)
+    assert_select "#desfazer h2", "Desfazer AFs"
+
+    post undo_order_import_path(import)
+    follow_redirect!
+    assert_match "AFs desfeitas: o pedido de Nutrir UL voltou ao que era antes.", response.body
+    assert_empty image_quantities("nutrir", Date.new(2026, 11, 2))
+    assert_select "button", /Aplicar nos pedidos/
+  ensure
+    File.delete(path) if path && File.exist?(path)
   end
 
   def applied_serra_import
