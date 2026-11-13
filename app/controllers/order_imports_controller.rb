@@ -9,6 +9,7 @@ class OrderImportsController < ApplicationController
 
   SHEET_EXTENSIONS = %w[.xlsx .xls .ods .csv].freeze
   IMAGE_EXTENSIONS = %w[.odt .png .jpg .jpeg .webp .gif].freeze
+  UNDONE = { "sheet" => "Importação desfeita", "image" => "Digitação da imagem desfeita", "af" => "AFs desfeitas" }.freeze
 
   # Quem lança escolhe o tipo (R1.29 a R1.33, D22). Na alteração e no extra o arquivo é opcional: sem arquivo,
   # abre a grade do pedido da semana da data de entrega escolhida, nesse dia, no modo do tipo (R1.35, R1.36, D23).
@@ -92,13 +93,12 @@ class OrderImportsController < ApplicationController
     end
   end
 
-  # Devolve o pedido ao que era antes da planilha. Planos enviados não são reenviados: o aviso diz quais mudaram.
+  # Devolve o pedido ao que era antes da planilha, da imagem ou do PDF de AFs. Planos enviados não são reenviados: o
+  # aviso diz quais mudaram.
   def undo
-    return head(:not_found) if @import.af?
-
     result = OrderImports::Undoer.new(import: @import).call
     if result.ok?
-      redirect_to order_import_path(@import), notice: "Importação desfeita: o pedido de #{@import.customer.short_name} voltou ao que era antes.",
+      redirect_to order_import_path(@import), notice: "#{UNDONE.fetch(@import.kind)}: o pedido de #{@import.customer.short_name} voltou ao que era antes.",
                                               alert: StalePlans.warning(current_company)
     else
       redirect_to order_import_path(@import), alert: result.errors.to_sentence
@@ -157,6 +157,7 @@ class OrderImportsController < ApplicationController
   end
 
   def show_afs(status: :ok)
+    load_undo
     @late_alterations = @import.applied? ? [] : OrderImports::AfApplier.new(import: @import).late_alterations
     render :af, status: status
   end
@@ -167,6 +168,7 @@ class OrderImportsController < ApplicationController
 
   # Modo da grade: ?tipo=extra (acréscimo), ?tipo=total (grade do pedido) ou o tipo escolhido ao importar.
   def show_image(status: :ok)
+    load_undo
     @tipo = params[:entry_type].presence || (params[:tipo] == "total" ? nil : params[:tipo].presence || @import.payload["entry_type"])
     @tipo = nil unless OrderVersion::ENTRY_TYPES.key?(@tipo)
     @add_product = Product.find_by(id: params[:add])

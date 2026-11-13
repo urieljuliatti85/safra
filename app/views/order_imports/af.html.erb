@@ -16,6 +16,7 @@
 
 <% if @import.applied? %>
   <p class="flash flash-notice"><%= icon :check %><span>Aplicada em <%= l(@import.applied_at, format: "%d/%m às %H:%M") %>.</span></p>
+  <%= render "undo" %>
 <% end %>
 <% errors = Array(@import.payload["errors"]) + Array(@errors) + unknown.map { |name| "\"#{name}\" não tem produto: cadastre o apelido de #{@import.customer.short_name} e importe de novo." } %>
 <% if errors.any? %>
