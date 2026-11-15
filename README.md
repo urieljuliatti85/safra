@@ -172,9 +172,12 @@ bin/ci                   # rubocop, auditorias de segurança e testes (sem os de
 
 O relatório de comparação com as planilhas (todas as importadas) é gravado em `tmp/conferencia_planilhas.txt`. Para vê-lo no terminal: `VERBOSE_CONFERENCIA=1 bin/rails test test/services/conferencia_planilhas_test.rb`.
 
-### Pre-commit
+### Hooks do Git
 
-O `bin/setup` ativa o hook `.githooks/pre-commit`: Rubocop nos arquivos Ruby do commit, a suíte Minitest e os specs da API quando o commit toca código. Sem o hook ativo (clone novo sem rodar o setup): `git config core.hooksPath .githooks`. Em emergência: `git commit --no-verify`.
+O `bin/setup` ativa os hooks de `.githooks/`. Sem eles ativos (clone novo sem rodar o setup): `git config core.hooksPath .githooks`.
+
+- `pre-commit`: Rubocop nos arquivos Ruby do commit, a suíte Minitest e os specs da API quando o commit toca código. Em emergência: `git commit --no-verify`.
+- `pre-push`: recusa push para o `safra` quando o histórico enviado tem arquivo em `docs/` (o `safra-dominio`, privado). Branches de antes do histórico limpo, guardados no `safra-arquivo`, trazem `docs/`; push para o `safra-arquivo` passa. Não use `--no-verify` aqui.
 
 ## Solução de problemas
 

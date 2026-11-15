@@ -1,0 +1,29 @@
+#!/bin/sh
+# Pre-push: recusa push para o repositório público safra quando o histórico enviado tem arquivo em docs/.
+# docs/ é o repositório privado safra-dominio (CLAUDE.md, "O repositório é público"). Branches antigos,
+# de antes do histórico limpo, ainda trazem docs/ e não podem ir para o safra.
+# Push para outros remotes (safra-arquivo) passa.
+# Ativado por `git config core.hooksPath .githooks` (feito pelo bin/setup).
+
+remote_url="$2"
+
+case "$remote_url" in
+  *urieljuliatti85/safra.git | *urieljuliatti85/safra) ;;
+  *) exit 0 ;;
+esac
+
+zero=0000000000000000000000000000000000000000
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [ "$local_sha" = "$zero" ] && continue # apagando branch remoto
+
+  commit=$(git rev-list -n 1 "$local_sha" -- docs)
+  if [ -n "$commit" ]; then
+    echo "pre-push: $local_ref tem arquivo em docs/ no histórico (commit $(git rev-parse --short "$commit"))." >&2
+    echo "pre-push: docs/ é o safra-dominio, privado, e não pode ir para o safra, que é público. Push recusado." >&2
+    status=1
+  fi
+done
+
+exit $status
