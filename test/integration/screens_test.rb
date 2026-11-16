@@ -47,7 +47,7 @@ class ScreensTest < ActionDispatch::IntegrationTest
 
   test "número da faixa da semana leva à produção do setor e à lista dele na página" do
     get production_path(date: "2026-10-13")
-    link = css_select("a.bar[aria-label='Cortes manuais, Ter 13/10: 8 itens']").first
+    link = css_select("a.bar[aria-label='Cortes manuais, Ter 13/10: 9 itens']").first # 9: a Yaksoba aberta nos floretes de brócolis e couve-flor (D25)
     assert link, "número de Cortes manuais em 13/10 na faixa"
     path, anchor = link["href"].split("#")
     assert_equal "setor-manual", anchor
@@ -95,6 +95,9 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_select "h2", "Ralados, picados e rodelas"
     assert_select "h2", /Aprontes/
     assert_select "td.name", /\ACenoura ralada · 3 a 5 mm\z/
+    assert_select "tr", text: /Cenoura ralada/ do
+      assert_select "td.who", /Bom Pastor 0,5 \(Yaksoba, Qua 14\/10\)|Bom Pastor 0,5 \(Yaksoba, 14\/10\)/ # ingrediente da Yaksoba (R2.9, D25)
+    end
   end
 
   test "produção filtrada por setor mostra só a lista daquela bancada, na tela e no PDF" do

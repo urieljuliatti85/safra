@@ -12,7 +12,14 @@ class ProductionPlanner
 
     def label = custom_measure ? "#{product.name} · #{custom_measure}" : product.name
   end
-  Breakdown = Data.define(:customer, :delivery_date, :quantity)
+  # via: nome da mistura de onde veio a quantidade, quando o ingrediente veio de uma mistura (R2.9, D25).
+  Breakdown = Data.define(:customer, :delivery_date, :quantity, :via) do
+    def initialize(customer:, delivery_date:, quantity:, via: nil) = super
+  end
+  # Uma parte do pedido a produzir: a linha do pedido ou, numa mistura, a parte de um ingrediente (D25).
+  Portion = Data.define(:product, :measure, :unit, :quantity, :customer, :delivery_date, :via)
+  # Soma dos percentuais tratada como a mistura inteira: o Vinagrete tem três partes iguais de 33,3333% (R1.20).
+  WHOLE_MIX = (BigDecimal("99.99")..BigDecimal("100.01"))
   # Caixas a aprontar (descascadas) por matéria-prima.
   Apronte = Data.define(:raw_material, :kg, :boxes)
   Result = Data.define(:date, :items, :delivery_dates, :aprontes) do
@@ -56,6 +63,35 @@ class ProductionPlanner
     end
   end
 
+  # A linha do pedido, ou as partes dos ingredientes, quando ela é uma mistura em kg com a composição inteira (percentual
+  # sobre o peso, R1.19, R1.20). Os ingredientes ficam no dia de produção da mistura e na medida de referência do corte
+  # deles. Mistura sem composição, com composição que não soma 100% (aviso na conferência) ou pedida em outra unidade
+  # continua como produto pronto, para nenhuma parte do pedido sumir. Também usada pela visão da semana (WeekOverview).
+  def self.portions(line)
+    portion = Portion.new(product: line.product, measure: line.measure, unit: line.unit, quantity: line.quantity,
+                          customer: line.order.customer, delivery_date: line.delivery_date, via: nil)
+    components = line.product.components
+    return [ portion ] unless line.unit == "kg" && whole_mix?(components)
+
+    split(line.quantity, components).map do |component, quantity|
+      portion.with(product: component.component, measure: nil, quantity: quantity, via: line.product.name)
+    end
+  end
+
+  def self.whole_mix?(components) = components.any? && WHOLE_MIX.cover?(components.sum(&:percentage))
+
+  # Quantidade de cada ingrediente, em decimal(10,3). A diferença do arredondamento vai para o ingrediente de maior
+  # percentual (o primeiro), para os ingredientes somarem o pedido.
+  def self.split(quantity, components)
+    total = components.sum(&:percentage)
+    parts = components.map { |c| [ c, (quantity * c.percentage / total).round(3) ] }
+    parts[0][1] += quantity - parts.sum(&:last)
+    parts
+  end
+  private_class_method :split
+
+  def self.measure_of(portion) = portion.product.cut&.measure_for(portion.measure)
+
   # Também monta a versão enviada (ProductionPlan#to_result): entregas e aprontes saem dos itens, não do pedido.
   def self.result(date, items)
     items = items.sort_by { |item| [ item.product.sector.to_s, item.product.name, item.measure.to_s ] }
@@ -84,26 +120,29 @@ class ProductionPlanner
   private
 
   # Soma os clientes do dia numa linha por produto, medida e unidade (R2.1, R2.2, R2.4, R2.5), com a parte de cada um.
+  # As misturas entram pelos ingredientes, somados com o mesmo ingrediente pedido avulso (R2.8, D25).
   def build_items
-    grouped = candidate_lines.group_by { |line| [ line.product, Cut.measure_key(measure_of(line)), line.unit ] }
-    grouped.map do |(product, _, unit), lines|
+    grouped = candidate_lines.flat_map { |line| portions(line) }.group_by { |p| [ p.product, Cut.measure_key(measure_of(p)), p.unit ] }
+    grouped.map do |(product, _, unit), portions|
       Item.new(
         product: product,
-        measure: shown_measure(lines),
-        quantity: lines.sum(&:quantity),
+        measure: shown_measure(portions),
+        quantity: portions.sum(&:quantity),
         unit: unit,
-        breakdown: lines.sort_by { |l| [ l.delivery_date, l.order.customer.code ] }.map do |line|
-          Breakdown.new(customer: line.order.customer, delivery_date: line.delivery_date, quantity: line.quantity)
+        breakdown: portions.sort_by { |p| [ p.delivery_date, p.customer.code, p.via.to_s ] }.map do |p|
+          Breakdown.new(customer: p.customer, delivery_date: p.delivery_date, quantity: p.quantity, via: p.via)
         end
       )
     end
   end
 
-  def measure_of(line) = line.product.cut&.measure_for(line.measure)
+  def portions(line) = self.class.portions(line)
+
+  def measure_of(portion) = self.class.measure_of(portion)
 
   # A mesma medida pode vir escrita de jeitos diferentes ("12x12", "12 × 12 mm"): mostra a escrita mais usada no grupo
   # e, no empate, a primeira em ordem alfabética, para o nome não depender da ordem das linhas no banco.
-  def shown_measure(lines) = lines.map { |line| measure_of(line) }.tally.min_by { |measure, count| [ -count, measure.to_s ] }.first
+  def shown_measure(portions) = portions.map { |p| measure_of(p) }.tally.min_by { |measure, count| [ -count, measure.to_s ] }.first
 
   def candidate_lines
     day_lines.reject { |line| line.product.raw? }
@@ -117,7 +156,7 @@ class ProductionPlanner
   def window_lines
     @window_lines ||= OrderLine.where("quantity > 0")
                                .where(delivery_date: @date..(@date + 7))
-                               .includes({ order: :customer }, product: [ :cut, :production_rule, :raw_material ])
+                               .includes({ order: :customer }, product: [ :cut, :production_rule, :raw_material, { components: { component: %i[cut raw_material] } } ])
                                .to_a
   end
 end

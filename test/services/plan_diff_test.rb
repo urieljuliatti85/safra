@@ -17,6 +17,7 @@ class PlanDiffTest < ActiveSupport::TestCase
   test "item que saiu do pedido depois do envio aparece como removido, com o setor da versão enviada" do
     plan = publish
     lines_of("cenoura_ralada").delete_all
+    OrderLine.joins(:product).where(products: { code: "yakissoba" }).delete_all # a Yaksoba também leva cenoura ralada (D25)
 
     change = PlanDiff.production(plan, current).find { |c| c.label == "Cenoura ralada" }
     assert_equal :removed, change.kind

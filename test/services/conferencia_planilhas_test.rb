@@ -102,10 +102,10 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
 
   public
 
-  test "ralados, picados e rodelas batem 100% com a planilha (regra confirmada)" do
+  test "ralados, picados e rodelas batem 100% com a planilha (regra confirmada), fora a mistura somada pelos ingredientes" do
     rows = @conferencia.confirmed_same_day_rows
     assert_not_empty rows
-    diferentes = rows.reject(&:ok?)
+    diferentes = rows.reject { |row| row.ok? || row.reason == :mixture } # a planilha não soma a Yaksoba pelos ingredientes (R2.8, D25)
     assert_empty diferentes.map { |row| [ row.date, row.code, row.planilha, row.sistema ] }
   end
 

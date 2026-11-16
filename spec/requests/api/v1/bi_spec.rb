@@ -74,13 +74,15 @@ RSpec.describe "API v1: tabelas para BI", type: :request do
     expect(row["loss_pct"]).to be_within(0.1).of(row["loss_kg"] / row["raw_kg"] * 100)
   end
 
-  it "produção e perdas trazem a medida de cada item, na última coluna (D24)" do
-    %w[production losses].each do |dataset|
+  it "produção e perdas trazem a medida de cada item, e a produção a mistura de origem, nas últimas colunas (D24, D25)" do
+    { "production" => %w[measure via], "losses" => %w[measure] }.each do |dataset, last_columns|
       get "/api/v1/bi/#{dataset}", params: { from: "2026-10-13", to: "2026-10-13" }, headers: { "Authorization" => send(:Authorization) }
       rows = JSON.parse(response.body)["rows"]
-      expect(rows.first.keys.last).to eq("measure")
+      expect(rows.first.keys.last(last_columns.size)).to eq(last_columns)
       expect(rows.map { |r| r["measure"] }).to include("10 × 10 × 10 mm")
     end
+    get "/api/v1/bi/production", params: { from: "2026-10-13", to: "2026-10-13" }, headers: { "Authorization" => send(:Authorization) }
+    expect(JSON.parse(response.body)["rows"].map { |r| r["via"] }).to include("Yaksoba")
   end
 
   it "recusa período maior que 92 dias" do

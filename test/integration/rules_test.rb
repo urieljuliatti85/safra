@@ -18,7 +18,7 @@ class RulesTest < ActionDispatch::IntegrationTest
     assert_select "select#cut_#{@cubinhos.id} option[selected]", "1 dia antes"
     assert_select "select#raw_lead_days option[selected]", "1 dia antes"
     assert_match "Placar contra as planilhas", response.body
-    assert_match "13 de 43", response.body
+    assert_match "11 de 43", response.body # Yaksoba pelos ingredientes (D25)
     assert_select "#compras li", 3
   end
 
@@ -27,7 +27,7 @@ class RulesTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Efeito sem salvar", response.body
     assert_match "Nada foi gravado", response.body
-    assert_match "13 → 19", response.body
+    assert_match "11 → 17", response.body
     assert_match "passam a bater", response.body
     assert_equal 1, @cubinhos.reload.lead_days
     assert_select "select#cut_#{@cubinhos.id} option[selected]", "No dia da entrega" # o formulário guarda o que foi digitado

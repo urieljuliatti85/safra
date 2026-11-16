@@ -16,4 +16,14 @@ class WeekOverviewTest < ActiveSupport::TestCase
     assert_equal production.call, count.call
     assert_equal 6, count.call
   end
+
+  test "abre a mistura nos ingredientes, como a produção (D25)" do
+    date = Date.new(2026, 10, 13)
+    overview = WeekOverview.new(company: company, date: date).call
+    production = ProductionPlanner.new(company: company, date: date).call
+    %w[manual ralpic].each do |sector|
+      count = overview.lanes.find { |l| l.sector == sector }.cells.find { |c| c.date == date }.count
+      assert_equal production.items.count { |i| i.product.sector == sector }, count, sector
+    end
+  end
 end

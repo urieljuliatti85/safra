@@ -27,6 +27,7 @@ class SheetComparison
     rounding: "Diferença de 1 embalagem",
     not_purchase_day: "Não é dia de compra no Safra",
     not_in_sheet: "Não está na planilha",
+    mixture: "Mistura somada pelos ingredientes (R2.8)",
     text: "Quantidade em texto",
     unmatched: "Ligue o nome a um item do cadastro",
     unexplained: "Sem regra que explique"

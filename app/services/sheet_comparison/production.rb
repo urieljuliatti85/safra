@@ -51,12 +51,27 @@ class SheetComparison
       return [ :text, nil ] if status == :not_comparable
       return [ :descasc_sector, nil ] if status == :only_system && product.sector == "descasc"
 
+      mixture = mixture_reason(status, date, product, planilha, sistema)
+      return [ :mixture, mixture ] if mixture
+
       detail = shifted_day(status, date, product, planilha, sistema)
       return [ :lead_time, detail ] if detail
       return [ :not_in_sheet, nil ] if status == :only_system
       return [ :no_order, nil ] if status == :only_sheet && neighbor_days(date).none? { |day| produced(day, product) }
 
       [ :unexplained, nil ]
+    end
+
+    # A planilha anota a mistura pronta; o Safra produz pelos ingredientes, somados com o avulso (R2.8, D25).
+    def mixture_reason(status, date, product, planilha, sistema)
+      return "o Safra produz pelos ingredientes" if status == :only_sheet && product.components.any?
+
+      from_mixtures = plan(date).items.select { |item| item.product == product && item.unit == product.unit }
+                                .sum { |item| item.breakdown.select(&:via).sum(&:quantity) }
+      return unless from_mixtures.positive? && sistema
+
+      rest = sistema - from_mixtures
+      "o Safra soma #{fmt(from_mixtures, product.unit)} de mistura" if (planilha.nil? && rest.zero?) || (planilha && same?(rest, planilha))
     end
 
     # A diferença é só de dia quando o mesmo número aparece em outro dia: o que a planilha faz hoje o Safra faz num

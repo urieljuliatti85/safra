@@ -12,7 +12,7 @@ class PlanPublisher
             plan.items.create!(
               product: item.product, measure: item.measure, quantity: item.quantity, unit: item.unit,
               breakdown: item.breakdown.map do |b|
-                { customer: b.customer.short_name, customer_code: b.customer.code, delivery_date: b.delivery_date.iso8601, quantity: b.quantity.to_f }
+                { customer: b.customer.short_name, customer_code: b.customer.code, delivery_date: b.delivery_date.iso8601, quantity: b.quantity.to_f, via: b.via }.compact
               end
             )
           end
