@@ -22,7 +22,8 @@
             <td class="name"><%= item.product.name %><% if item.measure.present? %> <span class="muted text-sm">· <%= item.measure %></span><% end %><% if changed %><span class="tag-change">mudou</span><% end %></td>
             <td class="qty" data-unit="<%= item.unit %>"><%= qty(item.quantity) %></td>
             <td class="unit"><%= item.unit %></td>
-            <td class="who"><%= item.breakdown.map { |b| single_date ? "#{b.customer.short_name} #{qty(b.quantity)}" : "#{b.customer.short_name} #{qty(b.quantity)} (#{short_date(b.delivery_date)})" }.join(" · ") %></td>
+            <%# Entre parênteses: a mistura de onde veio a quantidade (R2.9, D25) e, se o setor entrega em mais de um dia, a data. %>
+            <td class="who"><%= item.breakdown.map { |b| notes = [ b.via, (short_date(b.delivery_date) unless single_date) ].compact; "#{b.customer.short_name} #{qty(b.quantity)}#{" (#{notes.join(', ')})" if notes.any?}" }.join(" · ") %></td>
           </tr>
         <% end %>
       </tbody>

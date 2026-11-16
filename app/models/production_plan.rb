@@ -49,7 +49,7 @@ class ProductionPlan < ApplicationRecord
       breakdown = Array(item.breakdown).map do |b|
         ProductionPlanner::Breakdown.new(
           customer: SentCustomer.new(code: b["customer_code"], short_name: b["customer"]),
-          delivery_date: Date.iso8601(b["delivery_date"]), quantity: BigDecimal(b["quantity"].to_s)
+          delivery_date: Date.iso8601(b["delivery_date"]), quantity: BigDecimal(b["quantity"].to_s), via: b["via"]
         )
       end
       ProductionPlanner::Item.new(product: item.product, measure: item.measure, quantity: item.quantity, unit: item.unit, breakdown: breakdown)

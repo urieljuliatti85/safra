@@ -25,17 +25,19 @@ class WeekOverview
     counts = Hash.new { |hash, key| hash[key] = Set.new }
     sector_names = {}
     lines = OrderLine.where("quantity > 0").where(delivery_date: @start..(@start + DAYS + 2))
-                     .includes(product: [ :cut, :production_rule ])
+                     .includes({ order: :customer }, product: [ :cut, :production_rule, { components: { component: :cut } } ])
     lines.each do |line|
-      product = line.product
-      next if product.raw?
+      next if line.product.raw?
 
-      production_date = product.production_date_for(line.delivery_date)
+      production_date = line.product.production_date_for(line.delivery_date)
       next unless dates.include?(production_date)
 
-      sector_names[product.sector] = product.cut.sector_name
-      # Um item por produto, medida e unidade, como na produção (D24).
-      counts[[ product.sector, production_date ]] << [ product.id, Cut.measure_key(product.cut.measure_for(line.measure)), line.unit ]
+      # Um item por produto, medida e unidade, com a mistura aberta nos ingredientes, como na produção (D24, D25).
+      ProductionPlanner.portions(line).each do |portion|
+        product = portion.product
+        sector_names[product.sector] = product.cut.sector_name
+        counts[[ product.sector, production_date ]] << [ product.id, Cut.measure_key(ProductionPlanner.measure_of(portion)), portion.unit ]
+      end
     end
     Cut::SECTORS.filter_map do |sector|
       next unless sector_names.key?(sector)

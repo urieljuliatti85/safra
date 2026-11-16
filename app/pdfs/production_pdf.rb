@@ -41,7 +41,7 @@ class ProductionPdf < BasePdf
       section items.first.product.cut.sector_name, "#{items.size} #{items.size == 1 ? 'item' : 'itens'}"
       rows = items.map do |item|
         [ [ item.product.name, item.measure ].compact_blank.join(" · "), Formatting.qty(item.quantity), item.unit,
-          item.breakdown.map { |b| "#{b.customer.short_name} #{Formatting.qty(b.quantity)} (#{Formatting.short_date(b.delivery_date)})" }.join(", ") ]
+          item.breakdown.map { |b| "#{b.customer.short_name} #{Formatting.qty(b.quantity)} (#{[ b.via, Formatting.short_date(b.delivery_date) ].compact.join(', ')})" }.join(", ") ]
       end
       flagged = items.each_index.select { |i| @changed.include?(items[i].label) }
       table [ "PRODUTO", "QTD.", "UN.", "QUEM PEDIU" ], rows, widths: { 0 => 160, 1 => 55, 2 => 32 }, right: [ 1 ], big: 1, flagged: flagged

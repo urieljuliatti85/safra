@@ -27,10 +27,10 @@ class ConferenceChecker
     ActsAsTenant.with_tenant(@company) do
       lines = OrderLine.where("quantity > 0")
       lines = lines.where(delivery_date: week_range) if @week
-      lines = lines.includes({ order: :customer }, product: [ :cut, { raw_material: :supplier } ])
+      lines = lines.includes({ order: :customer }, product: [ :cut, :components, { raw_material: :supplier } ])
       alerts = line_note_alerts(lines) + missing_factor_alerts(lines) + unit_alerts(lines) +
                supplier_alerts(lines) + factor_note_alerts(lines) + uncovered_alerts + sunday_alerts(lines) +
-               outlier_alerts(lines) + deadline_alerts + single_measure_alerts(lines)
+               outlier_alerts(lines) + deadline_alerts + single_measure_alerts(lines) + mixture_alerts(lines)
       alerts.sort_by { |a| [ a.level == :warn ? 0 : 1, a.kind, a.message ] }
     end
   end
@@ -131,6 +131,16 @@ class ConferenceChecker
   def other_measure?(line)
     cut = line.product.cut
     cut&.single_measure? && line.measure.present? && Cut.measure_key(line.measure) != Cut.measure_key(cut.reference_measure)
+  end
+
+  # Mistura com composição que não soma 100%: a produção usa a mistura pronta, sem abrir nos ingredientes (D25).
+  def mixture_alerts(lines)
+    mixtures = lines.map(&:product).uniq.select { |p| p.components.any? && !ProductionPlanner.whole_mix?(p.components) }
+    mixtures.sort_by(&:name).map do |product|
+      total = product.components.sum(&:percentage)
+      alert(:warn, "Mistura", "#{product.name}: a composição soma #{Formatting.qty(total)}%, e não 100%. A produção usa a mistura pronta, " \
+                              "sem abrir nos ingredientes.", action: Action.new("Revisar a composição", routes.edit_product_path(product)))
+    end
   end
 
   def week_range = @week..(@week + 6)

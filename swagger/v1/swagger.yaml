@@ -471,6 +471,11 @@ components:
                       format: date
                     quantity:
                       type: number
+                    via:
+                      type: string
+                      nullable: true
+                      description: Mistura de onde veio a quantidade, quando o item
+                        é ingrediente
         aprontes:
           type: array
           items:

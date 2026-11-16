@@ -119,7 +119,7 @@ class MobileTest < ApplicationSystemTestCase
 
   test "tocar no número da faixa da semana abre a produção do setor já rolada até a lista dele" do
     visit production_path(date: "2026-10-12")
-    find("a.bar[aria-label='Cortes manuais, Ter 13/10: 8 itens']").click
+    find("a.bar[aria-label='Cortes manuais, Ter 13/10: 9 itens']").click # Yaksoba nos ingredientes (D25)
 
     assert_current_path production_path(date: "2026-10-13", sector: "manual")
     assert_selector "#setor-manual h2", text: "Cortes manuais"

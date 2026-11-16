@@ -78,7 +78,7 @@ module ApiPresenter
     { date: result.date.iso8601, sent_version: plan_version(sent), changes_since_sent: changes.map { |c| change(c) },
       items: result.items.map do |item|
         { product: item.product.code, name: item.product.name, measure: item.measure, sector: item.product.sector, quantity: number(item.quantity), unit: item.unit,
-          breakdown: item.breakdown.map { |b| { customer: b.customer.code, delivery_date: b.delivery_date.iso8601, quantity: number(b.quantity) } } }
+          breakdown: item.breakdown.map { |b| { customer: b.customer.code, delivery_date: b.delivery_date.iso8601, quantity: number(b.quantity), via: b.via } } }
       end,
       aprontes: result.aprontes.map { |a| { raw_material: a.raw_material.code, kg: number(a.kg), boxes: a.boxes } } }
   end
