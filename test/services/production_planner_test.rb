@@ -71,4 +71,50 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     assert_operator count_queries.call { ProductionPlanner.new(company: company, date: date).call }, :<=, 10
     assert_operator count_queries.call { ScheduleBuilder.new(company: company, date: date).call }, :<=, 8
   end
+
+  # Batata em cubinhos de 13/10 (entrega 14/10): Bom Pastor 25 kg e Horizonte Norte 7 kg.
+  def measure_batata_cubinhos(customer_code, measure)
+    ActsAsTenant.with_tenant(company) do
+      OrderLine.joins(:product, order: :customer)
+               .where(products: { code: "batata_cubinhos" }, customers: { code: customer_code }, delivery_date: Date.new(2026, 10, 14))
+               .update_all(measure: measure)
+    end
+  end
+
+  test "medidas diferentes do mesmo produto são itens separados; a parte de cada cliente fica (R2.4, D24)" do
+    assert_equal 1, measure_batata_cubinhos("hnorte", "12 × 12 mm")
+    plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
+    items = plan.items.select { |i| i.product.code == "batata_cubinhos" }
+    assert_equal [ [ "10 × 10 × 10 mm", 25, %w[hbp] ], [ "12 × 12 mm", 7, %w[hnorte] ] ],
+                 items.map { |i| [ i.measure, i.quantity, i.breakdown.map { |b| b.customer.code } ] }
+    assert_equal [ "Batata em cubinhos", "Batata em cubinhos · 12 × 12 mm" ], items.map(&:label)
+  end
+
+  test "medida vazia e a de referência escrita de outro jeito são a mesma linha (R1.14, D24)" do
+    assert_equal 1, measure_batata_cubinhos("hbp", "10x10x10")
+    plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
+    item = plan.items.find { |i| i.product.code == "batata_cubinhos" }
+    assert_equal [ 1, 32, "10 × 10 × 10 mm" ], [ plan.items.count { |i| i.product.code == "batata_cubinhos" }, item.quantity, item.measure ]
+  end
+
+  test "palito sai 40 × 10 mm mesmo com outra medida no pedido (R2.11, D24)" do
+    ActsAsTenant.with_tenant(company) do
+      OrderLine.joins(:product).where(products: { code: "cenoura_palitos" }, delivery_date: Date.new(2026, 10, 14)).update_all(measure: "10 × 10 × 60 mm")
+    end
+    plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
+    items = plan.items.select { |i| i.product.code == "cenoura_palitos" }
+    assert_equal [ [ "40 × 10 mm", "Cenoura em palitos" ] ], items.map { |i| [ i.measure, i.label ] }
+  end
+
+  test "a mesma medida escrita de dois jeitos é uma linha, com o nome estável, sem depender da ordem do banco (D24)" do
+    assert_equal 1, measure_batata_cubinhos("hbp", "12x12")
+    assert_equal 1, measure_batata_cubinhos("hnorte", "12 × 12 mm")
+    shown = -> { ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call.items.select { |i| i.product.code == "batata_cubinhos" }.map { |i| [ i.measure, i.quantity ] } }
+    assert_equal [ [ "12 × 12 mm", 32 ] ], shown.call
+    ActsAsTenant.with_tenant(company) do
+      OrderLine.joins(:product, order: :customer).where(products: { code: "batata_cubinhos" }, customers: { code: "hbp" }, delivery_date: Date.new(2026, 10, 14))
+               .update_all("quantity = order_lines.quantity + 1")
+    end
+    assert_equal [ [ "12 × 12 mm", 33 ] ], shown.call
+  end
 end

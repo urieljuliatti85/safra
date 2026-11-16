@@ -2,7 +2,16 @@
 # e as caixas a aprontar por matéria-prima. Nada é digitado: tudo sai das linhas de pedido.
 # Referência: funções producao() e aprontes() do protótipo (docs/prototipo/safra.html, privado).
 class ProductionPlanner
-  Item = Data.define(:product, :quantity, :unit, :breakdown)
+  # measure: a medida que orienta o preparo (Cut#measure_for). Duas medidas do mesmo produto são dois itens (R2.4, D24).
+  Item = Data.define(:product, :measure, :quantity, :unit, :breakdown) do
+    # A medida pedida, quando não é a de referência do corte. Ela entra no nome do item e na comparação entre versões,
+    # para distinguir duas medidas do mesmo produto; a de referência (ou vazia, nas versões de antes da D24) não.
+    def custom_measure
+      measure if measure.present? && Cut.measure_key(measure) != Cut.measure_key(product.cut&.reference_measure)
+    end
+
+    def label = custom_measure ? "#{product.name} · #{custom_measure}" : product.name
+  end
   Breakdown = Data.define(:customer, :delivery_date, :quantity)
   # Caixas a aprontar (descascadas) por matéria-prima.
   Apronte = Data.define(:raw_material, :kg, :boxes)
@@ -49,7 +58,7 @@ class ProductionPlanner
 
   # Também monta a versão enviada (ProductionPlan#to_result): entregas e aprontes saem dos itens, não do pedido.
   def self.result(date, items)
-    items = items.sort_by { |item| [ item.product.sector.to_s, item.product.name ] }
+    items = items.sort_by { |item| [ item.product.sector.to_s, item.product.name, item.measure.to_s ] }
     Result.new(
       date: date,
       items: items,
@@ -74,11 +83,13 @@ class ProductionPlanner
 
   private
 
+  # Soma os clientes do dia numa linha por produto, medida e unidade (R2.1, R2.2, R2.4, R2.5), com a parte de cada um.
   def build_items
-    grouped = candidate_lines.group_by { |line| [ line.product, line.unit ] }
-    grouped.map do |(product, unit), lines|
+    grouped = candidate_lines.group_by { |line| [ line.product, Cut.measure_key(measure_of(line)), line.unit ] }
+    grouped.map do |(product, _, unit), lines|
       Item.new(
         product: product,
+        measure: shown_measure(lines),
         quantity: lines.sum(&:quantity),
         unit: unit,
         breakdown: lines.sort_by { |l| [ l.delivery_date, l.order.customer.code ] }.map do |line|
@@ -87,6 +98,12 @@ class ProductionPlanner
       )
     end
   end
+
+  def measure_of(line) = line.product.cut&.measure_for(line.measure)
+
+  # A mesma medida pode vir escrita de jeitos diferentes ("12x12", "12 × 12 mm"): mostra a escrita mais usada no grupo
+  # e, no empate, a primeira em ordem alfabética, para o nome não depender da ordem das linhas no banco.
+  def shown_measure(lines) = lines.map { |line| measure_of(line) }.tally.min_by { |measure, count| [ -count, measure.to_s ] }.first
 
   def candidate_lines
     day_lines.reject { |line| line.product.raw? }

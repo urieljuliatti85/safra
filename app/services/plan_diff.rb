@@ -10,9 +10,11 @@ class PlanDiff
     end
   end
 
+  # Um item por produto, medida e unidade (D24): a medida pedida, quando não é a de referência, entra na chave e no nome.
   def self.production(plan, result)
-    sent = plan.items.includes(product: :cut).to_h { |i| [ [ i.product_id, i.unit ], [ i.product.name, i.quantity, i.product.sector ] ] }
-    current = result.items.to_h { |i| [ [ i.product.id, i.unit ], [ i.product.name, i.quantity, i.product.sector ] ] }
+    key = ->(i) { [ i.product.id, Cut.measure_key(i.custom_measure), i.unit ] }
+    sent = plan.to_result.items.to_h { |i| [ key.(i), [ i.label, i.quantity, i.product.sector ] ] }
+    current = result.items.to_h { |i| [ key.(i), [ i.label, i.quantity, i.product.sector ] ] }
     compare(sent, current)
   end
 
@@ -29,7 +31,9 @@ class PlanDiff
       after = current[key]&.at(1)
       next if before && after && (before - after).abs < 0.0005
 
-      Change.new(label: (sent[key] || current[key]).first, unit: key.last, before: before, after: after, sector: (sent[key] || current[key]).at(2))
+      # Nome e setor do cálculo atual, quando o item ainda existe: é o nome da linha que a tela e o PDF marcam "mudou".
+      shown = current[key] || sent[key]
+      Change.new(label: shown.first, unit: key.last, before: before, after: after, sector: shown.at(2))
     end.sort_by(&:label)
   end
   private_class_method :compare

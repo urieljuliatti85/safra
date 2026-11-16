@@ -34,7 +34,8 @@ class WeekOverview
       next unless dates.include?(production_date)
 
       sector_names[product.sector] = product.cut.sector_name
-      counts[[ product.sector, production_date ]] << [ product.id, line.unit ]
+      # Um item por produto, medida e unidade, como na produção (D24).
+      counts[[ product.sector, production_date ]] << [ product.id, Cut.measure_key(product.cut.measure_for(line.measure)), line.unit ]
     end
     Cut::SECTORS.filter_map do |sector|
       next unless sector_names.key?(sector)

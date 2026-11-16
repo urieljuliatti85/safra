@@ -52,7 +52,7 @@ class ProductionPlan < ApplicationRecord
           delivery_date: Date.iso8601(b["delivery_date"]), quantity: BigDecimal(b["quantity"].to_s)
         )
       end
-      ProductionPlanner::Item.new(product: item.product, quantity: item.quantity, unit: item.unit, breakdown: breakdown)
+      ProductionPlanner::Item.new(product: item.product, measure: item.measure, quantity: item.quantity, unit: item.unit, breakdown: breakdown)
     end
     ProductionPlanner.result(date, planner_items)
   end
