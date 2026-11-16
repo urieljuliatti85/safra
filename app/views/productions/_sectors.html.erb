@@ -1,4 +1,4 @@
-<%# locals: result (ProductionPlanner::Result, calculado ou de uma versão enviada), changed_labels (produtos marcados "mudou"), show_empty %>
+<%# locals: result (ProductionPlanner::Result, calculado ou de uma versão enviada), changed_labels (itens marcados "mudou", pelo nome com a medida), show_empty %>
 <% by_sector = result.items.group_by { |item| item.product.sector } %>
 <% Cut::SECTORS.each do |sector| %>
   <% items = by_sector[sector] %>
@@ -17,9 +17,9 @@
       <thead><tr><th>Produto</th><th class="col-qty">Qtd.</th><th class="col-unit">Un.</th><th>Quem pediu</th></tr></thead>
       <tbody>
         <% items.each do |item| %>
-          <% changed = changed_labels.include?(item.product.name) %>
+          <% changed = changed_labels.include?(item.label) %>
           <tr class="<%= 'is-changed' if changed %>">
-            <td class="name"><%= item.product.name %><% if changed %><span class="tag-change">mudou</span><% end %></td>
+            <td class="name"><%= item.product.name %><% if item.measure.present? %> <span class="muted text-sm">· <%= item.measure %></span><% end %><% if changed %><span class="tag-change">mudou</span><% end %></td>
             <td class="qty" data-unit="<%= item.unit %>"><%= qty(item.quantity) %></td>
             <td class="unit"><%= item.unit %></td>
             <td class="who"><%= item.breakdown.map { |b| single_date ? "#{b.customer.short_name} #{qty(b.quantity)}" : "#{b.customer.short_name} #{qty(b.quantity)} (#{short_date(b.delivery_date)})" }.join(" · ") %></td>

@@ -130,11 +130,8 @@ class ConferenceChecker
 
   def other_measure?(line)
     cut = line.product.cut
-    cut&.single_measure? && line.measure.present? && measure_key(line.measure) != measure_key(cut.reference_measure)
+    cut&.single_measure? && line.measure.present? && Cut.measure_key(line.measure) != Cut.measure_key(cut.reference_measure)
   end
-
-  # "40x10mm", "40 X 10 mm", "40 × 10" e "40 × 10 mm" são a mesma medida.
-  def measure_key(measure) = measure.to_s.downcase.tr("x", "×").gsub(/\s+/, "").delete_suffix("mm")
 
   def week_range = @week..(@week + 6)
 

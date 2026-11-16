@@ -33,9 +33,13 @@ class Cut < ApplicationRecord
   # (o palito, R2.11), vale sempre a do corte, mesmo com outra medida escrita no pedido.
   def measure_for(requested)
     return reference_measure if single_measure?
+    return reference_measure.presence if requested.blank? || Cut.measure_key(requested) == Cut.measure_key(reference_measure)
 
-    requested.presence || reference_measure
+    requested
   end
+
+  # Chave para comparar medidas: "40x10mm", "40 X 10 mm", "40 × 10" e "40 × 10 mm" são a mesma medida.
+  def self.measure_key(measure) = measure.to_s.downcase.tr("x", "×").gsub(/\s+/, "").delete_suffix("mm")
 
   # Dica no campo de medida do pedido.
   def measure_hint

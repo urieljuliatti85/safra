@@ -450,6 +450,9 @@ components:
                 type: string
               name:
                 type: string
+              measure:
+                type: string
+                nullable: true
               sector:
                 type: string
               quantity:

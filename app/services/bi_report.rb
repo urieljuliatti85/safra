@@ -1,12 +1,13 @@
 # Tabelas planas (uma linha por fato) para BI e painéis: programação, produção, compras e perdas num período.
 # Tudo é calculado pelos mesmos serviços das telas; nada é digitado. Perda = kg in natura − kg processado.
+# measure (produção e perdas): a medida do item da produção (D24); vai no fim das colunas para não mudar a posição das outras no CSV.
 class BiReport
   MAX_DAYS = 92
   DATASETS = {
     schedule: %i[delivery_date customer customer_name product product_name group quantity unit production_date],
-    production: %i[production_date sector sector_name product product_name raw_material raw_material_name customer delivery_date quantity unit],
+    production: %i[production_date sector sector_name product product_name raw_material raw_material_name customer delivery_date quantity unit measure],
     purchases: %i[purchase_date supplier raw_material raw_material_name unit gross_kg stock_kg net_kg packages package missing_factor],
-    losses: %i[production_date sector product product_name raw_material raw_material_name processed_kg raw_kg loss_kg loss_pct]
+    losses: %i[production_date sector product product_name raw_material raw_material_name processed_kg raw_kg loss_kg loss_pct measure]
   }.freeze
 
   def initialize(company:, from:, to:)
@@ -37,7 +38,8 @@ class BiReport
         item.breakdown.map do |b|
           { production_date: result.date.iso8601, sector: item.product.sector, sector_name: item.product.cut&.sector_name,
             product: item.product.code, product_name: item.product.name, raw_material: item.product.raw_material.code,
-            raw_material_name: item.product.raw_material.name, customer: b.customer.code, delivery_date: b.delivery_date.iso8601, quantity: num(b.quantity), unit: item.unit }
+            raw_material_name: item.product.raw_material.name, customer: b.customer.code, delivery_date: b.delivery_date.iso8601, quantity: num(b.quantity), unit: item.unit,
+            measure: item.measure }
         end
       end
     end
@@ -65,7 +67,8 @@ class BiReport
         loss = raw_kg - item.quantity
         { production_date: result.date.iso8601, sector: item.product.sector, product: item.product.code,
           product_name: item.product.name, raw_material: item.product.raw_material.code,
-          raw_material_name: item.product.raw_material.name, processed_kg: num(item.quantity), raw_kg: num(raw_kg), loss_kg: num(loss), loss_pct: num((loss / raw_kg * 100).round(1)) }
+          raw_material_name: item.product.raw_material.name, processed_kg: num(item.quantity), raw_kg: num(raw_kg), loss_kg: num(loss), loss_pct: num((loss / raw_kg * 100).round(1)),
+          measure: item.measure }
       end
     end
   end

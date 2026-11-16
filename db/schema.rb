@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_16_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_16_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -234,6 +234,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_120000) do
     t.jsonb "breakdown", default: [], null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "measure"
     t.index ["company_id"], name: "index_production_plan_items_on_company_id"
     t.index ["product_id"], name: "index_production_plan_items_on_product_id"
     t.index ["production_plan_id"], name: "index_production_plan_items_on_production_plan_id"
