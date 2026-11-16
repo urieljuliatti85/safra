@@ -163,4 +163,21 @@ class ConferenceCheckerTest < ActiveSupport::TestCase
     assert_empty quantity_alerts(week: Date.new(2026, 10, 19))
     assert_equal 2, quantity_alerts(week: Date.new(2026, 10, 12)).size
   end
+
+  test "palito pedido com outra medida gera aviso; a própria medida, escrita de outro jeito, não (R2.11, D26)" do
+    lines = ActsAsTenant.with_tenant(company) do
+      OrderLine.where("quantity > 0").joins(product: :cut).where(cuts: { code: "palitos" }).order(:delivery_date, :id).limit(3).includes(:product).to_a
+    end
+    product_name = lines.first.product.name
+    assert_equal 3, lines.size
+    lines.first.update_columns(measure: "10 × 10 × 60 mm")
+    lines.second.update_columns(measure: "40x10 mm")
+    lines.third.update_columns(measure: "40 x 10")
+    medida = ConferenceChecker.new(company: company).call.select { |a| a.kind == "Medida" }
+    assert_equal 1, medida.size
+    alert = medida.first
+    assert_equal :warn, alert.level
+    assert_match(/#{Regexp.escape(product_name)} pedido com 10 × 10 × 60 mm .*Palitos tem medida única: sai 40 × 10 mm\./, alert.message)
+    assert_match "Abrir pedido", alert.action.label
+  end
 end

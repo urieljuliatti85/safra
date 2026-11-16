@@ -21,12 +21,28 @@ class Cut < ApplicationRecord
 
   validates :code, :name, :sector_name, presence: true
   validates :reference_measure, length: { maximum: 200 }
+  validates :reference_measure, presence: { message: "é obrigatória quando a medida é única" }, if: :single_measure?
   validates :name, uniqueness: { scope: :company_id, case_sensitive: false }
   validates :code, uniqueness: { scope: :company_id }
   validates :sector, inclusion: { in: SECTORS }
   validates :lead_days, numericality: { only_integer: true, in: 0..5 }
 
   before_validation :assign_sector_name, if: -> { sector.present? && (sector_name.blank? || will_save_change_to_sector?) }
+
+  # Medida que orienta o preparo: a do pedido, quando há (R1.14); senão, a de referência. Num corte de medida única
+  # (o palito, R2.11), vale sempre a do corte, mesmo com outra medida escrita no pedido.
+  def measure_for(requested)
+    return reference_measure if single_measure?
+
+    requested.presence || reference_measure
+  end
+
+  # Dica no campo de medida do pedido.
+  def measure_hint
+    return if reference_measure.blank?
+
+    single_measure? ? "#{reference_measure} (medida única)" : reference_measure
+  end
 
   private
 

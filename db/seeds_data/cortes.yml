@@ -42,7 +42,8 @@
   setor: palito
   nome_setor: Palitos
   antecedencia_dias: 1
-  medida: '30 a 50 mm × 10 a 12 mm (vagem: 8 a 10 mm); usual 40 × 10 mm; 10 × 10 × 60 mm quando o cliente pede'
+  medida: '40 × 10 mm'
+  medida_unica: true # R2.11: todo palito sai 40 × 10 mm, mesmo com outra medida no pedido
 - codigo: floretes
   nome: Floretes
   setor: manual
