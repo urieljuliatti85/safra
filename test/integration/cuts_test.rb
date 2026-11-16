@@ -56,6 +56,20 @@ class CutsTest < ActionDispatch::IntegrationTest
     assert_equal [ "juliana", "Juliana fina", "ralpic", "Ralados, picados e rodelas", 0, "2 × 2 × 40 mm" ], [ cut.code, cut.name, cut.sector, cut.sector_name, cut.lead_days, cut.reference_measure ]
   end
 
+  test "medida única: marcada na tela, aparece na lista e na dica da medida do pedido (R2.11, D26)" do
+    get cuts_path
+    assert_select "tr", text: /Palitos.*40 × 10 mm.*\(medida única\)/m
+    cut = Cut.create!(name: "Juliana", code: "juliana", sector: "manual", lead_days: 1)
+    patch cut_path(cut), params: { cut: { name: "Juliana", sector: "manual", lead_days: "1", reference_measure: "2 × 2 × 40 mm", single_measure: "1" } }
+    assert_redirected_to cuts_path
+    assert cut.reload.single_measure?
+    patch cut_path(cut), params: { cut: { name: "Juliana", sector: "manual", lead_days: "1", reference_measure: "", single_measure: "1" } }
+    assert_response :unprocessable_entity
+    assert_match "é obrigatória quando a medida é única", response.body
+    get edit_cut_path(Cut.find_by!(code: "palitos"))
+    assert_select "input[type=checkbox][name='cut[single_measure]'][checked]"
+  end
+
   test "a tela de edição avisa quando há produtos no corte" do
     cut = Cut.find_by!(code: "cubinhos")
     get edit_cut_path(cut)

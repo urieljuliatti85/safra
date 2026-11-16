@@ -37,7 +37,7 @@ class CompanyOnboarding
       ActsAsTenant.with_tenant(company) do
         YAML.safe_load_file(STANDARD_CUTS).each do |row|
           Cut.create!(code: row["codigo"], name: row["nome"], sector: row["setor"], sector_name: row["nome_setor"], lead_days: row["antecedencia_dias"],
-                      reference_measure: row["medida"])
+                      reference_measure: row["medida"], single_measure: row["medida_unica"] == true)
         end
       end
     end

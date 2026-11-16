@@ -68,7 +68,7 @@
                 <%# Medida pedida (R1.14, D12): orienta o preparo; sem ela, vale a referência do corte. %>
                 <input type="text" autocomplete="off" maxlength="100" class="line-measure"
                        name="measures[<%= product.id %>|<%= unit %>]" value="<%= lines.map(&:measure).compact.first %>"
-                       placeholder="<%= product.cut&.reference_measure.presence || 'medida pedida' %>"
+                       placeholder="<%= product.cut&.measure_hint || 'medida pedida' %>"
                        aria-label="Medida pedida de <%= product.name %>">
                 <%# "Cancelar item" (R1.38, D23): vazio ou 0 não tira item que já estava. Abrir e marcar o dia é o primeiro
                     passo; "Confirmar cancelamento" é a confirmação. Os campos são do formulário cancel-items, fora da grade. %>
@@ -156,7 +156,7 @@
       <% grid.available_products.group_by(&:product_group).each do |group, products| %>
         <optgroup label="<%= Product::GROUP_LABELS[group] %>">
           <% products.each do |product| %><option value="<%= product.id %>" data-group="<%= product.product_group %>" data-name="<%= product.name %>" data-unit="<%= product.unit %>"
-                    data-measure="<%= product.cut&.reference_measure.presence || 'medida pedida' %>"><%= product.name %> (<%= product.unit %>)</option><% end %>
+                    data-measure="<%= product.cut&.measure_hint || 'medida pedida' %>"><%= product.name %> (<%= product.unit %>)</option><% end %>
         </optgroup>
       <% end %>
     </select>

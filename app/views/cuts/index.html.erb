@@ -15,7 +15,7 @@
         <% @cuts.each do |cut| %>
           <tr>
             <td class="name"><strong><%= cut.name %></strong></td>
-            <td data-label="Medida"><%= cut.reference_measure.presence || "—" %></td>
+            <td data-label="Medida"><%= cut.reference_measure.presence || "—" %><% if cut.single_measure? %> <span class="muted text-sm">(medida única)</span><% end %></td>
             <td class="who"><%= cut.sector_name %></td>
             <td data-label="Produz"><%= lead_options.find { |_, days| days == cut.lead_days }&.first %></td>
             <td class="num-col" data-label="Produtos"><%= @product_counts[cut.id].to_i %></td>
