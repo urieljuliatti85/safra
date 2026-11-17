@@ -27,7 +27,7 @@ class PlanPublisherTest < ActiveSupport::TestCase
     changes = PlanDiff.production(plan, ProductionPlanner.new(company: company, date: @date).call)
 
     assert_equal 1, changes.size
-    assert_equal "Cenoura ralada", changes.first.label
+    assert_equal "Cenoura ralada · 3 mm", changes.first.label # 3 mm sem medida no pedido (R2.12, D30)
     assert_equal [ 3.5, 7.5 ], [ changes.first.before, changes.first.after ] # 3,5 kg: 3 avulsos + 0,5 da Yaksoba de 2 kg (25%), somada pelos ingredientes (R2.8, D25)
     assert_equal :changed, changes.first.kind
   end
@@ -65,7 +65,7 @@ class PlanPublisherTest < ActiveSupport::TestCase
     assert_nil first.previous
     assert_empty first.changes_from_previous
     assert_equal first, second.previous
-    assert_equal [ [ "Cenoura ralada", 3.5, 7.5 ] ], second.changes_from_previous.map { |c| [ c.label, c.before, c.after ] } # 3,5 kg: 3 avulsos + 0,5 da Yaksoba de 2 kg (25%), somada pelos ingredientes (R2.8, D25)
+    assert_equal [ [ "Cenoura ralada · 3 mm", 3.5, 7.5 ] ], second.changes_from_previous.map { |c| [ c.label, c.before, c.after ] } # 3,5 kg: 3 avulsos + 0,5 da Yaksoba de 2 kg (25%), somada pelos ingredientes (R2.8, D25)
     assert_empty third.changes_from_previous
     assert third.latest?
     assert_not second.latest?

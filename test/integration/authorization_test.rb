@@ -96,7 +96,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     end
     get production_version_path(second)
     assert_match "Vale esta versão", response.body
-    assert_match "Cenoura ralada</strong>: 3,5 → 7,5", response.body
+    assert_match "Cenoura ralada · 3 mm</strong>: 3,5 → 7,5", response.body
     get production_version_path(first, format: :pdf)
     assert_equal "application/pdf", response.media_type
   end

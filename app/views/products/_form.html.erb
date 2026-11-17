@@ -19,6 +19,11 @@
     <%= form.collection_select :cut_id, cuts, :id, :name, { include_blank: "Sem corte (só in natura)" }, class: "field w-full" %>
   </div>
   <div>
+    <%= form.label :default_measure, "Medida quando o pedido não diz", class: "mb-1 block font-bold" %>
+    <%= form.text_field :default_measure, class: "field w-full", placeholder: "vazio: a medida de referência do corte" %>
+    <p class="muted mt-1 text-sm">Vale quando o pedido não traz medida, no lugar da referência do corte. Exemplo: cenoura ralada, 3 mm (R2.12). Corte de medida única (palito) não muda.</p>
+  </div>
+  <div>
     <%= form.label :unit, "Unidade do produto", class: "mb-1 block font-bold" %>
     <%= form.select :unit, OrderLine::UNITS, {}, class: "field w-full" %>
   </div>

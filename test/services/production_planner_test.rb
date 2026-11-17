@@ -124,9 +124,10 @@ class ProductionPlannerTest < ActiveSupport::TestCase
   def mix_order(lines)
     ActsAsTenant.with_tenant(company) do
       assert_empty OrderLine.where(delivery_date: (MIX_DAY - 1)..(MIX_DAY + 7)) # a janela da produção de 21/10
-      lines.each do |customer_code, product_code, quantity, unit|
+      lines.each do |customer_code, product_code, quantity, unit, delivery_date, measure|
         order = Order.find_or_create_by!(customer: Customer.find_by!(code: customer_code), week_start: Date.new(2026, 10, 19))
-        OrderLine.create!(order: order, product: Product.find_by!(code: product_code), delivery_date: MIX_DAY, quantity: quantity, unit: unit || "kg")
+        OrderLine.create!(order: order, product: Product.find_by!(code: product_code), delivery_date: delivery_date || MIX_DAY, quantity: quantity,
+                          unit: unit || "kg", measure: measure)
       end
     end
     ProductionPlanner.new(company: company, date: MIX_DAY - 1).call
@@ -179,5 +180,25 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     alert = ConferenceChecker.new(company: company, week: Date.new(2026, 10, 19)).call.find { |a| a.kind == "Mistura" }
     assert_match "Seleta jardineira: a composição soma 50%, e não 100%", alert.message
     assert_equal "Revisar a composição", alert.action.label
+  end
+
+  # O ralado é feito no dia da entrega e a mistura na véspera: a cenoura ralada avulsa entregue em 21/10 cai no mesmo
+  # dia de produção (21/10) que a Yaksoba entregue em 22/10.
+  test "cenoura ralada avulsa sem medida é de 3 mm e soma com a da mistura, numa linha só (R2.12, D30)" do
+    plan = mix_order([ [ "hbp", "yakissoba", 2 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY - 1 ] ])
+    items = plan.items.select { |i| i.product.code == "cenoura_ralada" }
+    assert_equal [ [ "3 mm", 3.5, "Cenoura ralada · 3 mm" ] ], items.map { |i| [ i.measure, i.quantity, i.label ] }
+    assert_equal [ [ "hnorte", 3, nil ], [ "hbp", 0.5, "Yaksoba" ] ], items.first.breakdown.map { |b| [ b.customer.code, b.quantity, b.via ] }
+  end
+
+  test "o avulso com \"3mm\" escrito no pedido também soma com a mistura (R2.12, D30)" do
+    plan = mix_order([ [ "hbp", "yakissoba", 2 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY - 1, "3mm" ] ])
+    assert_equal [ 3.5 ], plan.items.select { |i| i.product.code == "cenoura_ralada" }.map(&:quantity)
+  end
+
+  test "beterraba ralada avulsa sem medida fica na referência do corte, separada da de 3 mm da mistura (R2.4, D30)" do
+    plan = mix_order([ [ "hbp", "salada_roxa", 4 ], [ "hnorte", "beterraba_ralada", 3, "kg", MIX_DAY - 1 ] ])
+    items = plan.items.select { |i| i.product.code == "beterraba_ralada" }
+    assert_equal [ [ "3 a 5 mm", 3 ], [ "3 mm", 1 ] ], items.map { |i| [ i.measure, i.quantity ] }.sort_by(&:first)
   end
 end

@@ -19,7 +19,7 @@ class PlanDiffTest < ActiveSupport::TestCase
     lines_of("cenoura_ralada").delete_all
     OrderLine.joins(:product).where(products: { code: "yakissoba" }).delete_all # a Yaksoba também leva cenoura ralada (D25)
 
-    change = PlanDiff.production(plan, current).find { |c| c.label == "Cenoura ralada" }
+    change = PlanDiff.production(plan, current).find { |c| c.label == "Cenoura ralada · 3 mm" }
     assert_equal :removed, change.kind
     assert_nil change.after
     assert_equal "ralpic", change.sector
@@ -41,8 +41,18 @@ class PlanDiffTest < ActiveSupport::TestCase
 
   test "versão enviada antes da D24 (sem medida) não aparece como mudada" do
     plan = publish
-    plan.items.update_all(measure: nil)
+    plan.items.joins(:product).where(products: { default_measure: nil }).update_all(measure: nil)
     assert_empty PlanDiff.production(ProductionPlan.find(plan.id), current)
+  end
+
+  test "produto que ganhou medida própria (3 mm, D30) aparece como mudado na versão enviada sem medida" do
+    plan = publish
+    plan.items.update_all(measure: nil)
+    changes = PlanDiff.production(ProductionPlan.find(plan.id), current).map { |c| [ c.label, c.kind ] }
+    assert_includes changes, [ "Cenoura ralada", :removed ]
+    assert_includes changes, [ "Cenoura ralada · 3 mm", :added ]
+    assert_equal %w[cenoura_ralada repolho_picado repolho_roxo_picado],
+                 Product.where(name: changes.map { |label, _| label.split(" · ").first }).order(:code).pluck(:code)
   end
 
   test "a versão enviada guarda a medida de cada item" do

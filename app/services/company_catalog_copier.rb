@@ -21,12 +21,13 @@ class CompanyCatalogCopier
           [ rm.id, RawMaterial.create!(attributes.merge("supplier" => suppliers[rm.supplier_id])) ]
         end
         products = source[:products].to_h do |p|
-          attributes = p.attributes.slice("code", "name", "product_group", "unit")
+          attributes = p.attributes.slice("code", "name", "product_group", "unit", "default_measure")
           [ p.id, Product.create!(attributes.merge("raw_material" => raw_materials.fetch(p.raw_material_id), "cut" => cuts[p.cut_id])) ]
         end
         source[:rules].each { |rule| ProductionRule.create!(product: products.fetch(rule.product_id), lead_days: rule.lead_days) }
         source[:components].each do |item|
-          ProductComponent.create!(product: products.fetch(item.product_id), component: products.fetch(item.component_id), percentage: item.percentage)
+          ProductComponent.create!(product: products.fetch(item.product_id), component: products.fetch(item.component_id), percentage: item.percentage,
+                                  measure: item.measure)
         end
       end
     end

@@ -22,6 +22,8 @@ class Product < ApplicationRecord
   validates :cut, presence: true, unless: :raw?
   validates :cut, absence: true, if: :raw?
   validates :unit, inclusion: { in: OrderLine::UNITS }
+  validates :default_measure, length: { maximum: 200 }
+  normalizes :default_measure, with: ->(value) { value.strip.presence }
 
   def raw?
     product_group == "raw"
@@ -29,6 +31,17 @@ class Product < ApplicationRecord
 
   def sector
     cut&.sector
+  end
+
+  # Medida que orienta o preparo (R1.14, R2.11, R2.12; D30): a do pedido; sem ela, a do produto ("medida quando o pedido
+  # não diz", como os 3 mm da cenoura ralada); sem as duas, a de referência do corte. Corte de medida única fica acima de tudo.
+  def measure_for(requested) = cut&.measure_for(requested.presence || default_measure)
+
+  # Dica no campo de medida do pedido.
+  def measure_hint
+    return cut&.measure_hint if cut.nil? || cut.single_measure? || default_measure.blank?
+
+    default_measure
   end
 
   # Dias de antecedência: exceção por produto, senão o do corte; in natura segue a regra da empresa.
