@@ -5,10 +5,10 @@
     <h2 class="mb-2 font-bold">Composição da mistura</h2>
     <ul class="grid gap-1">
       <% @product.components.includes(:component).each do |item| %>
-        <li><%= item.component.name %>: <span class="num"><%= qty(item.percentage) %>%</span> do peso</li>
+        <li><%= item.component.name %><% if item.measure.present? %> · <%= item.measure %><% end %>: <span class="num"><%= qty(item.percentage) %>%</span> do peso</li>
       <% end %>
     </ul>
-    <p class="muted mt-2 text-sm">Lista de misturas da empresa (R1.20). Ainda não entra no cálculo da produção.</p>
+    <p class="muted mt-2 text-sm">Lista de misturas da empresa (R1.20). Na produção, a mistura entra pelos ingredientes, na medida mostrada aqui ou, sem ela, na do ingrediente (D25, D30).</p>
   </section>
 <% end %>
 <%= render "form", product: @product, raw_materials: @raw_materials, cuts: @cuts %>

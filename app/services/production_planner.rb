@@ -64,8 +64,8 @@ class ProductionPlanner
   end
 
   # A linha do pedido, ou as partes dos ingredientes, quando ela é uma mistura em kg com a composição inteira (percentual
-  # sobre o peso, R1.19, R1.20). Os ingredientes ficam no dia de produção da mistura e na medida de referência do corte
-  # deles. Mistura sem composição, com composição que não soma 100% (aviso na conferência) ou pedida em outra unidade
+  # sobre o peso, R1.19, R1.20). Os ingredientes ficam no dia de produção da mistura, na medida que a composição dá a eles
+  # (os 3 mm dos ralados e picados, R1.20, D30) ou, sem ela, na do produto. Mistura sem composição, com composição que não soma 100% (aviso na conferência) ou pedida em outra unidade
   # continua como produto pronto, para nenhuma parte do pedido sumir. Também usada pela visão da semana (WeekOverview).
   def self.portions(line)
     portion = Portion.new(product: line.product, measure: line.measure, unit: line.unit, quantity: line.quantity,
@@ -74,7 +74,7 @@ class ProductionPlanner
     return [ portion ] unless line.unit == "kg" && whole_mix?(components)
 
     split(line.quantity, components).map do |component, quantity|
-      portion.with(product: component.component, measure: nil, quantity: quantity, via: line.product.name)
+      portion.with(product: component.component, measure: component.measure, quantity: quantity, via: line.product.name)
     end
   end
 
@@ -90,7 +90,7 @@ class ProductionPlanner
   end
   private_class_method :split
 
-  def self.measure_of(portion) = portion.product.cut&.measure_for(portion.measure)
+  def self.measure_of(portion) = portion.product.measure_for(portion.measure)
 
   # Também monta a versão enviada (ProductionPlan#to_result): entregas e aprontes saem dos itens, não do pedido.
   def self.result(date, items)

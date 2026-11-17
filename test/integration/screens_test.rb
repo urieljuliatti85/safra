@@ -94,7 +94,7 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "h2", "Ralados, picados e rodelas"
     assert_select "h2", /Aprontes/
-    assert_select "td.name", /\ACenoura ralada · 3 a 5 mm\z/
+    assert_select "td.name", /\ACenoura ralada · 3 mm\z/ # medida do produto quando o pedido não diz (R2.12, D30)
     assert_select "tr", text: /Cenoura ralada/ do
       assert_select "td.who", /Bom Pastor 0,5 \(Yaksoba, Qua 14\/10\)|Bom Pastor 0,5 \(Yaksoba, 14\/10\)/ # ingrediente da Yaksoba (R2.9, D25)
     end
@@ -119,7 +119,7 @@ class ScreensTest < ActionDispatch::IntegrationTest
     get production_path(date: "2026-10-13", sector: "ralpic", format: :pdf)
     assert_equal "application/pdf", response.media_type
     text = PDF::Reader.new(StringIO.new(response.body)).pages.map(&:text).join("\n")
-    assert_match "Cenoura ralada · 3 a 5 mm", text, "o PDF mostra a medida de cada item, como a tela (D24)"
+    assert_match "Cenoura ralada · 3 mm", text, "o PDF mostra a medida de cada item, como a tela (D24)"
     assert_match "producao-2026-10-13-ralpic.pdf", response.headers["Content-Disposition"]
   end
 

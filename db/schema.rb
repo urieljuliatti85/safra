@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_16_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -219,6 +219,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_130000) do
     t.decimal "percentage", precision: 7, scale: 4, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "measure"
     t.index ["company_id"], name: "index_product_components_on_company_id"
     t.index ["component_id"], name: "index_product_components_on_component_id"
     t.index ["product_id", "component_id"], name: "index_product_components_on_product_id_and_component_id", unique: true
@@ -272,6 +273,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_130000) do
     t.string "unit", default: "kg", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "default_measure"
     t.index ["company_id", "code"], name: "index_products_on_company_id_and_code", unique: true
     t.index ["cut_id"], name: "index_products_on_cut_id"
     t.index ["raw_material_id"], name: "index_products_on_raw_material_id"

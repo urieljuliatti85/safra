@@ -81,7 +81,8 @@ ActsAsTenant.with_tenant(company) do
         product_group: product_groups.fetch(row["grupo"]),
         raw_material: raw_materials.fetch(row["materia_prima"]),
         cut: row["corte"] && cuts.fetch(row["corte"]),
-        unit: row["unidade"]
+        unit: row["unidade"],
+        default_measure: row["medida"]
       )
       [ row["codigo"], product ]
     end
@@ -98,7 +99,8 @@ ActsAsTenant.with_tenant(company) do
     load_yaml.call("misturas.yml").each do |row|
       mix = products.fetch(row["mistura"])
       row["ingredientes"].each do |code, percentage|
-        create_missing.call(ProductComponent.find_or_initialize_by(product: mix, component: products.fetch(code)), percentage: percentage)
+        create_missing.call(ProductComponent.find_or_initialize_by(product: mix, component: products.fetch(code)), percentage: percentage,
+                                                                                                                    measure: row.fetch("medidas", {})[code])
       end
     end
 

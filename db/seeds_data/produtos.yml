@@ -161,6 +161,7 @@
   materia_prima: cenoura
   unidade: kg
   corte: ralado
+  medida: '3 mm' # quando o pedido não diz (R2.12, D30)
 - codigo: cenoura_rodelas
   nome: Cenoura em rodelas
   grupo: processado
@@ -245,12 +246,14 @@
   materia_prima: repolho
   unidade: kg
   corte: picado
+  medida: '3 mm' # quando o pedido não diz (R2.12, D30)
 - codigo: repolho_roxo_picado
   nome: Repolho roxo picado
   grupo: processado
   materia_prima: repolho_roxo
   unidade: kg
   corte: picado
+  medida: '3 mm' # quando o pedido não diz (R2.12, D30)
 - codigo: vagem_cubinhos
   nome: Vagem em cubinhos
   grupo: processado
