@@ -15,11 +15,22 @@ class ProductTest < ActiveSupport::TestCase
     assert_equal "3 a 5 mm", Product.find_by!(code: "beterraba_ralada").measure_hint
   end
 
-  test "corte de medida única fica acima da medida do produto (R2.11)" do
-    palito = Product.find_by!(code: "cenoura_palitos")
-    palito.default_measure = "10 × 10 × 60 mm"
-    assert_equal "40 × 10 mm", palito.measure_for(nil)
-    assert_equal "40 × 10 mm (medida única)", palito.measure_hint
+  test "corte de medida única: a medida fixa do produto, senão a do corte, mesmo com outra no pedido (R2.11, D32)" do
+    vagem = Product.find_by!(code: "vagem_palitos")
+    assert_equal "40 × 10 mm", vagem.fixed_measure
+    assert_equal "40 × 10 mm", vagem.measure_for(nil)
+    assert_equal "40 × 10 mm", vagem.measure_for("10 × 10 × 60 mm")
+    assert_equal "40 × 10 mm (medida única)", vagem.measure_hint
+
+    cenoura = Product.find_by!(code: "cenoura_palitos")
+    assert_nil cenoura.default_measure
+    assert_equal "10 × 10 × 60 mm", cenoura.measure_for(nil)
+    assert_equal "10 × 10 × 60 mm", cenoura.measure_for("40 × 10 mm")
+    assert_equal "10 × 10 × 60 mm (medida única)", cenoura.measure_hint
+  end
+
+  test "produto fora de corte de medida única não tem medida fixa" do
+    assert_nil Product.find_by!(code: "cenoura_ralada").fixed_measure
   end
 
   test "medida do produto em branco fica vazia" do

@@ -164,20 +164,21 @@ class ConferenceCheckerTest < ActiveSupport::TestCase
     assert_equal 2, quantity_alerts(week: Date.new(2026, 10, 12)).size
   end
 
-  test "palito pedido com outra medida gera aviso; a própria medida, escrita de outro jeito, não (R2.11, D26)" do
+  test "palito pedido com outra medida gera aviso; a própria medida, escrita de outro jeito, não (R2.11, D26, D32)" do
     lines = ActsAsTenant.with_tenant(company) do
-      OrderLine.where("quantity > 0").joins(product: :cut).where(cuts: { code: "palitos" }).order(:delivery_date, :id).limit(3).includes(:product).to_a
+      OrderLine.where("quantity > 0").joins(product: :cut).where(cuts: { code: "palitos" }).order(:delivery_date, :id).limit(3).includes(product: :cut).to_a
     end
     product_name = lines.first.product.name
+    fixed = lines.first.product.fixed_measure
     assert_equal 3, lines.size
-    lines.first.update_columns(measure: "10 × 10 × 60 mm")
-    lines.second.update_columns(measure: "40x10 mm")
-    lines.third.update_columns(measure: "40 x 10")
+    lines.first.update_columns(measure: "12 × 12 × 80 mm")
+    lines.second.update_columns(measure: lines.second.product.fixed_measure.delete(" "))
+    lines.third.update_columns(measure: lines.third.product.fixed_measure.tr("×", "x").delete_suffix(" mm"))
     medida = ConferenceChecker.new(company: company).call.select { |a| a.kind == "Medida" }
     assert_equal 1, medida.size
     alert = medida.first
     assert_equal :warn, alert.level
-    assert_match(/#{Regexp.escape(product_name)} pedido com 10 × 10 × 60 mm .*Palitos tem medida única: sai 40 × 10 mm\./, alert.message)
+    assert_match(/#{Regexp.escape(product_name)} pedido com 12 × 12 × 80 mm .*#{Regexp.escape(product_name)} tem medida única: sai #{Regexp.escape(fixed)}\./, alert.message)
     assert_match "Abrir pedido", alert.action.label
   end
 end

@@ -97,13 +97,13 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     assert_equal [ 1, 32, "10 × 10 × 10 mm" ], [ plan.items.count { |i| i.product.code == "batata_cubinhos" }, item.quantity, item.measure ]
   end
 
-  test "palito sai 40 × 10 mm mesmo com outra medida no pedido (R2.11, D24)" do
+  test "palito sai na medida fixa mesmo com outra medida no pedido: cenoura 10 × 10 × 60 mm (R2.11, D24, D32)" do
     ActsAsTenant.with_tenant(company) do
-      OrderLine.joins(:product).where(products: { code: "cenoura_palitos" }, delivery_date: Date.new(2026, 10, 14)).update_all(measure: "10 × 10 × 60 mm")
+      OrderLine.joins(:product).where(products: { code: "cenoura_palitos" }, delivery_date: Date.new(2026, 10, 14)).update_all(measure: "40 × 10 mm")
     end
     plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
     items = plan.items.select { |i| i.product.code == "cenoura_palitos" }
-    assert_equal [ [ "40 × 10 mm", "Cenoura em palitos" ] ], items.map { |i| [ i.measure, i.label ] }
+    assert_equal [ [ "10 × 10 × 60 mm", "Cenoura em palitos" ] ], items.map { |i| [ i.measure, i.label ] }
   end
 
   test "a mesma medida escrita de dois jeitos é uma linha, com o nome estável, sem depender da ordem do banco (D24)" do

@@ -33,13 +33,22 @@ class Product < ApplicationRecord
     cut&.sector
   end
 
-  # Medida que orienta o preparo (R1.14, R2.11, R2.12; D30): a do pedido; sem ela, a do produto ("medida quando o pedido
+  # Medida que orienta o preparo (R1.14, R2.11, R2.12; D30, D32): a do pedido; sem ela, a do produto ("medida quando o pedido
   # não diz", como os 3 mm da cenoura ralada); sem as duas, a de referência do corte. Corte de medida única fica acima de tudo.
-  def measure_for(requested) = cut&.measure_for(requested.presence || default_measure)
+  def measure_for(requested) = fixed_measure || cut&.measure_for(requested.presence || default_measure)
+
+  # Num corte de medida única, a medida que sai sempre, mesmo com outra no pedido: a do produto, se houver; senão, a do
+  # corte (R2.11, D32: a vagem em palitos é 40 × 10 mm; os outros palitos, 10 × 10 × 60 mm, a do corte).
+  def fixed_measure
+    return unless cut&.single_measure?
+
+    default_measure.presence || cut.reference_measure
+  end
 
   # Dica no campo de medida do pedido.
   def measure_hint
-    return cut&.measure_hint if cut.nil? || cut.single_measure? || default_measure.blank?
+    return "#{fixed_measure} (medida única)" if fixed_measure
+    return cut&.measure_hint if cut.nil? || default_measure.blank?
 
     default_measure
   end

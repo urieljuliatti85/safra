@@ -58,7 +58,7 @@ class CutsTest < ActionDispatch::IntegrationTest
 
   test "medida única: marcada na tela, aparece na lista e na dica da medida do pedido (R2.11, D26)" do
     get cuts_path
-    assert_select "tr", text: /Palitos.*40 × 10 mm.*\(medida única\)/m
+    assert_select "tr", text: /Palitos.*10 × 10 × 60 mm.*\(medida única\)/m
     cut = Cut.create!(name: "Juliana", code: "juliana", sector: "manual", lead_days: 1)
     patch cut_path(cut), params: { cut: { name: "Juliana", sector: "manual", lead_days: "1", reference_measure: "2 × 2 × 40 mm", single_measure: "1" } }
     assert_redirected_to cuts_path
