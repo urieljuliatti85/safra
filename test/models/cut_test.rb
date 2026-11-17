@@ -19,13 +19,13 @@ class CutTest < ActiveSupport::TestCase
     assert_equal "12 × 12 mm", cubinhos.measure_for("12 × 12 mm")
   end
 
-  test "palito tem medida única 40 × 10 mm, mesmo com outra medida no pedido (R2.11, D26)" do
+  test "palito tem medida única 10 × 10 × 60 mm, mesmo com outra medida no pedido (R2.11, D26, D32)" do
     palitos = Cut.find_by!(code: "palitos")
     assert palitos.single_measure?
-    assert_equal "40 × 10 mm", palitos.reference_measure
-    assert_equal "40 × 10 mm", palitos.measure_for("10 × 10 × 60 mm")
-    assert_equal "40 × 10 mm", palitos.measure_for(nil)
-    assert_equal "40 × 10 mm (medida única)", palitos.measure_hint
+    assert_equal "10 × 10 × 60 mm", palitos.reference_measure
+    assert_equal "10 × 10 × 60 mm", palitos.measure_for("40 × 10 mm")
+    assert_equal "10 × 10 × 60 mm", palitos.measure_for(nil)
+    assert_equal "10 × 10 × 60 mm (medida única)", palitos.measure_hint
     assert_equal "10 × 10 × 10 mm", Cut.find_by!(code: "cubinhos").measure_hint
   end
 

@@ -42,8 +42,8 @@
   setor: palito
   nome_setor: Palitos
   antecedencia_dias: 1
-  medida: '40 × 10 mm'
-  medida_unica: true # R2.11: todo palito sai 40 × 10 mm, mesmo com outra medida no pedido
+  medida: '10 × 10 × 60 mm'
+  medida_unica: true # R2.11: o palito sai na medida fixa, mesmo com outra no pedido; a vagem tem a sua (produtos.yml)
 - codigo: floretes
   nome: Floretes
   setor: manual

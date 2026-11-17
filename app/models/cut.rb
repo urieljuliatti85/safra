@@ -30,7 +30,8 @@ class Cut < ApplicationRecord
   before_validation :assign_sector_name, if: -> { sector.present? && (sector_name.blank? || will_save_change_to_sector?) }
 
   # Medida que orienta o preparo: a do pedido, quando há (R1.14); senão, a de referência. Num corte de medida única
-  # (o palito, R2.11), vale sempre a do corte, mesmo com outra medida escrita no pedido.
+  # (o palito, R2.11), vale sempre a do corte, mesmo com outra medida escrita no pedido; o produto pode ter a sua
+  # (Product#fixed_measure, D32).
   def measure_for(requested)
     return reference_measure if single_measure?
     return reference_measure.presence if requested.blank? || Cut.measure_key(requested) == Cut.measure_key(reference_measure)

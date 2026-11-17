@@ -266,6 +266,7 @@
   materia_prima: vagem
   unidade: kg
   corte: palitos
+  medida: '40 × 10 mm' # R2.11: só a vagem em palitos é 40 × 10 mm
 - codigo: yakissoba
   nome: Yaksoba
   grupo: processado

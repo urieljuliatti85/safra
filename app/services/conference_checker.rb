@@ -118,19 +118,19 @@ class ConferenceChecker
     end
   end
 
-  # Pedido com outra medida num corte de medida única (o palito, R2.11, D26): o preparo segue a medida do corte.
+  # Pedido com outra medida num corte de medida única (o palito, R2.11, D26, D32): o preparo segue a medida fixa do produto.
   # Só avisa, para quem confere falar com o cliente; uma linha por cliente, produto e medida pedida.
   def single_measure_alerts(lines)
     lines.select { |l| other_measure?(l) }.group_by { |l| [ l.order.customer, l.product, l.measure ] }.map do |(customer, product, measure), group|
       dates = group.map(&:delivery_date).uniq.sort.map { |d| Formatting.short_date(d) }.join(", ")
       alert(:warn, "Medida", "#{customer.short_name}: #{product.name} pedido com #{measure} (#{dates}). " \
-                             "#{product.cut.name} tem medida única: sai #{product.cut.reference_measure}.", action: order_action(group.min_by(&:delivery_date)))
+                             "#{product.name} tem medida única: sai #{product.fixed_measure}.", action: order_action(group.min_by(&:delivery_date)))
     end
   end
 
   def other_measure?(line)
-    cut = line.product.cut
-    cut&.single_measure? && line.measure.present? && Cut.measure_key(line.measure) != Cut.measure_key(cut.reference_measure)
+    fixed = line.product.fixed_measure
+    fixed.present? && line.measure.present? && Cut.measure_key(line.measure) != Cut.measure_key(fixed)
   end
 
   # Mistura com composição que não soma 100%: a produção usa a mistura pronta, sem abrir nos ingredientes (D25).
