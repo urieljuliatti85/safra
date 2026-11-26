@@ -1,14 +1,21 @@
 require "test_helper"
 
 class PurchasePlannerTest < ActiveSupport::TestCase
-  test "kg in natura = kg processado x fator e embalagens = ROUND(kg / kg por embalagem)" do
+  test "kg in natura = kg processado x fator e embalagens = soma do arredondamento por produto" do
     result = PurchasePlanner.new(company: company).call
     need = result.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
     expected_kg = need.breakdown.sum do |b|
       b.product.raw? ? b.quantity : b.quantity * b.product.raw_material.multiply_factor
     end
     assert_in_delta expected_kg, need.kg, 0.0001
-    assert_equal [ 1, (need.net_kg / 20).round ].max, need.packages
+    # Com arredondamento por produto (caixa inteira), soma os ceil de cada item
+    expected_packages = need.breakdown.filter_map do |b|
+      next if b.product.raw_material.multiply_factor.blank?
+      item_kg = b.quantity * b.product.raw_material.multiply_factor
+      next if item_kg.zero?
+      (item_kg / 20.0).ceil
+    end.sum
+    assert_equal expected_packages, need.packages
   end
 
   test "matéria-prima sem fator gera alerta, não erro" do

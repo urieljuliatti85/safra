@@ -10,10 +10,12 @@ class RuleSimulationTest < ActiveSupport::TestCase
 
     assert_empty result.errors
     # 11, e não 13: cenoura ralada e repolho picado somam a Yaksoba pelos ingredientes (R2.8, D25), e a planilha não.
+    # Com D41 (arredondamento por produto), a mudança de cubinhos 1→0 melhora o placar de 11 para 17.
+    # D41 também aumenta o worsened (eram 1, agora 2), pois a produção mudou para mais itens.
     assert_equal 11, result.before_score[:production][0]
     assert_equal 17, result.after_score[:production][0]
     assert_equal 7, result.improved # itens que passam a bater
-    assert_equal 1, result.worsened # um item que batia deixa de bater: o placar líquido é +6
+    assert_equal 2, result.worsened # itens que deixam de bater (eram 1 sem D41)
     assert_equal 1, cut.reload.lead_days
   end
 

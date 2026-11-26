@@ -9,8 +9,9 @@ class PurchasePlanner
     :raw_quantity,       # pedido in natura (na unidade do pedido)
     :kg,                 # necessidade bruta em kg in natura
     :stock_kg,           # abatido da câmara fria
-    :net_kg,
-    :packages,           # caixas/sacos a comprar; nil se não dá para calcular
+    :net_kg,             # necessidade líquida em kg
+    :packages,           # caixas/sacos a comprar (soma dos itens já arredondados por produto); nil se não dá para calcular
+    :net_packages,       # necessidade em caixas antes do arredondamento (para exibição)
     :missing_factor,     # true quando faltou fator ou a unidade não é kg (quantidade somada sem converter)
     :breakdown
   )
@@ -90,11 +91,44 @@ class PurchasePlanner
         stock_kg = unit == "kg" ? [ stock[raw_material.id], need[:kg] ].min : 0
         stock[raw_material.id] -= stock_kg if stock_kg.positive?
         net_kg = [ need[:kg] - stock_kg, 0 ].max
+
+        # Calcula caixas por item do breakdown (respeitando arredondamento por produto) e soma
+        packages_sum = 0
+        net_packages_sum = 0
+        if unit == "kg" && raw_material.kg_per_package.present? && raw_material.kg_per_package > 0
+          need[:breakdown].each do |b|
+            # Distribui o estoque proporcionalmente? Não - o estoque já foi abatido do total.
+            # Para o breakdown, calculamos a parte de cada produto no net_kg
+            # Proporção do produto na necessidade bruta total (em kg)
+            item_kg = b.product.raw? ? b.quantity : (b.quantity * (b.product.raw_material.multiply_factor || 1))
+            total_kg = need[:kg]
+            next if total_kg.zero?
+            item_net_kg = (net_kg * item_kg / total_kg).round(3)
+
+            net_packages = item_net_kg / raw_material.kg_per_package
+            net_packages_sum += net_packages
+
+            if b.product.whole_box_rounding?
+              packages_sum += net_packages.ceil
+            else
+              packages_sum += net_packages
+            end
+          end
+        end
+
+        packages_val = if unit == "kg" && raw_material.kg_per_package.present? && raw_material.kg_per_package > 0
+          (packages_sum > 0 ? packages_sum : 0)
+        end
+        net_packages_val = if unit == "kg" && raw_material.kg_per_package.present? && raw_material.kg_per_package > 0
+          net_packages_sum > 0 ? net_packages_sum : 0
+        end
+
         Need.new(
           raw_material: raw_material, unit: unit,
           processed_quantity: need[:processed], raw_quantity: need[:raw],
           kg: need[:kg], stock_kg: stock_kg, net_kg: net_kg,
-          packages: packages_for(raw_material, unit, net_kg),
+          packages: packages_val,
+          net_packages: net_packages_val,
           missing_factor: need[:missing_factor],
           breakdown: need[:breakdown]
         )
@@ -109,11 +143,5 @@ class PurchasePlanner
 
       stock[count.raw_material_id] = count.kg
     end
-  end
-
-  def packages_for(raw_material, unit, net_kg)
-    return nil unless unit == "kg" && raw_material.kg_per_package.present?
-
-    net_kg.positive? ? [ 1, (net_kg / raw_material.kg_per_package).round ].max : 0
   end
 end
