@@ -49,8 +49,8 @@ class ProductionPdf < BasePdf
 
     return if @result.aprontes.empty?
 
-    section "Aprontes", "caixas para descascar"
-    rows = @result.aprontes.map { |a| [ a.raw_material.name, Formatting.qty(a.kg), a.boxes.to_s ] }
-    table [ "MATÉRIA-PRIMA", "KG PROCESSADO", "CAIXAS" ], rows, widths: { 1 => 110, 2 => 70 }, right: [ 1, 2 ], big: 2
+    section "Aprontes", "descasque e preparo, por vegetal"
+    rows = @result.aprontes.map { |a| [ a.raw_material.name, "#{Formatting.qty(a.quantity)} #{a.unit}", a.boxes ? a.boxes.to_s : "-" ] }
+    table [ "MATÉRIA-PRIMA", "PROCESSADO", "CAIXAS" ], rows, widths: { 1 => 110, 2 => 70 }, right: [ 1, 2 ], big: 2
   end
 end

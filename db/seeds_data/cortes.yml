@@ -72,6 +72,7 @@
   setor: frutas
   nome_setor: Frutas descascadas e embaladas
   antecedencia_dias: 1
+  descasque: true
 - codigo: embalada_un
   nome: Embalada (unidade)
   setor: frutas

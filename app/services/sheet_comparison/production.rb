@@ -103,7 +103,7 @@ class SheetComparison
 
     def apronte_rows(sheet, groups, cut_rows)
       sheet_boxes = groups.filter_map { |(section, raw_material), lines| [ raw_material, lines ] if section == "aprontes" }.to_h
-      system_boxes = plan(sheet.date).aprontes.to_h { |apronte| [ apronte.raw_material, apronte.boxes ] }
+      system_boxes = plan(sheet.date).aprontes.select(&:boxes).to_h { |apronte| [ apronte.raw_material, apronte.boxes ] }
       (sheet_boxes.keys | system_boxes.keys).map do |raw_material|
         planilha, text = total(sheet_boxes[raw_material], "cx")
         sistema = system_boxes[raw_material]

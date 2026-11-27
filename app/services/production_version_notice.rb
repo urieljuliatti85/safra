@@ -49,7 +49,7 @@ class ProductionVersionNotice
   def label(sector) = helpers.production_sector_label(@result, sector)
 
   def aprontes_changed?
-    boxes = ->(result) { result.aprontes.to_h { |apronte| [ apronte.raw_material.id, apronte.boxes ] } }
+    boxes = ->(result) { result.aprontes.to_h { |apronte| [ [ apronte.raw_material.id, apronte.unit ], apronte.boxes || apronte.quantity ] } }
     boxes.call(@plan.previous.to_result) != boxes.call(@result)
   end
 
