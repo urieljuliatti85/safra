@@ -64,36 +64,18 @@ class StockTest < ActionDispatch::IntegrationTest
     assert_equal 0, ActsAsTenant.with_tenant(other) { StockCount.count }
   end
 
-  test "compra já enviada avisa quando uma contagem nova a muda" do
+  # MVP (esteira simplificada): a compra é o volume total dos pedidos, e a contagem não a muda.
+  test "contagem nova não muda a compra já enviada" do
     needs = PurchasePlanner.new(company: company).call.purchases.fetch(Date.new(2026, 10, 13))
     PlanPublisher.purchase(company: company, date: Date.new(2026, 10, 13), needs: needs)
     patch stock_path, params: { date: "2026-10-12", counts: { raw_material("cenoura").id => "50" } }
     follow_redirect!
-    assert_match "compra de 13/10 mudou desde a versão enviada", response.body
+    assert_no_match "mudou desde a versão enviada", response.body
   end
 
   def publish_purchase(date)
     needs = PurchasePlanner.new(company: company).call.purchases.fetch(date)
     PlanPublisher.purchase(company: company, date: date, needs: needs)
-  end
-
-  # Cenoura precisa de 268,65 kg em 13/10: 50 kg contados acabam nessa compra e não sobra nada para 15/10.
-  test "com duas compras enviadas, avisa só a que a contagem muda" do
-    publish_purchase(Date.new(2026, 10, 13))
-    publish_purchase(Date.new(2026, 10, 15))
-    patch stock_path, params: { date: "2026-10-12", counts: { raw_material("cenoura").id => "50" } }
-    follow_redirect!
-    assert_match "compra de 13/10 mudou desde a versão enviada", response.body
-    assert_no_match "15/10 mudou", response.body
-  end
-
-  test "contagem maior que a compra muda só a compra seguinte a ela: a sobra não passa adiante" do
-    publish_purchase(Date.new(2026, 10, 13))
-    publish_purchase(Date.new(2026, 10, 15))
-    patch stock_path, params: { date: "2026-10-12", counts: { raw_material("cenoura").id => "1000" } }
-    follow_redirect!
-    assert_match "compra de 13/10 mudou desde a versão enviada", response.body
-    assert_no_match "15/10 mudou", response.body
   end
 
   test "contagem que não muda a compra enviada não avisa" do
@@ -118,11 +100,6 @@ class StockTest < ActionDispatch::IntegrationTest
     assert_no_match "mudou desde a versão enviada", response.body
   end
 
-  test "a tela de compras leva à contagem do dia" do
-    get purchases_path(date: "2026-10-13")
-    assert_select "a[href='#{stock_path(date: '2026-10-13')}']", text: /Contar estoque/
-  end
-
   test "produção conta o estoque, mas não vê a compra" do
     sign_in_as(user_for(:production))
     get stock_path(date: "2026-10-12")
@@ -143,7 +120,7 @@ class StockTest < ActionDispatch::IntegrationTest
     assert_select "input[aria-label='Contagem de Cenoura em cubinhos pronto, em kg']"
   end
 
-  test "salvar o produto pronto abate o pedido antes do fator e aparece na compra" do
+  test "salvar o produto pronto guarda a contagem e não muda a compra" do
     product = Product.find_by!(code: "cenoura_cubinhos")
     before = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
     patch stock_path, params: { date: "2026-10-12", ready_counts: { product.id => "1,5" } }
@@ -152,13 +129,9 @@ class StockTest < ActionDispatch::IntegrationTest
     assert_equal 1.5, ProductStockCount.find_by!(product: product, date: "2026-10-12").quantity.to_f
 
     after = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
-    assert_equal({ product => 1.5 }, after.ready)
-    assert_in_delta before.kg - 1.5 * product.raw_material.multiply_factor, after.kg, 0.001
-
-    get purchases_path(date: "2026-10-13")
-    assert_match "Produto pronto: Cenoura em cubinhos 1,5 kg abatido do pedido, antes do fator", response.body
+    assert_empty after.ready
+    assert_equal before.kg, after.kg
   end
-
   test "erro no produto pronto não salva nem a matéria-prima" do
     product = Product.find_by!(code: "cenoura_cubinhos")
     cenoura = raw_material("cenoura")

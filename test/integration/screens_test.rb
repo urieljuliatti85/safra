@@ -163,8 +163,8 @@ class ScreensTest < ActionDispatch::IntegrationTest
     get purchases_path(date: "2026-10-13")
     assert_response :success
     assert_select "textarea[aria-label='Texto do pedido para Fornecedor B']", /\*Fornecedor B · compra 13\/10\*/
-    # A relação traz os kg por caixa ou saco (R4.1, D45).
-    assert_select "textarea[aria-label^='Texto do pedido para']", /: \d+ (cx|sc) de \d+(,\d+)? kg/
+    # MVP (esteira simplificada): a relação traz o volume total de cada matéria-prima, sem caixas.
+    assert_select "textarea[aria-label^='Texto do pedido para']", /: \d+(,\d+)? (kg|un)/
   end
 
   test "programação por dia de entrega" do

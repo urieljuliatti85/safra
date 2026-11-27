@@ -8,7 +8,4 @@ class PurchasePlanItem < ApplicationRecord
 
   # Mesma leitura de uma PurchasePlanner::Need, para o texto da relação (Formatting.need_text).
   def net_kg = kg
-
-  # Quantidade enviada na unidade da matéria-prima (kg ou un), para conferir com o recebido (D47).
-  def quantity = packages ? PurchaseReceipt.quantity(raw_material, unit, packages, loose_kg + loose_units) : kg
 end

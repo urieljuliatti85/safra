@@ -33,11 +33,10 @@ class MobileTest < ApplicationSystemTestCase
     assert_selector ".tabbar summary.is-current", text: "Mais"
   end
 
-  test "no estoque cada matéria-prima é um cartão com a contagem e o que comprar à vista" do
+  test "no estoque cada produto pronto é um cartão com a contagem à vista" do
     visit stock_path(date: "2026-10-12")
-    within(".raw-sheet tbody tr", text: "Cenoura") do
-      assert_field "Contagem de Cenoura"
-      cell = find("td[data-label='Comprar']")
+    within(".ready-sheet tbody tr", text: "Cenoura em cubinhos") do
+      cell = find_field("Contagem de Cenoura em cubinhos pronto, em kg")
       assert_operator page.evaluate_script("arguments[0].getBoundingClientRect().right", cell), :<=, 390
     end
     assert_equal 390, page.evaluate_script("document.documentElement.scrollWidth")

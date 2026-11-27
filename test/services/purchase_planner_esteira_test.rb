@@ -1,8 +1,8 @@
 require "test_helper"
 
-# A conta da compra na ordem da esteira (R3.8, D39), com os números ilustrativos do próprio documento: pedido de 50 kg,
-# 10 kg de produto pronto, fator 1,50, 15 kg de matéria-prima e caixa de 20 kg. A esteira dá 45 kg a comprar:
-# 3 caixas inteiras ou 2 caixas e 5 kg (R3.9).
+# Passo 3 da esteira simplificada (o MVP): a compra é o volume total, os processados convertidos em matéria-prima pelo
+# fator, sem abater estoque e sem caixas. Pedido de 50 kg com fator 1,50: 75 kg, mesmo com produto pronto e matéria-prima
+# contados no Estoque.
 class PurchasePlannerEsteiraTest < ActiveSupport::TestCase
   DELIVERY = Date.new(2026, 10, 15)
 
@@ -14,53 +14,31 @@ class PurchasePlannerEsteiraTest < ActiveSupport::TestCase
                                  raw_material: @raw_material, cut: Cut.find_by!(code: "cubos"), unit: "kg")
       Order.joins(:customer).find_by!(customers: { code: "hbp" }, week_start: Date.new(2026, 10, 12))
            .lines.create!(product: @product, delivery_date: DELIVERY, quantity: 50, unit: "kg")
-      @purchase_date = PurchaseDay.where(date: ..@product.production_date_for(DELIVERY)).maximum(:date)
     end
   end
 
-  def need = PurchasePlanner.new(company: company).call.need_for(@purchase_date, "vegetal_esteira", "kg")
+  # A produção é a véspera da entrega (14/10): cai na compra de 13/10.
+  def need = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "vegetal_esteira", "kg")
 
-  def count(ready: nil, raw: nil)
-    ActsAsTenant.with_tenant(company) do
-      ProductStockCount.create!(product: @product, date: @purchase_date, quantity: ready) if ready
-      StockCount.create!(raw_material: @raw_material, date: @purchase_date, kg: raw) if raw
-    end
-  end
-
-  test "pedido, menos produto pronto, vezes o fator, menos matéria-prima: 45 kg, 3 caixas inteiras" do
-    count(ready: 10, raw: 15)
-    assert_equal({ @product => 10 }, need.ready)
-    assert_equal 60, need.kg
-    assert_equal 15, need.stock_kg
-    assert_equal 45, need.net_kg
-    assert_equal 2.25, need.net_packages
-    assert_equal 3, need.packages
-    assert_equal "3 cx de 20 kg", Formatting.need_text(need)
-  end
-
-  test "o mesmo exemplo em fração: 2 caixas e 5 kg" do
-    ActsAsTenant.with_tenant(company) { @product.update!(rounding: :fraction) }
-    count(ready: 10, raw: 15)
-    assert_equal "2 cx de 20 kg e 5 kg", Formatting.need_text(need)
-  end
-
-  test "sem produto pronto contado, o pedido inteiro vai para o fator" do
-    count(raw: 15)
-    assert_empty need.ready
+  test "pedido vezes o fator: 75 kg, sem caixas" do
     assert_equal 75, need.kg
-    assert_equal 60, need.net_kg
+    assert_equal 75, need.net_kg
+    assert_nil need.packages
+    assert_equal "75 kg", Formatting.need_text(need)
   end
 
-  test "produto pronto maior que o pedido abate só o pedido" do
-    count(ready: 80)
-    assert_equal({ @product => 50 }, need.ready)
-    assert_equal 0, need.net_kg
-    assert_equal 0, need.packages
-  end
-
-  test "produto pronto não abate pedido em outra unidade" do
-    ActsAsTenant.with_tenant(company) { @product.update!(unit: "un") }
-    count(ready: 10)
+  test "produto pronto e matéria-prima contados não abatem a compra" do
+    ActsAsTenant.with_tenant(company) do
+      ProductStockCount.create!(product: @product, date: Date.new(2026, 10, 12), quantity: 10)
+      StockCount.create!(raw_material: @raw_material, date: Date.new(2026, 10, 12), kg: 15)
+    end
     assert_empty need.ready
+    assert_equal 0, need.stock_kg
+    assert_equal 75, need.net_kg
+  end
+
+  test "o arredondamento do produto não muda o volume" do
+    ActsAsTenant.with_tenant(company) { @product.update!(rounding: :fraction) }
+    assert_equal "75 kg", Formatting.need_text(need)
   end
 end

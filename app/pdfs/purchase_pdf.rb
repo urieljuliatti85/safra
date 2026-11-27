@@ -15,9 +15,9 @@ class PurchasePdf < BasePdf
     @suppliers.each do |supplier, needs|
       section supplier, "#{needs.size} #{needs.size == 1 ? 'item' : 'itens'}"
       rows = needs.map do |n|
-        [ n.raw_material.name, "#{Formatting.qty(n.kg)} #{n.unit}", n.stock_kg.positive? ? "#{Formatting.qty(n.stock_kg)} kg" : "-", Formatting.need_text(n) ]
+        [ n.raw_material.name, Formatting.need_text(n) ]
       end
-      table [ "MATÉRIA-PRIMA", "NECESSIDADE", "ESTOQUE", "COMPRAR" ], rows, widths: { 1 => 100, 2 => 80, 3 => 100 }, right: [ 1, 2, 3 ], big: 3
+      table [ "MATÉRIA-PRIMA", "VOLUME TOTAL" ], rows, widths: { 1 => 120 }, right: [ 1 ], big: 1
     end
   end
 end

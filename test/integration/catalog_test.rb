@@ -61,7 +61,6 @@ class CatalogTest < ActionDispatch::IntegrationTest
     patch bulk_update_raw_materials_path, params: { raw_materials: { cebola.id => { multiply_factor: "1,3", kg_per_package: "20" } } }
     depois = PurchasePlanner.new(company: company).call.purchases.values.flatten.select { |n| n.raw_material.code == "cebola" && n.processed_quantity.positive? }
     assert depois.none?(&:missing_factor)
-    assert depois.all? { |n| n.packages.present? }
   end
 
   test "campo vazio limpa o valor e linha sem mudança não conta" do

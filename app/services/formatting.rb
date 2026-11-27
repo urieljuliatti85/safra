@@ -34,15 +34,6 @@ module Formatting
     "#{need.packages} #{package} e #{loose.join(' e ')}"
   end
 
-  # Diferença entre o recebido e o enviado, na unidade da matéria-prima (R5.1, D47): "igual", "faltou 20 kg",
-  # "sobrou 50 un".
-  def receipt_difference(item, receipt)
-    diff = receipt.quantity - item.quantity
-    return "igual" if diff.abs < 0.0005
-
-    "#{diff.negative? ? 'faltou' : 'sobrou'} #{qty(diff.abs)} #{item.unit}"
-  end
-
   # O que vem em cada caixa ou saco: os kg por embalagem, ou as unidades por embalagem da fruta pedida por unidade.
   # Comprada por unidade (melancia) não tem conteúdo a dizer.
   def package_content(need)

@@ -4,13 +4,11 @@
     <h1 class="page-title">Compras CEASA</h1>
     <% if @date %>
       <% next_date = @purchase_dates.find { |d| d > @date } %>
-      <p class="page-sub">Abastece a produção de <%= weekday_date(@date) %> até <%= next_date ? weekday_date(next_date - 1) : "o fim da semana" %>. O estoque da câmara fria é abatido antes.</p>
+      <p class="page-sub">Abastece a produção de <%= weekday_date(@date) %> até <%= next_date ? weekday_date(next_date - 1) : "o fim da semana" %>. Volume total de cada matéria-prima: os processados convertidos pelo fator, mais os pedidos in natura.</p>
     <% end %>
   </div>
   <% if @date %>
     <div class="flex flex-wrap gap-2">
-    <%= link_to stock_path(date: @date), class: "btn" do %><%= icon :plus %>Contar estoque<% end %>
-    <% if @latest_sent && policy(:purchase_receipt).show? %><%= link_to purchase_receipt_path(date: @date), class: "btn" do %><%= icon :check %>Recebimento<% end %><% end %>
     <%= link_to purchases_path(date: @date, format: :pdf), class: "btn", target: "_blank", rel: "noopener" do %><%= icon :printer %>PDF<% end %>
     </div>
   <% end %>
@@ -42,7 +40,7 @@
           <textarea data-copy-target="source" readonly rows="<%= needs.size + 1 %>" class="whatsapp" aria-label="Texto do pedido para <%= supplier %>"><%= text %></textarea>
         </details>
         <table class="ops-table">
-          <thead><tr><th>Matéria-prima</th><th class="col-num only-desktop">Produto pronto</th><th class="col-num only-desktop">Necessidade</th><th class="col-num only-desktop">Estoque</th><th class="col-num only-desktop">Líquido</th><th class="col-num only-desktop">Antes de arredondar</th><th class="col-qty">Comprar</th><th class="only-desktop">Observação</th></tr></thead>
+          <thead><tr><th>Matéria-prima</th><th class="col-qty">Volume total</th><th class="only-desktop">Observação</th></tr></thead>
           <tbody>
             <% needs.each do |need| %>
               <tr>
@@ -51,22 +49,14 @@
                     <summary><%= need.raw_material.name %></summary>
                     <ul class="mt-1 muted text-sm">
                       <% need.breakdown.each do |b| %>
-                        <li><%= b.customer.short_name %>: <%= b.product.name %> <%= qty(b.quantity) %> <%= b.unit %> (entrega <%= short_date(b.delivery_date) %>, produção <%= short_date(b.production_date) %>)<% factor = b.product.raw_material.multiply_factor %><%= " · fator #{qty(factor)}" if factor && !b.product.raw? %><%= " · fração" if b.product.fraction_rounding? %></li>
-                      <% end %>
-                      <% need.ready.each do |product, quantity| %>
-                        <li>Produto pronto: <%= product.name %> <%= qty(quantity) %> <%= need.unit %> abatido do pedido, antes do fator</li>
+                        <li><%= b.customer.short_name %>: <%= b.product.name %> <%= qty(b.quantity) %> <%= b.unit %> (entrega <%= short_date(b.delivery_date) %>, produção <%= short_date(b.production_date) %>)<% factor = b.product.raw_material.multiply_factor %><%= " · fator #{qty(factor)}" if factor && !b.product.raw? %></li>
                       <% end %>
                     </ul>
                   </details>
                 </td>
-                <td class="num-col only-desktop"><%= need.ready.any? ? "#{qty(need.ready.values.sum)} #{need.unit}" : "-" %></td>
-                <td class="num-col only-desktop"><%= qty(need.kg) %> <%= need.unit %></td>
-                <td class="num-col only-desktop"><%= need.stock_kg.positive? ? "#{qty(need.stock_kg)} kg" : "-" %></td>
-                <td class="num-col only-desktop"><%= need.unit == "kg" ? "#{qty(need.net_kg)} kg" : "-" %></td>
-                <td class="num-col only-desktop"><%= need.net_packages ? "#{qty(need.net_packages)} #{Formatting::PACKAGE_LABELS.fetch(need.raw_material.purchase_package, need.raw_material.purchase_package)}" : "-" %></td>
                 <td class="qty"><%= need_text(need) %></td>
-                <td class="note only-desktop"><% if need.missing_factor %>sem fator ou unidade diferente de kg<% elsif need.packages.nil? && need.unit == "kg" %>sem kg por embalagem<% end %></td>
-                <td class="who only-mobile"><%= "pronto #{qty(need.ready.values.sum)} #{need.unit} · " if need.ready.any? %>necessidade <%= qty(need.kg) %> <%= need.unit %><%= " · estoque #{qty(need.stock_kg)} kg" if need.stock_kg.positive? %><% if need.missing_factor %> · sem fator ou unidade diferente de kg<% elsif need.packages.nil? && need.unit == "kg" %> · sem kg por embalagem<% end %></td>
+                <td class="note only-desktop"><% if need.missing_factor %>sem fator ou unidade diferente de kg<% end %></td>
+                <td class="who only-mobile"><% if need.missing_factor %>sem fator ou unidade diferente de kg<% end %></td>
               </tr>
             <% end %>
           </tbody>
