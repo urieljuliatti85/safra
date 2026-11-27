@@ -15,7 +15,8 @@ class SendProductionVersionPushJobTest < ActiveSupport::TestCase
   end
 
   def change_cenoura_ralada(by)
-    OrderLine.joins(:product).find_by!(products: { code: "cenoura_ralada" }, delivery_date: @date).increment!(:quantity, by)
+    # Sem escolha, o executado em 13/10 é o entregue em 14/10 (véspera).
+    OrderLine.joins(:product).where(products: { code: "cenoura_ralada" }, delivery_date: @date + 1).first.increment!(:quantity, by)
   end
 
   test "avisa só quem acompanha o setor que mudou" do
@@ -28,7 +29,7 @@ class SendProductionVersionPushJobTest < ActiveSupport::TestCase
     deliveries = with_push { SendProductionVersionPushJob.perform_now(plan.id) }
 
     assert_equal [ ralados ], deliveries.map(&:first)
-    assert_equal "Cenoura ralada · 3 mm: 3,5 → 7,5 kg", deliveries.first.last[:options][:body] # 3,5 kg: 3 avulsos + 0,5 da Yaksoba de 2 kg (25%), somada pelos ingredientes (R2.8, D25)
+    assert_equal "Cenoura ralada · 3 mm: 8,5 → 12,5 kg", deliveries.first.last[:options][:body]
     assert_not_includes deliveries.map(&:first), palitos
   end
 

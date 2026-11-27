@@ -3,13 +3,13 @@ require "test_helper"
 class PlanPublisherTest < ActiveSupport::TestCase
   setup do
     ActsAsTenant.current_tenant = company
-    @date = Date.new(2026, 10, 13)
+    @date = Date.new(2026, 10, 13) # entrega; a Planilha de Produção é a da véspera (12/10), sem escolha de outro dia
   end
 
   teardown { ActsAsTenant.current_tenant = nil }
 
   test "enviar produção cria versão 1, depois 2, e congela os itens" do
-    result = ProductionPlanner.new(company: company, date: @date).call
+    result = ProductionPlanner.new(company: company, date: @date - 1).call
     first = PlanPublisher.production(company: company, result: result)
     second = PlanPublisher.production(company: company, result: result)
     assert_equal [ 1, 2 ], [ first.version, second.version ]
@@ -19,29 +19,29 @@ class PlanPublisherTest < ActiveSupport::TestCase
   end
 
   test "alteração de pedido depois do envio aparece como diferença" do
-    result = ProductionPlanner.new(company: company, date: @date).call
+    result = ProductionPlanner.new(company: company, date: @date - 1).call
     plan = PlanPublisher.production(company: company, result: result)
 
     line = OrderLine.joins(:product).find_by!(products: { code: "cenoura_ralada" }, delivery_date: @date)
     line.update!(quantity: line.quantity + 4)
-    changes = PlanDiff.production(plan, ProductionPlanner.new(company: company, date: @date).call)
+    changes = PlanDiff.production(plan, ProductionPlanner.new(company: company, date: @date - 1).call)
 
     assert_equal 1, changes.size
     assert_equal "Cenoura ralada · 3 mm", changes.first.label # 3 mm sem medida no pedido (R2.12, D30)
-    assert_equal [ 3.5, 7.5 ], [ changes.first.before, changes.first.after ] # 3,5 kg: 3 avulsos + 0,5 da Yaksoba de 2 kg (25%), somada pelos ingredientes (R2.8, D25)
+    assert_equal [ 3, 7 ], [ changes.first.before, changes.first.after ] # 3 kg avulsos, executados na véspera da entrega (12/10)
     assert_equal :changed, changes.first.kind
   end
 
   test "pedido novo vira item adicionado e linha apagada vira removido" do
-    result = ProductionPlanner.new(company: company, date: @date).call
+    result = ProductionPlanner.new(company: company, date: @date - 1).call
     plan = PlanPublisher.production(company: company, result: result)
     OrderLine.joins(:product).find_by!(products: { code: "couve_picada" }, delivery_date: @date).destroy!
-    changes = PlanDiff.production(plan, ProductionPlanner.new(company: company, date: @date).call)
+    changes = PlanDiff.production(plan, ProductionPlanner.new(company: company, date: @date - 1).call)
     assert_equal [ :removed ], changes.map(&:kind)
   end
 
   test "versão enviada se monta igual ao cálculo e não muda quando o pedido muda" do
-    result = ProductionPlanner.new(company: company, date: @date).call
+    result = ProductionPlanner.new(company: company, date: @date - 1).call
     plan = PlanPublisher.production(company: company, result: result)
     OrderLine.joins(:product).find_by!(products: { code: "cenoura_ralada" }, delivery_date: @date).increment!(:quantity, 4)
 
@@ -56,16 +56,16 @@ class PlanPublisherTest < ActiveSupport::TestCase
 
   test "cada versão guarda quem enviou e o que mudou em relação à anterior" do
     user = user_for(:office)
-    first = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: @date).call, user: user)
+    first = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: @date - 1).call, user: user)
     OrderLine.joins(:product).find_by!(products: { code: "cenoura_ralada" }, delivery_date: @date).increment!(:quantity, 4)
-    second = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: @date).call)
-    third = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: @date).call)
+    second = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: @date - 1).call)
+    third = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: @date - 1).call)
 
     assert_equal user, first.sent_by
     assert_nil first.previous
     assert_empty first.changes_from_previous
     assert_equal first, second.previous
-    assert_equal [ [ "Cenoura ralada · 3 mm", 3.5, 7.5 ] ], second.changes_from_previous.map { |c| [ c.label, c.before, c.after ] } # 3,5 kg: 3 avulsos + 0,5 da Yaksoba de 2 kg (25%), somada pelos ingredientes (R2.8, D25)
+    assert_equal [ [ "Cenoura ralada · 3 mm", 3, 7 ] ], second.changes_from_previous.map { |c| [ c.label, c.before, c.after ] } # 3 kg avulsos, executados na véspera da entrega (12/10)
     assert_empty third.changes_from_previous
     assert third.latest?
     assert_not second.latest?

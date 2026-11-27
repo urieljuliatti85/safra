@@ -1,15 +1,14 @@
 <%# locals: result (ProductionPlanner::Result, calculado ou de uma versão enviada), changed_labels (itens marcados "mudou", pelo nome com a medida), show_empty %>
-<% by_sector = result.items.group_by { |item| item.product.sector } %>
-<% Cut::SECTORS.each do |sector| %>
-  <% items = by_sector[sector] %>
-  <% next if items.blank? %>
-  <% sector_dates = items.flat_map { |i| i.breakdown.map(&:delivery_date) }.uniq.sort %>
-  <% single_date = sector_dates.size == 1 %>
-  <section class="panel scroll-mt-4" id="setor-<%= sector %>">
+<%# Planilha de Produção (esteira simplificada, passo 4): uma lista só, por dia de execução, sem setores. %>
+<% items = result.items %>
+<% if items.any? %>
+  <% dates = items.flat_map { |i| i.breakdown.map(&:delivery_date) }.uniq.sort %>
+  <% single_date = dates.size == 1 %>
+  <section class="panel scroll-mt-4" id="planilha">
     <div class="panel-head">
-      <h2><%= items.first.product.cut.sector_name %></h2>
+      <h2>Ordens de serviço</h2>
       <span class="meta num">
-        <%= result.date == sector_dates.first && single_date ? "produz hoje, entrega hoje" : "produz hoje, entrega #{sector_dates.map { |d| weekday_date(d) }.to_sentence(two_words_connector: ' e ', last_word_connector: ' e ')}" %>
+        executa <%= weekday_date(result.date) %>, entrega <%= dates.map { |d| weekday_date(d) }.to_sentence(two_words_connector: " e ", last_word_connector: " e ") %>
         · <%= items.size %> <%= items.size == 1 ? "item" : "itens" %>
       </span>
     </div>
@@ -22,36 +21,13 @@
             <td class="name"><%= item.product.name %><% if item.measure.present? %> <span class="muted text-sm">· <%= item.measure %></span><% end %><% if changed %><span class="tag-change">mudou</span><% end %></td>
             <td class="qty" data-unit="<%= item.unit %>"><%= qty(item.quantity) %></td>
             <td class="unit"><%= item.unit %></td>
-            <%# Entre parênteses: a mistura de onde veio a quantidade (R2.9, D25) e, se o setor entrega em mais de um dia, a data. %>
+            <%# Entre parênteses: a mistura de onde veio a quantidade (R2.9, D25) e, se a lista entrega em mais de um dia, a data. %>
             <td class="who"><%= item.breakdown.map { |b| notes = [ b.via, (short_date(b.delivery_date) unless single_date) ].compact; "#{b.customer.short_name} #{qty(b.quantity)}#{" (#{notes.join(', ')})" if notes.any?}" }.join(" · ") %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
   </section>
-<% end %>
-<% if result.items.empty? && result.aprontes.empty? && show_empty %>
+<% elsif show_empty %>
   <p class="panel p-8 text-center muted">Sem produção em <%= weekday_date(result.date) %>.</p>
-<% end %>
-
-<% if result.aprontes.any? %>
-  <section class="panel">
-    <div class="panel-head">
-      <h2>Aprontes</h2>
-      <span class="meta">descasque e preparo, por vegetal</span>
-    </div>
-    <table class="ops-table">
-      <thead><tr><th>Matéria-prima</th><th class="col-qty">Processado</th><th class="col-qty">Caixas</th></tr></thead>
-      <tbody>
-        <% result.aprontes.each do |apronte| %>
-          <tr>
-            <td class="name"><%= apronte.raw_material.name %></td>
-            <td class="qty only-desktop"><%= qty(apronte.quantity) %> <%= apronte.unit %></td>
-            <td class="qty boxes" data-unit="<%= apronte.boxes ? "cx" : apronte.unit %>"><%= apronte.boxes || qty(apronte.quantity) %></td>
-            <td class="who only-mobile"><%= apronte.boxes ? "#{qty(apronte.quantity)} kg processados" : "a descascar, em #{apronte.unit}" %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </section>
 <% end %>

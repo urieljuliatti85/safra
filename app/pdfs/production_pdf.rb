@@ -18,7 +18,7 @@ class ProductionPdf < BasePdf
     date = @result.date
     deliveries = "Entregas: #{@result.delivery_dates.map { |d| Formatting.weekday_date(d) }.join(', ')}" if @result.delivery_dates.any?
     subtitle = [ @sector_label && "Setor: #{@sector_label}", deliveries ].compact.join(" · ").presence
-    header "Produção · #{Formatting.weekday_date(date)}/#{date.year}", subtitle, @version, changed: @changed.any?
+    header "Planilha de Produção · #{Formatting.weekday_date(date)}/#{date.year}", subtitle, @version, changed: @changed.any?
     pdf.text(@sector && @version.nil? ? "O escritório ainda não enviou a produção deste dia." : "Sem produção neste dia.") if @result.items.empty? && @result.aprontes.empty?
     if @notice
       pdf.fill_color CHANGE
@@ -33,12 +33,9 @@ class ProductionPdf < BasePdf
       pdf.move_down 4
     end
 
-    by_sector = @result.items.group_by { |item| item.product.sector }
-    Cut::SECTORS.each do |sector|
-      items = by_sector[sector]
-      next if items.blank?
-
-      section items.first.product.cut.sector_name, "#{items.size} #{items.size == 1 ? 'item' : 'itens'}"
+    items = @result.items
+    if items.any?
+      section "Ordens de serviço", "#{items.size} #{items.size == 1 ? 'item' : 'itens'}"
       rows = items.map do |item|
         [ [ item.product.name, item.measure ].compact_blank.join(" · "), Formatting.qty(item.quantity), item.unit,
           item.breakdown.map { |b| "#{b.customer.short_name} #{Formatting.qty(b.quantity)} (#{[ b.via, Formatting.short_date(b.delivery_date) ].compact.join(', ')})" }.join(", ") ]

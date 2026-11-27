@@ -21,11 +21,12 @@ module GuidesHelper
       ], "Importar", new_order_import_path),
       GuideStep.new("Programação", [
         "O que cada cliente recebe, por data de entrega, em quatro dias. O Gerente marca cada item: quadrado, produzir no dia; ponto, já pronto.",
+        "Em \"Executar em\", o Gerente escolhe o dia em que cada item é feito: a véspera da entrega, ou outro dia para adiantar.",
         "Bata com o pedido original do cliente."
       ], "Abrir Programação", schedule_path),
-      GuideStep.new("Enviar a produção", [
-        "A produção do dia é calculada dos pedidos, por setor, com os aprontes em caixas.",
-        "Confira e clique em Enviar aos setores: vira a versão 1 e os setores recebem aviso no celular.",
+      GuideStep.new("Enviar a Planilha de Produção", [
+        "A Planilha de Produção de cada dia junta os itens com aquele dia de execução, de todos os clientes.",
+        "Confira e clique em Enviar a Planilha de Produção: vira a versão 1.",
         "In natura não entra na produção: vai direto para a compra."
       ], "Abrir Produção", production_path),
       GuideStep.new("Compra da CEASA", [
@@ -35,7 +36,7 @@ module GuidesHelper
       GuideStep.new("Quando o pedido muda", [
         "Reimporte a planilha ou edite a grade.",
         "Produção e compra mostram \"Mudou depois do envio\", item a item.",
-        "Confira e envie a versão 2. Os setores sempre veem a versão mais recente."
+        "Confira e envie a versão 2. A produção sempre vê a versão mais recente."
       ], "Abrir Produção", production_path)
     ]
   end
@@ -60,16 +61,15 @@ module GuidesHelper
         "A marca fica no item do pedido: aparece em todo período que inclua aquela entrega e continua se a quantidade mudar.",
         "Mudou o pedido, mudou a programação. Ela não tem versão: é sempre a conta do pedido atual."
       ], "Abrir Programação", schedule_path),
-      GuideTopic.new("producao", "Como a produção é calculada", "A produção de um dia junta tudo o que precisa estar pronto naquele dia, de todos os clientes.", [
-        "Entra cada linha de pedido cujo dia de produção (entrega menos antecedência) é o dia escolhido.",
-        "Soma por produto e unidade, com a abertura por cliente e por dia de entrega.",
-        "Separa por setor, conforme o corte: descascados inteiros, cortes manuais, ralados/picados/rodelas, palitos, cubinhos e frutas.",
-        "Aprontes (descasque e preparo, por vegetal): em kg, caixas a descascar = kg processado ÷ kg por caixa descascada da matéria-prima, arredondado; descascados inteiros não entram. Em unidade, entra a laranja descascada (a esteira diz que ela inclui descasque), com o total em unidades.",
+      GuideTopic.new("producao", "Como a Planilha de Produção é montada", "Ela sai da escolha do Gerente: o que produzir ou adiantar, e em que dia.", [
+        "Entra cada linha de pedido cujo dia de execução (escolhido na Programação; sem escolha, a véspera da entrega) é o dia aberto.",
+        "Soma por produto e unidade, com a abertura por cliente e por dia de entrega. As misturas entram pelos ingredientes.",
+        "É uma lista só, sem setores.",
         "In natura não entra na produção.",
-        "Enviar aos setores grava a versão 1 e avisa no celular. Se o pedido mudar depois, a tela mostra o que mudou para enviar a versão 2."
+        "Enviar a Planilha de Produção grava a versão 1. Se o pedido mudar depois, a tela mostra o que mudou para enviar a versão 2."
       ], "Abrir Produção", production_path),
       GuideTopic.new("compras", "Como as compras são calculadas", "A lista da CEASA também é calculada. Ela só é gravada quando você clica em Enviar aos fornecedores.", [
-        "Cada linha de pedido vai para a compra do último dia de compra igual ou anterior à véspera da entrega: a compra de segunda cobre as entregas de terça a quinta; a de quinta, de sexta em diante.",
+        "Cada linha de pedido vai para a compra do último dia de compra igual ou anterior ao dia de execução dela (sem escolha, a véspera da entrega).",
         "Volume total: o processado vezes o fator de perda da matéria-prima, mais o in natura como foi pedido. Sem fator, ou em outra unidade (un, maço, caixa), entra sem converter e aparece um alerta.",
         "A compra não abate o estoque e não arredonda em caixas.",
         "A lista sai por fornecedor, com o texto pronto para o WhatsApp."

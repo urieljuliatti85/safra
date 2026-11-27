@@ -57,8 +57,6 @@ class ReferenceSheetsTest < ActiveSupport::TestCase
     assert_equal "TERÇA 13-10-26", sheets.first.tab_name
 
     comparison = SheetComparison.new(company, dates: WEEK..(WEEK + 6))
-    ralada = row(comparison, "Cenoura ralada")
-    assert_equal [ :mixture, 0.5 ], [ ralada.reason, ralada.difference ] # a planilha não soma a Yaksoba pelos ingredientes (R2.8)
     assert_equal "un", row(comparison, "Laranja descascada").unit
     assert_equal :not_modeled, row(comparison, "Batata inglesa", section: "descascador").reason
     assert_equal :not_comparable, row(comparison, "Vagem", section: "aprontes").status

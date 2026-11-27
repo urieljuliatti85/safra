@@ -1,10 +1,10 @@
 <% content_for :title, "Produção · Safra" %>
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
   <div>
-    <h1 class="page-title">Produção do dia</h1>
+    <h1 class="page-title">Planilha de Produção</h1>
     <p class="page-sub">
-      <% if @result.delivery_dates.any? %>Atende entregas de <%= @result.delivery_dates.map { |d| weekday_date(d) }.join(", ") %>.<% else %>Nenhuma entrega depende da produção deste dia.<% end %>
-      <% if @date.sunday? %> Domingo não tem produção.<% end %>
+      Pela data de execução. Cada item entra no dia escolhido em "Executar em", na Programação (sem escolha, a véspera da entrega).
+      <% if @result.delivery_dates.any? %>Atende entregas de <%= @result.delivery_dates.map { |d| weekday_date(d) }.join(", ") %>.<% else %>Nenhum item para executar neste dia.<% end %>
     </p>
   </div>
   <div class="flex items-center gap-3">
@@ -17,8 +17,8 @@
   <%= render "shared/week", week: @week, open_date: @date, path: :production_path %>
   <% if @draft %>
     <%= render "shared/plan_status", plan: @latest_sent, changes: @changes, publish_path: publish_production_path(date: @date),
-                                                   draft_text: "Ainda não enviada aos setores", send_label: "Enviar aos setores", can_publish: policy(:production).publish?,
-                                                   confirm: (@empty_message && "#{@empty_message} Enviar uma produção vazia aos setores?") %>
+                                                   draft_text: "Ainda não enviada", send_label: "Enviar a Planilha de Produção", can_publish: policy(:production).publish?,
+                                                   confirm: (@empty_message && "#{@empty_message} Enviar uma Planilha de Produção vazia?") %>
     <% if @raw_note %>
       <p class="muted" role="note">
         <%= @empty_message || @raw_note %> <%= link_to "Abrir a compra", purchases_path(date: @purchase_date) %>.

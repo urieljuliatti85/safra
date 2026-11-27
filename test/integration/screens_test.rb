@@ -45,16 +45,16 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_select "form[data-controller='order-day'][data-order-day-index-value='1']" # Ter 13/10, não a segunda vazia
   end
 
-  test "número da faixa da semana leva à produção do setor e à lista dele na página" do
+  test "número da faixa da semana leva à Planilha de Produção do dia" do
     get production_path(date: "2026-10-13")
-    link = css_select("a.bar[aria-label='Cortes manuais, Ter 13/10: 9 itens']").first # 9: a Yaksoba aberta nos floretes de brócolis e couve-flor (D25)
-    assert link, "número de Cortes manuais em 13/10 na faixa"
+    link = css_select("a.bar").find { |a| a["aria-label"].to_s.start_with?("Planilha de Produção, Ter 13/10:") }
+    assert link, "número da Planilha de Produção em 13/10 na faixa"
     path, anchor = link["href"].split("#")
-    assert_equal "setor-manual", anchor
+    assert_equal "planilha", anchor
 
     get path
     assert_response :success
-    assert_select "section##{anchor} h2", "Cortes manuais"
+    assert_select "section##{anchor} h2", "Ordens de serviço"
   end
 
   test "observação da linha aparece por extenso na grade e na programação" do
@@ -71,7 +71,8 @@ class ScreensTest < ActionDispatch::IntegrationTest
 
   test "salvar a grade altera o pedido e avisa quando o plano enviado mudou" do
     ActsAsTenant.with_tenant(company) do
-      PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call)
+      # A entrega de 13/10 é executada na véspera (12/10).
+      PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: Date.new(2026, 10, 12)).call)
     end
     product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "cenoura_ralada") }
     customer = ActsAsTenant.with_tenant(company) { Customer.find_by!(code: "hnorte") }
@@ -89,38 +90,26 @@ class ScreensTest < ActionDispatch::IntegrationTest
     assert_match "não é um número", response.body
   end
 
-  test "produção do dia agrupa por setor e mostra aprontes" do
+  test "a Planilha de Produção é uma lista só, sem setores nem aprontes" do
     get production_path(date: "2026-10-13")
     assert_response :success
-    assert_select "h2", "Ralados, picados e rodelas"
-    assert_select "h2", /Aprontes/
+    assert_select "h1", "Planilha de Produção"
+    assert_select "h2", "Ordens de serviço"
+    assert_select "h2", text: /Aprontes|Ralados, picados e rodelas/, count: 0
+    assert_select "nav[aria-label='Setores']", count: 0
     assert_select "td.name", /\ACenoura ralada · 3 mm\z/ # medida do produto quando o pedido não diz (R2.12, D30)
     assert_select "tr", text: /Cenoura ralada/ do
-      assert_select "td.who", /Bom Pastor 0,5 \(Yaksoba, Qua 14\/10\)|Bom Pastor 0,5 \(Yaksoba, 14\/10\)/ # ingrediente da Yaksoba (R2.9, D25)
+      assert_select "td.who", /Bom Pastor 0,5 \(Yaksoba/ # ingrediente da Yaksoba (R2.9, D25)
     end
   end
 
-  test "produção filtrada por setor mostra só a lista daquela bancada, na tela e no PDF" do
-    get production_path(date: "2026-10-13", sector: "ralpic")
-    assert_select "nav[aria-label='Setores'] a[aria-current='true']", "Ralados, picados e rodelas"
-    assert_select "h2", "Ralados, picados e rodelas"
-    assert_select "h2", text: "Cortes manuais", count: 0
-    assert_select "h2", text: "Aprontes", count: 0
-    assert_select "a[aria-label='Próximo dia'][href*='sector=ralpic']"
-
-    get production_path(date: "2026-10-13", sector: "aprontes")
-    assert_select "h2", "Aprontes"
-    assert_select "h2", text: "Ralados, picados e rodelas", count: 0
-
-    get production_path(date: "2026-10-13", sector: "lixo")
-    assert_select "nav[aria-label='Setores'] a[aria-current='true']", "Todos"
-    assert_select "h2", "Cortes manuais"
-
-    get production_path(date: "2026-10-13", sector: "ralpic", format: :pdf)
+  test "o PDF da Planilha de Produção mostra a medida de cada item" do
+    get production_path(date: "2026-10-13", format: :pdf)
     assert_equal "application/pdf", response.media_type
     text = PDF::Reader.new(StringIO.new(response.body)).pages.map(&:text).join("\n")
+    assert_match "Planilha de Produção", text
     assert_match "Cenoura ralada · 3 mm", text, "o PDF mostra a medida de cada item, como a tela (D24)"
-    assert_match "producao-2026-10-13-ralpic.pdf", response.headers["Content-Disposition"]
+    assert_match "producao-2026-10-13.pdf", response.headers["Content-Disposition"]
   end
 
   test "enviar aos setores cria a versão e a tela passa a mostrar igual" do

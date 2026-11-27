@@ -1,5 +1,6 @@
-# Calcula a produção de um dia: o que produzir por produto (com a abertura por cliente e entrega)
-# e as caixas a aprontar por matéria-prima. Nada é digitado: tudo sai das linhas de pedido.
+# Planilha de Produção de um dia de execução (esteira simplificada, passo 4): o que produzir por produto, com a abertura
+# por cliente e entrega. Entra cada item cujo dia de execução (escolhido pelo Gerente de Produção na Programação, ou a
+# véspera da entrega) é o dia. Sem setores e sem aprontes no MVP.
 # Referência: funções producao() e aprontes() do protótipo (docs/prototipo/safra.html, privado).
 class ProductionPlanner
   # measure: a medida que orienta o preparo (Cut#measure_for). Duas medidas do mesmo produto são dois itens (R2.4, D24).
@@ -30,20 +31,10 @@ class ProductionPlanner
       items.find { |item| item.product.code == product_code }
     end
 
-    # Setores com produção no dia, na ordem de Cut::SECTORS, mais "aprontes" se houver caixas a aprontar.
-    def sectors
-      present = items.map { |item| item.product.sector }
-      Cut::SECTORS.select { |sector| present.include?(sector) } + (aprontes.any? ? [ APRONTES ] : [])
-    end
+    # MVP (esteira simplificada): a Planilha de Produção é uma lista só, sem setores; eles entram depois do MVP.
+    def sectors = []
 
-    # Só a lista de um setor (ou só os aprontes), para a tela e o PDF de cada bancada.
-    def for_sector(sector)
-      return self if sector.blank?
-      return with(items: []) if sector == APRONTES
-
-      kept = items.select { |item| item.product.sector == sector }
-      with(items: kept, delivery_dates: kept.flat_map { |item| item.breakdown.map(&:delivery_date) }.uniq.sort, aprontes: [])
-    end
+    def for_sector(_sector) = self
   end
   APRONTES = "aprontes".freeze
   # Corte da fruta descascada vendida por unidade (laranja descascada): a esteira diz que ela inclui descasque.
@@ -63,7 +54,7 @@ class ProductionPlanner
   def raw_lines
     ActsAsTenant.with_tenant(@company) do
       window_lines.select do |line|
-        line.product.raw? && (line.delivery_date == @date || line.product.production_date_for(line.delivery_date) == @date)
+        line.product.raw? && (line.delivery_date == @date || line.execution_on == @date)
       end
     end
   end
@@ -99,12 +90,13 @@ class ProductionPlanner
 
   # Também monta a versão enviada (ProductionPlan#to_result): entregas e aprontes saem dos itens, não do pedido.
   def self.result(date, items)
-    items = items.sort_by { |item| [ item.product.sector.to_s, item.product.name, item.measure.to_s ] }
+    items = items.sort_by { |item| [ item.product.name, item.measure.to_s ] }
+    # Sem aprontes em caixas no MVP: a esteira simplificada não traz setores nem caixas a descascar.
     Result.new(
       date: date,
       items: items,
       delivery_dates: items.flat_map { |item| item.breakdown.map(&:delivery_date) }.uniq.sort,
-      aprontes: aprontes(items)
+      aprontes: []
     )
   end
 
@@ -164,7 +156,7 @@ class ProductionPlanner
   end
 
   def day_lines
-    window_lines.select { |line| line.product.production_date_for(line.delivery_date) == @date }
+    window_lines.select { |line| line.execution_on == @date }
   end
 
   # Só entregas dentro da janela possível: produção é no máximo `lead_days` + fim de semana antes da entrega.

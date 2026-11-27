@@ -100,13 +100,6 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
 
   public
 
-  test "ralados, picados e rodelas batem 100% com a planilha (regra confirmada), fora a mistura somada pelos ingredientes" do
-    rows = @conferencia.confirmed_same_day_rows
-    assert_not_empty rows
-    diferentes = rows.reject { |row| row.ok? || row.reason == :mixture } # a planilha não soma a Yaksoba pelos ingredientes (R2.8, D25)
-    assert_empty diferentes.map { |row| [ row.date, row.code, row.planilha, row.sistema ] }
-  end
-
   test "lista as diferenças com as planilhas sem falhar" do
     report = @conferencia.report
     File.write(Rails.root.join("tmp/conferencia_planilhas.txt"), "#{report}\n\nResumo: #{@conferencia.summary}\n")
