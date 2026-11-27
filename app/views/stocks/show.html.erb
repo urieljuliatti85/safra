@@ -2,7 +2,7 @@
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="page-title">Estoque da câmara fria</h1>
-    <p class="page-sub">Conte o que há na câmara: matéria-prima em kg e, mais abaixo, o produto pronto. A compra da CEASA abate o que está contado; o que sobra segue para a compra seguinte, até uma contagem nova. <strong>Campo vazio</strong> é não contado (nada é abatido), <strong>0</strong> é câmara vazia.</p>
+    <p class="page-sub">Conte o que há na câmara: matéria-prima em kg e, mais abaixo, o produto pronto. A contagem vale para a próxima compra da CEASA, que abate o que está contado. <strong>Campo vazio</strong> é não contado (nada é abatido), <strong>0</strong> é câmara vazia.</p>
   </div>
   <%= day_nav(@date, :stock_path) %>
 </div>
@@ -71,7 +71,7 @@
     </table>
   </div>
   <h2 class="mt-6 mb-2 text-lg font-bold">Produto pronto</h2>
-  <p class="page-sub mb-3">O que já está pronto na câmara, na unidade do produto. A compra abate do pedido antes do fator de conversão; o que sobra segue para a compra seguinte, até uma contagem nova.</p>
+  <p class="page-sub mb-3">O que já está pronto na câmara, na unidade do produto. A próxima compra abate do pedido antes do fator de conversão.</p>
   <div class="sheet-wrap">
     <table class="sheet stock-sheet ready-sheet">
       <thead>

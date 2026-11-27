@@ -101,12 +101,13 @@ class StockTest < ActionDispatch::IntegrationTest
     assert_no_match "15/10 mudou", response.body
   end
 
-  test "sobra da contagem passa para a compra seguinte e as duas avisam, em ordem" do
+  test "contagem maior que a compra muda só a compra seguinte a ela: a sobra não passa adiante" do
     publish_purchase(Date.new(2026, 10, 13))
     publish_purchase(Date.new(2026, 10, 15))
     patch stock_path, params: { date: "2026-10-12", counts: { raw_material("cenoura").id => "1000" } }
     follow_redirect!
-    assert_match "compra de 13/10, 15/10 mudou desde a versão enviada", response.body
+    assert_match "compra de 13/10 mudou desde a versão enviada", response.body
+    assert_no_match "15/10 mudou", response.body
   end
 
   test "contagem que não muda a compra enviada não avisa" do

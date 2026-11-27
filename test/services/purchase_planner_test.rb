@@ -86,24 +86,18 @@ class PurchasePlannerTest < ActiveSupport::TestCase
     assert_equal 30, stock_for("cenoura", Date.new(2026, 10, 15))
   end
 
-  test "o que sobra depois de abater vai para a compra seguinte" do
+  # Saldo informado (esteira): a contagem vale só para a compra seguinte a ela. A sobra não passa para a outra compra.
+  test "o que sobra depois de abater não passa para a compra seguinte" do
     need_13 = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg").kg
-    need_15 = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 15), "cenoura", "kg").kg
     count("cenoura", Date.new(2026, 10, 12), need_13 + 5)
     assert_equal need_13, stock_for("cenoura", Date.new(2026, 10, 13))
-    assert_equal [ 5, need_15 ].min, stock_for("cenoura", Date.new(2026, 10, 15))
+    assert_equal 0, stock_for("cenoura", Date.new(2026, 10, 15))
   end
 
-  test "contagem nova substitui a sobra da anterior" do
+  test "contagem feita antes da compra anterior não vale para a seguinte" do
     count("cenoura", Date.new(2026, 10, 12), 1000)
     count("cenoura", Date.new(2026, 10, 14), 4)
     assert_equal 4, stock_for("cenoura", Date.new(2026, 10, 15))
-  end
-
-  test "contagem zero (câmara vazia) zera a sobra" do
-    count("cenoura", Date.new(2026, 10, 12), 1000)
-    count("cenoura", Date.new(2026, 10, 14), 0)
-    assert_equal 0, stock_for("cenoura", Date.new(2026, 10, 15))
   end
 
   test "contagem depois da última compra não abate nada" do

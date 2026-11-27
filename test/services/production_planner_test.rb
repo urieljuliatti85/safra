@@ -32,9 +32,9 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     assert_same plan, plan.for_sector(nil)
   end
 
-  # Relação de descasque e preparo por vegetal e unidade (R3.11, D42): a laranja descascada entra em unidades, pelo
-  # corte que passa pelo descasque; a banana embalada não.
-  test "aprontes: laranja descascada em unidade entra pelo corte que passa pelo descasque" do
+  # Relação de descasque e preparo por vegetal e unidade (D42): a laranja descascada entra em unidades ("Laranja
+  # descascada inclui descasque", esteira); a banana embalada não.
+  test "aprontes: laranja descascada em unidade entra no descasque; banana embalada não" do
     date = Date.new(2026, 10, 14)
     ActsAsTenant.with_tenant(company) do
       order = Order.joins(:customer).find_by!(customers: { code: "hbp" }, week_start: Date.new(2026, 10, 12))
@@ -49,9 +49,6 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     laranja = aprontes.find { |a| a.raw_material.code == "laranja" }
     assert_equal [ "un", 250, nil, nil ], [ laranja.unit, laranja.quantity, laranja.boxes, laranja.kg ]
     assert_not(aprontes.any? { |a| a.raw_material.code == "banana_nanica" })
-
-    ActsAsTenant.with_tenant(company) { Cut.find_by!(code: "descascada_un").update!(peeled: false) }
-    assert_not(ProductionPlanner.new(company: company, date: date).call.aprontes.any? { |a| a.raw_material.code == "laranja" })
   end
 
   test "aprontes: caixas = ROUND(kg processado / kg por caixa descascada)" do

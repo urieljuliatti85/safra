@@ -46,6 +46,8 @@ class ProductionPlanner
     end
   end
   APRONTES = "aprontes".freeze
+  # Corte da fruta descascada vendida por unidade (laranja descascada): a esteira diz que ela inclui descasque.
+  PEELED_FRUIT_CUT = "descascada_un".freeze
 
   def initialize(company:, date:)
     @company = company
@@ -106,8 +108,9 @@ class ProductionPlanner
     )
   end
 
-  # Em kg, como sempre: processado fora dos descascados inteiros, com o kg por caixa descascada. Em unidade: os cortes
-  # que passam pelo descasque (Cut#peeled, D42), somados por vegetal.
+  # Em kg, como sempre: processado fora dos descascados inteiros, com o kg por caixa descascada. Em unidade: a fruta
+  # descascada, pela esteira ("Laranja descascada inclui descasque"), somada por vegetal. As outras operações vêm das
+  # ordens de serviço do Gerente de Produção (R3.11, D34), não de cadastro.
   def self.aprontes(items)
     totals = Hash.new(0)
     items.each do |item|
@@ -125,7 +128,7 @@ class ProductionPlanner
   def self.apronte?(item, product)
     return product.sector != "descasc" && product.raw_material.kg_per_peeled_box.present? if item.unit == "kg"
 
-    product.cut&.peeled?
+    product.cut&.code == PEELED_FRUIT_CUT
   end
   private_class_method :apronte?
 
