@@ -35,13 +35,13 @@ class PurchasePlannerEsteiraTest < ActiveSupport::TestCase
     assert_equal 45, need.net_kg
     assert_equal 2.25, need.net_packages
     assert_equal 3, need.packages
-    assert_equal "3 cx", Formatting.need_text(need)
+    assert_equal "3 cx de 20 kg", Formatting.need_text(need)
   end
 
   test "o mesmo exemplo em fração: 2 caixas e 5 kg" do
     ActsAsTenant.with_tenant(company) { @product.update!(rounding: :fraction) }
     count(ready: 10, raw: 15)
-    assert_equal "2 cx e 5 kg", Formatting.need_text(need)
+    assert_equal "2 cx de 20 kg e 5 kg", Formatting.need_text(need)
   end
 
   test "sem produto pronto contado, o pedido inteiro vai para o fator" do
