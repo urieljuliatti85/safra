@@ -1,9 +1,11 @@
 class Product < ApplicationRecord
   GROUPS = %w[processed raw fruit].freeze
   GROUP_LABELS = { "processed" => "Processados", "fruit" => "Frutas embaladas ou descascadas", "raw" => "In natura" }.freeze
-  ROUNDINGS = { whole_box: 0, fraction: 1 }.freeze
+  ROUNDING_LABELS = { "whole_box" => "Caixa inteira", "fraction" => "Fração (caixas e kg)" }.freeze
 
   acts_as_tenant :company
+  # Arredondamento da compra (R3.9, D41): caixa inteira arredonda para cima; fração compra caixas e o resto em kg.
+  enum :rounding, { whole_box: 0, fraction: 1 }, suffix: true, validate: true
   include Auditable
 
   belongs_to :raw_material
@@ -14,7 +16,7 @@ class Product < ApplicationRecord
   has_many :order_lines, dependent: :restrict_with_error
   # Ingredientes, quando o produto é uma mistura (D18).
   has_many :components, -> { order(percentage: :desc) }, class_name: "ProductComponent", dependent: :destroy, inverse_of: :product
-  # Ingrediente de alguma mistura não pode ser apagar sem tirar da mistura antes.
+  # Ingrediente de alguma mistura não pode ser apagado sem tirar da mistura antes.
   has_many :used_in_mixes, class_name: "ProductComponent", foreign_key: :component_id, dependent: :restrict_with_error, inverse_of: :component
 
   validates :code, :name, :unit, presence: true
@@ -52,15 +54,6 @@ class Product < ApplicationRecord
     return cut&.measure_hint if cut.nil? || default_measure.blank?
 
     default_measure
-  end
-
-  # Critério de arredondamento para compra (R3.9, D41): 0 = caixa inteira (arredonda para cima), 1 = fração.
-  def whole_box_rounding?
-    rounding == ROUNDINGS[:whole_box]
-  end
-
-  def fraction_rounding?
-    rounding == ROUNDINGS[:fraction]
   end
 
   # Dias de antecedência: exceção por produto, senão o do corte; in natura segue a regra da empresa.

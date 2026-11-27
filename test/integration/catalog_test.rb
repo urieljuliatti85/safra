@@ -173,6 +173,16 @@ class CatalogTest < ActionDispatch::IntegrationTest
     assert_select "li", /Beterraba ralada · 3 mm: 25%/
   end
 
+  test "o arredondamento da compra é escolhido no produto: caixa inteira ou fração (R3.9)" do
+    product = Product.find_by!(code: "cenoura_ralada")
+    get edit_product_path(product)
+    assert_select "label", "Arredondamento da compra"
+    assert_select "option[selected]", "Caixa inteira"
+    patch product_path(product), params: { product: { name: product.name, product_group: "processed", raw_material_id: product.raw_material_id,
+                                                      cut_id: product.cut_id, unit: "kg", rounding: "fraction" } }
+    assert product.reload.fraction_rounding?
+  end
+
   # --- clientes e apelidos ---
 
   test "criar cliente gera o código e leva para os apelidos" do

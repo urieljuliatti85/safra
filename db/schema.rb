@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_26_134413) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_27_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -298,6 +298,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_26_134413) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "unit", default: "kg", null: false
+    t.decimal "loose_kg", precision: 10, scale: 3, default: "0.0", null: false
     t.index ["company_id"], name: "index_purchase_plan_items_on_company_id"
     t.index ["purchase_plan_id"], name: "index_purchase_plan_items_on_purchase_plan_id"
     t.index ["raw_material_id"], name: "index_purchase_plan_items_on_raw_material_id"
