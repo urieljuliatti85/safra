@@ -23,6 +23,7 @@ module ApplicationHelper
       { label: "Programação", path: schedule_path, controllers: %w[schedules], allowed: policy(:schedule).show? },
       { label: "Produção", path: production_path, controllers: %w[productions], icon: :production, allowed: policy(:production).show? },
       { label: "Compras", path: purchases_path, controllers: %w[purchases], icon: :purchases, allowed: policy(:purchase).show? },
+      { label: "Pesagem", path: weighing_path, controllers: %w[weighings], allowed: policy(:weighing).show? },
       { label: "Estoque", path: stock_path, controllers: %w[stocks], allowed: policy(:stock).show? },
       { label: "Cadastros", path: raw_materials_path, controllers: %w[raw_materials products customers suppliers customer_aliases cuts purchase_calendars],
         allowed: policy(:raw_material).index? }
