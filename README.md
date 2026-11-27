@@ -4,7 +4,7 @@ Sistema de planejamento de produção e compras para atacadista de hortifrúti e
 
 ## Requisitos
 
-- Ruby 3.3.11 (veja `.ruby-version`; com rbenv: `rbenv install 3.3.11`)
+- Ruby 3.3.14 (veja `.ruby-version`; com rbenv: `rbenv install 3.3.14`)
 - PostgreSQL 16 (local ou em Docker)
 - Para os testes de sistema: Google Chrome
 
