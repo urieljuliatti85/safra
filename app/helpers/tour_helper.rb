@@ -17,8 +17,8 @@ module TourHelper
       { path: new_order_import_path, target: "#file", title: "Um arquivo por vez",
         text: "Escolha o cliente e o arquivo. Processados e in natura vêm em planilhas separadas: importe cada uma." },
       { path: new_order_import_path, target: "[data-tour='send-file']", title: "2. Conferir antes de gravar",
-        text: "Ao enviar, cada célula aparece como novo, alterada ou apaga. Nome que o sistema não conhece: escolha o produto " \
-              "uma vez e ele aprende. Célula vazia numa linha com quantidades apaga aquele dia. Confira e clique em Aplicar." },
+        text: "Ao enviar, cada célula aparece como novo, alterada ou mantido. Nome que o sistema não conhece: escolha o produto " \
+              "uma vez e ele aprende. Célula vazia ou 0 não tira item: para tirar, \"Cancelar item\" na grade. Confira e clique em Aplicar." },
       { path: schedule_path, target: "main .panel", title: "3. Programação",
         text: "O que cada cliente recebe, por data de entrega, em quatro dias. O Gerente marca cada item (quadrado, produzir no dia; ponto, já pronto) e escolhe em que dia ele é feito." },
       { path: production_path, target: "section[aria-label='Estado do envio']", title: "4. Enviar a Planilha de Produção",

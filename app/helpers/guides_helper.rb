@@ -13,9 +13,9 @@ module GuidesHelper
         "Pedido por telefone ou WhatsApp: digite direto na grade do cliente."
       ], "Abrir Pedidos", orders_path),
       GuideStep.new("Conferir a planilha", [
-        "Antes de gravar, cada célula aparece como novo, alterada ou apaga.",
+        "Antes de gravar, cada célula aparece como novo, alterada ou mantido.",
         "Nome que o sistema não conhece: escolha o produto uma vez e ele aprende.",
-        "Célula vazia numa linha com quantidades apaga aquele dia do pedido.",
+        "Célula vazia ou 0 não tira item do pedido: o que já estava fica. Para tirar, use \"Cancelar item\" na grade.",
         "Confira e clique em Importar no pedido.",
         "Importou errado? Em Pedidos, clique na pill Desfazer da planilha."
       ], "Importar", new_order_import_path),

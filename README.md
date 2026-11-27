@@ -41,7 +41,7 @@ bin/rails db:reset         # apaga o banco e recomeça do zero (precisa de nenhu
 | Tela | O que faz |
 |---|---|
 | Painel | Página inicial do escritório e do administrador: as quatro etapas do dia (Pedidos, Programação, Produção, Compras) com o estado de cada uma em palavras, o que falta, o que mudou depois do envio, e a faixa da semana. Só lê o que as outras telas já calculam; cada etapa leva à sua tela. A Produção continua caindo na própria tela. |
-| Pedidos | Grade por cliente e semana (da segunda até a segunda seguinte; data fora disso é recusada). Quantidade vazia ou 0 apaga a linha. "Importar planilha" lê xlsx, xls, ods e csv e mostra o que muda antes de gravar; ODT ou imagem (pedido colado como print, como o da Aurora) abre a imagem ao lado da grade para digitar olhando. |
+| Pedidos | Grade por cliente e semana (da segunda até a segunda seguinte; data fora disso é recusada). Item que já estava só sai pelo "Cancelar item"; vazio ou 0 não apaga (R1.38). "Importar planilha" lê xlsx, xls, ods e csv e mostra o que muda antes de gravar; ODT ou imagem (pedido colado como print, como o da Aurora) abre a imagem ao lado da grade para digitar olhando. |
 | Programação | O que cada cliente pediu para um dia de entrega e quando cada item é produzido. |
 | Produção | Lista do dia por setor (filtro por setor e aprontes, na tela e no PDF), envio aos setores em versões, diferença depois do envio e histórico de envios. Quem trabalha na produção vê só a versão enviada. **Avisos no celular** (veja "Avisos de produção no celular") avisam, por setor, quando sai versão nova. |
 | Compras | Compra da CEASA por fornecedor, texto para WhatsApp e envio em versões. |
@@ -120,7 +120,7 @@ Os clientes mandam o pedido em planilha (xlsx, xls, ods ou csv). Em **Pedidos > 
 Regras que ajudam a entender a conferência:
 
 - "5 + 2" é somado (7) e avisado; número guardado como texto ("0.5") entra e é avisado; texto que não é número bloqueia a importação e aponta a linha e o dia.
-- Linhas sem nenhuma quantidade são ignoradas. A planilha manda nos produtos que ela traz: célula vazia numa linha com outras quantidades apaga a linha do pedido.
+- Linhas sem nenhuma quantidade são ignoradas. A planilha só inclui e muda quantidades: célula vazia ou 0 mantém o que já estava (R1.38). Para tirar um item, "Cancelar item" na grade.
 - Com mais de uma aba (por exemplo, cotação e pedido), vale a que tem mais produtos com quantidade.
 - Uma planilha por vez: processados e in natura costumam vir em arquivos separados.
 - A planilha precisa caber numa semana de pedido, da segunda até a segunda seguinte. Se passar disso (por exemplo, de sexta a terça), a conferência avisa e não deixa importar: separe em uma planilha por semana.

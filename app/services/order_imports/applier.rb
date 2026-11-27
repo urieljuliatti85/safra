@@ -1,6 +1,7 @@
 module OrderImports
   # Grava o que o usuário conferiu: reconhece de vez os nomes novos (apelido) e atualiza o pedido da semana.
-  # A planilha manda nos produtos que ela traz: célula vazia numa linha com outras quantidades apaga a linha.
+  # A planilha só inclui e muda quantidades: célula vazia ou 0 mantém o que já estava (R1.38, D23). Item que já estava
+  # no pedido só sai pelo "Cancelar item", como na grade.
   class Applier
     Result = Data.define(:errors, :changed_dates) do
       def ok?
@@ -28,7 +29,7 @@ module OrderImports
       saved = nil
       OrderImport.transaction do
         saved = OrderGridSaver.new(order: order, quantities: after, source: "import", import: @import, late_confirmed: @late_confirmed,
-                                   entry_type: @import.entry_type).call
+                                   entry_type: @import.entry_type, explicit_removal: true).call
         raise ActiveRecord::Rollback unless saved.ok?
 
         aliases = remember_names(chosen)
@@ -73,11 +74,12 @@ module OrderImports
     end
 
     # { "<product_id>|<unit>" => { "2026-10-13" => "7" } }, somando linhas do arquivo que viram o mesmo produto.
+    # Só entram as células com quantidade: vazia ou 0 não toca no pedido (R1.38).
     def grid(chosen)
       chosen.each_with_object({}) do |(row, product), grid|
-        cells = (grid["#{product.id}|#{row['unit'] || product.unit}"] ||= @import.dates.to_h { |d| [ d.iso8601, "" ] })
+        cells = (grid["#{product.id}|#{row['unit'] || product.unit}"] ||= {})
         row["quantities"].each do |date, text|
-          next if text.nil?
+          next if text.nil? || BigDecimal(text).zero?
 
           cells[date] = (BigDecimal(cells[date].presence || "0") + BigDecimal(text)).to_s("F").sub(/\.0\z/, "")
         end

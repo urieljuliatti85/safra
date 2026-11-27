@@ -1,8 +1,9 @@
 module OrderImports
   # O que a importação mudaria no pedido: por linha do arquivo e por dia, quantidade nova × a de hoje.
-  # No extra (D22), a planilha traz o acréscimo: a quantidade nova é a de hoje + a da planilha, e célula vazia não apaga.
+  # No extra (D22), a planilha traz o acréscimo: a quantidade nova é a de hoje + a da planilha. Em nenhum tipo célula
+  # vazia ou 0 apaga (R1.38): o item que já estava fica ("mantido"); para tirar, "Cancelar item" na grade.
   class Preview
-    Cell = Data.define(:date, :new_quantity, :current, :status) # status: :same | :new | :changed | :removed | :empty
+    Cell = Data.define(:date, :new_quantity, :current, :status) # status: :same | :new | :changed | :kept | :empty
     Line = Data.define(:index, :row, :product, :unit, :cells, :warnings)
 
     def initialize(import)
@@ -23,7 +24,7 @@ module OrderImports
     def counts
       cells = lines.flat_map(&:cells)
       { new: cells.count { |c| c.status == :new }, changed: cells.count { |c| c.status == :changed },
-        removed: cells.count { |c| c.status == :removed }, unmatched: lines.count { |l| l.product.nil? } }
+        kept: cells.count { |c| c.status == :kept }, unmatched: lines.count { |l| l.product.nil? } }
     end
 
     private
@@ -32,11 +33,12 @@ module OrderImports
       text = row["quantities"][date.iso8601]
       new_quantity = text && BigDecimal(text)
       current = product ? @current.fetch([ product.id, unit, date ], nil) : nil
+      new_quantity = nil if new_quantity&.zero?
       if @import.extra?
-        new_quantity = new_quantity&.positive? ? (current || 0) + new_quantity : current
+        new_quantity = new_quantity ? (current || 0) + new_quantity : current
       end
       status = if new_quantity.nil? && current.nil? then :empty
-      elsif new_quantity.nil? then :removed
+      elsif new_quantity.nil? then :kept
       elsif current.nil? then :new
       elsif current == new_quantity then :same
       else :changed
