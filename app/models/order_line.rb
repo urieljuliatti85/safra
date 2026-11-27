@@ -20,6 +20,7 @@ class OrderLine < ApplicationRecord
   validates :quantity, numericality: { greater_than_or_equal_to: 0, less_than: MAX_QUANTITY }
   validates :unit, inclusion: { in: UNITS }
   validates :schedule_mark, inclusion: { in: SCHEDULE_MARKS.keys }
+  validates :actual_kg, numericality: { greater_than_or_equal_to: 0, less_than: MAX_QUANTITY }, allow_nil: true
   validate :execution_date_before_delivery
 
   # Até quantos dias antes da entrega o item pode ser adiantado.
@@ -33,6 +34,11 @@ class OrderLine < ApplicationRecord
   def execution_options = ((delivery_date - EXECUTION_DAYS)..delivery_date).to_a
 
   delegate :customer, to: :order
+
+  # Peso real da pesagem (R2.6, R2.7), em kg. Aceita vírgula decimal ("12,5"); vazio é ainda não pesado.
+  def actual_kg=(value)
+    super(value.is_a?(String) ? value.strip.tr(",", ".").presence : value)
+  end
 
   private
 

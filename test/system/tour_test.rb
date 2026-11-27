@@ -50,7 +50,7 @@ class TourTest < ApplicationSystemTestCase
     sign_in_through_form(:office)
     click_on "Veja como funciona"
     assert_selector "h1", text: "Como funciona"
-    assert_selector ".flow-step", count: 6
+    assert_selector ".flow-step", count: 7
     click_on "Fazer o tour guiado"
     assert_current_path orders_path
     assert_selector ".tour-card", text: "Passo 1 de 9"

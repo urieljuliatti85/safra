@@ -33,6 +33,11 @@ module GuidesHelper
         "No dia de compra a lista já vem com o volume total de cada matéria-prima, por fornecedor.",
         "Copie o texto para o WhatsApp de cada fornecedor e clique em Enviar aos fornecedores."
       ], "Abrir Compras", purchases_path),
+      GuideStep.new("Pesagem", [
+        "Na Pesagem, abra o dia de entrega: cada cliente traz os produtos com a quantidade e a unidade do pedido.",
+        "Separe, pese e anote o peso real em kg de cada item, inclusive fruta pedida em unidade. Esse peso vai para o faturamento.",
+        "O total em kg do cliente aparece quando todos os itens dele foram pesados."
+      ], "Abrir Pesagem", weighing_path),
       GuideStep.new("Quando o pedido muda", [
         "Reimporte a planilha ou edite a grade.",
         "Produção e compra mostram \"Mudou depois do envio\", item a item.",

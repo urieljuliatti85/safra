@@ -81,6 +81,9 @@ Rails.application.routes.draw do
     end
   end
 
+  get "pesagem", to: "weighings#show", as: :weighing
+  patch "pesagem", to: "weighings#update"
+
   get "estoque", to: "stocks#show", as: :stock
   patch "estoque", to: "stocks#update"
 

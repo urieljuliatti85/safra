@@ -1,0 +1,62 @@
+<% content_for :title, "Pesagem · Safra" %>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Pesagem</h1>
+    <p class="page-sub">O checklist da entrega, por cliente: separe, pese e anote o <strong>peso real em kg</strong> de cada item, inclusive a fruta pedida em unidade. O peso real vai para o faturamento; a quantidade e a unidade do pedido não mudam. <strong>Campo vazio</strong> é ainda não pesado.</p>
+  </div>
+  <%= day_nav(@date, :weighing_path) %>
+</div>
+
+<% if @errors.present? %>
+  <div class="flash flash-alert" role="alert">
+    <%= icon :alert %>
+    <div><p class="font-bold">Nada foi salvo. Corrija:</p><ul class="list-disc ml-5"><% @errors.each do |error| %><li><%= error %></li><% end %></ul></div>
+  </div>
+<% end %>
+
+<% if @stops.empty? %>
+  <p class="panel muted p-6 text-center">Nenhuma entrega em <%= short_date(@date) %>.</p>
+<% else %>
+  <%= form_with url: weighing_path, method: :patch, data: { turbo: false } do %>
+    <%= hidden_field_tag :date, @date.iso8601 %>
+    <% @stops.each do |stop| %>
+      <section class="mb-6" aria-labelledby="weighing-<%= stop.customer.id %>">
+        <div class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="weighing-<%= stop.customer.id %>" class="text-lg font-bold"><%= stop.customer.name %></h2>
+          <span class="muted text-sm" data-weighing-total>
+            <% if stop.complete? %>
+              Total pesado: <strong class="num"><%= qty(stop.kg_total) %> kg</strong>
+            <% else %>
+              <%= stop.weighed %> de <%= stop.lines.size %> pesados
+            <% end %>
+          </span>
+        </div>
+        <div class="sheet-wrap">
+          <table class="sheet stock-sheet">
+            <thead>
+              <tr>
+                <th class="sticky-col">Produto</th>
+                <th scope="col" class="px-2 text-right">Pedido</th>
+                <th scope="col" class="px-2 text-right">Peso real</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% stop.lines.each do |line| %>
+                <% value = @typed ? @typed[line.id.to_s] : (qty(line.actual_kg) if line.actual_kg) %>
+                <tr>
+                  <th scope="row" class="sticky-col font-medium"><%= line.product.name %><% if line.measure.present? %> <span class="muted text-sm"><%= line.measure %></span><% end %></th>
+                  <td class="num px-2 text-right" data-label="Pedido"><%= qty(line.quantity) %> <%= line.unit %></td>
+                  <td class="count px-1 text-right"><%= text_field_tag "weights[#{line.id}]", value, inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Peso real de #{line.product.name} para #{stop.customer.short_name}, em kg" %><span class="unit-label ml-1 muted text-sm">kg</span></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    <% end %>
+    <div class="savebar">
+      <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar pesagem<% end %>
+      <span class="muted text-sm">Use vírgula para decimais. Apagar o campo volta o item para não pesado.</span>
+    </div>
+  <% end %>
+<% end %>
