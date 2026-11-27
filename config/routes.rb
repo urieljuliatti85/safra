@@ -56,6 +56,7 @@ Rails.application.routes.draw do
   end
 
   get "schedule", to: "schedules#show"
+  patch "schedule/marks/:id", to: "schedules#mark", as: :schedule_mark
   get "production", to: "productions#show"
   resource :push_subscription, only: %i[show create destroy], path: "avisos"
   resource :tour, only: :create

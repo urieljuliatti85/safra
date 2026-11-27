@@ -5,7 +5,7 @@
 class BiReport
   MAX_DAYS = 92
   DATASETS = {
-    schedule: %i[delivery_date customer customer_name product product_name group quantity unit production_date],
+    schedule: %i[delivery_date customer customer_name product product_name group quantity unit production_date mark],
     production: %i[production_date sector sector_name product product_name raw_material raw_material_name customer delivery_date quantity unit measure via],
     purchases: %i[purchase_date supplier raw_material raw_material_name unit gross_kg stock_kg net_kg packages loose_kg package missing_factor],
     losses: %i[production_date sector product product_name raw_material raw_material_name processed_kg raw_kg loss_kg loss_pct measure]
@@ -27,7 +27,7 @@ class BiReport
         group.entries.map do |e|
           { delivery_date: date.iso8601, customer: group.customer.code, customer_name: group.customer.name,
             product: e.product.code, product_name: e.product.name, group: e.product.product_group,
-            quantity: num(e.quantity), unit: e.unit, production_date: e.production_date&.iso8601 }
+            quantity: num(e.quantity), unit: e.unit, production_date: e.production_date&.iso8601, mark: e.mark }
         end
       end
     end
