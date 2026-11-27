@@ -93,13 +93,14 @@ class OrderImportsController < ApplicationController
     end
   end
 
-  # Devolve o pedido ao que era antes da planilha, da imagem ou do PDF de AFs. Planos enviados não são reenviados: o
-  # aviso diz quais mudaram.
+  # Devolve o pedido ao que era antes da planilha, da imagem ou do PDF de AFs e apaga as versões enviadas que ela gerou.
   def undo
     result = OrderImports::Undoer.new(import: @import).call
     if result.ok?
-      redirect_to order_import_path(@import), notice: "#{UNDONE.fetch(@import.kind)}: o pedido de #{@import.customer.short_name} voltou ao que era antes.",
-                                              alert: StalePlans.warning(current_company)
+      removed = result.removed_plans.map { |plan| helpers.sent_plan_label(plan) }
+      notice = "#{UNDONE.fetch(@import.kind)}: o pedido de #{@import.customer.short_name} voltou ao que era antes."
+      notice += " Versões enviadas apagadas: #{removed.join(', ')}." if removed.any?
+      redirect_to order_import_path(@import), notice: notice, alert: StalePlans.warning(current_company)
     else
       redirect_to order_import_path(@import), alert: result.errors.to_sentence
     end
@@ -154,6 +155,7 @@ class OrderImportsController < ApplicationController
 
     @later_edits = @undoer.later_edits
     @stale_after_undo = @undoer.stale_after_undo
+    @plans_to_remove = @undoer.plans_to_remove
   end
 
   def show_afs(status: :ok)

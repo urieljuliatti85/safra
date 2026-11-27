@@ -143,6 +143,32 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     assert OrderImports::Applier.new(import: record, mappings: { record.rows.index { |r| r["name"].start_with?("Pitaya") }.to_s => "ignore" }).call.ok?
   end
 
+  # Desfazer tira do processo o que a importação gerou: as versões enviadas depois dela, com itens dela, são apagadas.
+  test "desfazer apaga as versões enviadas depois da importação que trazem itens dela; o resto fica" do
+    lascas = Product.find_by!(code: "abobora_lascas")
+    before_import = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: Date.new(2026, 10, 12)).call)
+    travel 1.minute
+    record = apply_sr_with_pitaya
+    travel 1.minute
+    line = Order.find_by!(customer: @hbp, week_start: Date.new(2026, 10, 12)).lines.find_by!(product: lascas)
+    production = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: line.execution_on).call)
+    purchase_date = PurchaseCalendar.new(company).on_or_before(line.execution_on)
+    purchase = PlanPublisher.purchase(company: company, date: purchase_date, needs: PurchasePlanner.new(company: company).call.purchases.fetch(purchase_date))
+    unrelated = PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: Date.new(2026, 10, 25)).call)
+
+    undoer = OrderImports::Undoer.new(import: record)
+    assert_equal [ production, purchase ].sort_by { |p| [ p.date, p.class.name ] }, undoer.plans_to_remove.sort_by { |p| [ p.date, p.class.name ] }
+    result = undoer.call
+    assert result.ok?, result.errors.inspect
+    assert_equal 2, result.removed_plans.size
+
+    assert_not ProductionPlan.exists?(production.id)
+    assert_not PurchasePlan.exists?(purchase.id)
+    assert ProductionPlan.exists?(before_import.id), "enviada antes da importação fica"
+    assert ProductionPlan.exists?(unrelated.id), "sem item da importação fica"
+    assert_not OrderLine.exists?(line.id)
+  end
+
   test "desfazer volta o apelido que a importação trocou de produto" do
     record = import("pedido_com_unidade.xlsx", @serra)
     index = record.rows.index { |r| r["name"] == "ABÓBORA CUBOS" }
@@ -169,7 +195,7 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     assert_equal before, order_state(@hbp)
   end
 
-  test "simular o desfazer lista os planos enviados que vão mudar sem gravar nada" do
+  test "simular o desfazer lista as versões enviadas que serão apagadas, sem gravar nada" do
     # Cenoura ralada entregue em 15/10 é produzida na véspera (14/10) e cai na compra de 13/10.
     Order.find_by!(customer: @serra, week_start: Date.new(2026, 10, 12)).lines
          .find_by!(product: Product.find_by!(code: "cenoura_ralada"), delivery_date: Date.new(2026, 10, 15)).update!(quantity: 50)
@@ -183,9 +209,15 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     end
     after_apply = order_state(@serra)
 
-    stale = OrderImports::Undoer.new(import: record).stale_after_undo
-    assert_includes stale[:production], Date.new(2026, 10, 14)
-    assert_includes stale[:purchase], Date.new(2026, 10, 13)
+    undoer = OrderImports::Undoer.new(import: record)
+    removed = undoer.plans_to_remove.map { |plan| [ plan.class.name, plan.date ] }
+    assert_includes removed, [ "ProductionPlan", Date.new(2026, 10, 14) ]
+    assert_includes removed, [ "PurchasePlan", Date.new(2026, 10, 13) ]
+    plans = [ ProductionPlan.count, PurchasePlan.count ]
+    stale = undoer.stale_after_undo
+    assert_empty stale[:production], "as versões enviadas depois da importação saem; não sobra versão diferente do pedido"
+    assert_empty stale[:purchase]
+    assert_equal plans, [ ProductionPlan.count, PurchasePlan.count ]
     assert_equal after_apply, order_state(@serra)
     assert_equal "applied", record.reload.status
   end
