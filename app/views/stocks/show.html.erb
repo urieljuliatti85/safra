@@ -2,7 +2,7 @@
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="page-title">Estoque da câmara fria</h1>
-    <p class="page-sub">Conte só o <strong>saldo aproveitável</strong>: o que está dentro da condição de uso e não está comprometido. O que está estragado, separado para um cliente ou fora de uso não entra. Matéria-prima em kg e, mais abaixo, o produto pronto. A contagem vale para a próxima compra da CEASA, que abate o que está contado. "Disponível" é o último saldo contado mais o recebido nas compras depois dele (Recebimento). <strong>Campo vazio</strong> é não contado (nada é abatido), <strong>0</strong> é nada aproveitável.</p>
+    <p class="page-sub">Conte só o <strong>saldo aproveitável</strong>: o que está dentro da condição de uso e não está comprometido. O que está estragado, separado para um cliente ou fora de uso não entra. Matéria-prima em kg e, mais abaixo, o produto pronto. "Disponível" é o último saldo contado mais o recebido nas compras depois dele (Recebimento). <strong>Campo vazio</strong> é não contado, <strong>0</strong> é nada aproveitável. A compra da CEASA não abate o estoque: ela é o volume total dos pedidos.</p>
   </div>
   <%= day_nav(@date, :stock_path) %>
 </div>
@@ -46,8 +46,6 @@
           <th scope="col" class="px-2 text-right">Disponível</th>
           <% if @purchase_date %>
             <th scope="col" class="px-2 text-right">Precisa em <%= short_date(@purchase_date) %></th>
-            <th scope="col" class="px-2 text-right">Abate do estoque</th>
-            <th scope="col" class="px-2 text-right">Comprar</th>
           <% end %>
         </tr>
       </thead>
@@ -65,19 +63,17 @@
             <td class="num px-2 text-right <%= 'is-empty' unless last || received.positive? %>" data-label="Disponível"><%= last || received.positive? ? "#{qty((last&.kg || 0) + received)} kg" : "-" %></td>
             <% if @purchase_date %>
               <td class="num px-2 text-right <%= 'is-empty' unless need %>" data-label="Precisa"><%= need ? "#{qty(need.kg)} kg" : "-" %></td>
-              <td class="num px-2 text-right <%= 'is-empty' unless need&.stock_kg&.positive? %>" data-label="Abate"><%= need && need.stock_kg.positive? ? "#{qty(need.stock_kg)} kg" : "-" %></td>
-              <td class="num px-2 text-right font-bold <%= 'is-empty' unless need %>" data-label="Comprar"><%= need ? need_text(need) : "-" %></td>
             <% end %>
           </tr>
         <% end %>
         <% if @raw_materials.empty? %>
-          <tr><td colspan="8" class="muted p-6 text-center">Nenhuma matéria-prima para mostrar. Marque "Mostrar todas" para contar qualquer uma.</td></tr>
+          <tr><td colspan="6" class="muted p-6 text-center">Nenhuma matéria-prima para mostrar. Marque "Mostrar todas" para contar qualquer uma.</td></tr>
         <% end %>
       </tbody>
     </table>
   </div>
   <h2 class="mt-6 mb-2 text-lg font-bold">Produto pronto</h2>
-  <p class="page-sub mb-3">O produto pronto aproveitável na câmara, na unidade do produto: dentro da condição de uso e ainda não separado para um cliente. A próxima compra abate do pedido antes do fator de conversão.</p>
+  <p class="page-sub mb-3">O produto pronto aproveitável na câmara, na unidade do produto: dentro da condição de uso e ainda não separado para um cliente.</p>
   <div class="sheet-wrap">
     <table class="sheet stock-sheet ready-sheet">
       <thead>
@@ -85,22 +81,19 @@
           <th class="sticky-col">Produto</th>
           <th scope="col" class="px-2 text-right">Aproveitável em <%= short_date(@date) %></th>
           <th scope="col" class="px-2 text-right">Contagem anterior</th>
-          <% if @purchase_date %><th scope="col" class="px-2 text-right">Abate do pedido em <%= short_date(@purchase_date) %></th><% end %>
         </tr>
       </thead>
       <tbody>
         <% @products.each do |product| %>
           <% previous = @ready_previous[product.id] %>
-          <% used = @ready_used[product.id] %>
           <tr>
             <th scope="row" class="sticky-col font-medium"><%= product.name %></th>
             <td class="count px-1 text-right"><%= text_field_tag "ready_counts[#{product.id}]", (qty(@ready_today[product.id].quantity) if @ready_today[product.id]), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Contagem de #{product.name} pronto, em #{product.unit}" %><span class="unit-label ml-1 muted text-sm"><%= product.unit %></span></td>
             <td class="num px-2 text-right muted <%= 'is-empty' unless previous %>" data-label="Anterior"><%= previous ? "#{qty(previous.quantity)} #{product.unit} em #{short_date(previous.date)}" : "-" %></td>
-            <% if @purchase_date %><td class="num px-2 text-right <%= 'is-empty' unless used %>" data-label="Abate"><%= used ? "#{qty(used)} #{product.unit}" : "-" %></td><% end %>
           </tr>
         <% end %>
         <% if @products.empty? %>
-          <tr><td colspan="4" class="muted p-6 text-center">Nenhum produto para mostrar. Marque "Mostrar todas" para contar qualquer um.</td></tr>
+          <tr><td colspan="3" class="muted p-6 text-center">Nenhum produto para mostrar. Marque "Mostrar todas" para contar qualquer um.</td></tr>
         <% end %>
       </tbody>
     </table>

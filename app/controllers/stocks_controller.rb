@@ -1,5 +1,5 @@
-# Estoque da câmara fria: contagem por matéria-prima e dia, em kg. O PurchasePlanner abate da compra o que
-# está contado. Campo vazio = não contado (nada é abatido); 0 = câmara vazia. A Produção conta a câmara, mas
+# Estoque da câmara fria: contagem por matéria-prima e dia, em kg, e do produto pronto. No MVP (esteira simplificada) a
+# compra não abate o estoque. Campo vazio = não contado; 0 = câmara vazia. A Produção conta a câmara, mas
 # não vê a compra (colunas, link e aviso de compra enviada ficam só para quem acessa Compras).
 class StocksController < ApplicationController
   authorize_resource :stock
@@ -78,7 +78,6 @@ class StocksController < ApplicationController
   # Produto pronto (R3.8, D39): os processados da próxima compra e os que já têm contagem; "Mostrar todas" e quem é
   # da produção veem todos.
   def load_ready
-    @ready_used = @needs.values.flat_map { |n| n.ready.to_a }.to_h { |product, quantity| [ product.id, quantity ] }
     in_purchase = @needs.values.flat_map { |n| n.breakdown.map { |b| b.product.id } }.to_set
     @ready_today = ProductStockCount.where(date: @date).index_by(&:product_id)
     @ready_previous = ProductStockCount.where(date: ...@date).order(:date).each_with_object({}) { |c, latest| latest[c.product_id] = c }
