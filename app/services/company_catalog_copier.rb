@@ -17,7 +17,7 @@ class CompanyCatalogCopier
         suppliers = source[:suppliers].to_h { |s| [ s.id, Supplier.create!(name: s.name) ] }
         cuts = source[:cuts].to_h { |c| [ c.id, Cut.create!(c.attributes.slice("code", "name", "sector", "sector_name", "lead_days", "reference_measure", "single_measure")) ] }
         raw_materials = source[:raw_materials].to_h do |rm|
-          attributes = rm.attributes.slice("code", "name", "multiply_factor", "kg_per_package", "kg_per_peeled_box", "purchase_package", "note")
+          attributes = rm.attributes.slice("code", "name", "multiply_factor", "kg_per_package", "kg_per_peeled_box", "units_per_package", "purchase_package", "note")
           [ rm.id, RawMaterial.create!(attributes.merge("supplier" => suppliers[rm.supplier_id])) ]
         end
         products = source[:products].to_h do |p|

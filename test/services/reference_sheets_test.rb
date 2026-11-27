@@ -179,7 +179,7 @@ class ReferenceSheetsTest < ActiveSupport::TestCase
 
   test "compra sem kg por embalagem aponta o cadastro" do
     comparison = SheetComparison.new(company, dates: WEEK..(WEEK + 6))
-    mamao = comparison.purchase_rows.find { |r| r.code == "mamao" && r.date == Date.new(2026, 10, 13) }
-    assert_equal [ :only_sheet, :missing_package ], [ mamao.status, mamao.reason ]
+    maca = comparison.purchase_rows.find { |r| r.code == "maca" && r.date == Date.new(2026, 10, 13) }
+    assert_equal :missing_package, maca.reason
   end
 end

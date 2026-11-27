@@ -27,9 +27,9 @@ class CatalogTest < ActionDispatch::IntegrationTest
   test "marca matéria-prima sem fator (processada) e sem kg por embalagem (caixa ou saco)" do
     get raw_materials_path(q: "cebola")
     assert_select "tr", text: /Cebola\b.*sem fator/m
-    get raw_materials_path(q: "mamão")
+    get raw_materials_path(q: "maçã")
     assert_select ".tag-change", text: "sem kg por embalagem"
-    assert_select ".tag-change", text: "sem fator", count: 0 # mamão só é vendido in natura
+    assert_select ".tag-change", text: "sem fator", count: 0 # maçã só é vendida in natura
   end
 
   test "filtro de incompletas lista só as que precisam de cadastro" do

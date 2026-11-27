@@ -30,6 +30,7 @@ pt-BR:
         supplier: Fornecedor
         multiply_factor: Fator
         kg_per_package: Kg por embalagem
+        units_per_package: Unidades por embalagem
         kg_per_peeled_box: Kg por caixa descascada
         purchase_package: Embalagem de compra
         note: Observação

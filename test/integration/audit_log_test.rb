@@ -88,8 +88,8 @@ class AuditLogTest < ActionDispatch::IntegrationTest
   test "mostra quem, quando e o antes e depois; o salvar em lote vira uma ação só" do
     sign_in_as(user_for(:office))
     cebola = RawMaterial.find_by!(code: "cebola")
-    mamao = RawMaterial.find_by!(code: "mamao")
-    patch bulk_update_raw_materials_path, params: { raw_materials: { cebola.id => { multiply_factor: "1,3" }, mamao.id => { kg_per_package: "6,5" } } }
+    maca = RawMaterial.find_by!(code: "maca")
+    patch bulk_update_raw_materials_path, params: { raw_materials: { cebola.id => { multiply_factor: "1,3" }, maca.id => { kg_per_package: "6,5" } } }
     sign_in_as(user_for(:admin))
     get audit_logs_path(type: "RawMaterial")
     assert_response :success
