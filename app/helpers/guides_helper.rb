@@ -77,7 +77,7 @@ module GuidesHelper
         "A conta segue a ordem da esteira: pedido, menos o produto pronto, vezes o fator, menos a matéria-prima da câmara, e só então as caixas.",
         "Produto pronto (contado em Estoque, na unidade do produto) abate o pedido do processado antes do fator. In natura entra como foi pedido.",
         "Processado em kg: kg in natura = kg a produzir × fator de perda da matéria-prima. Sem fator, ou em outra unidade (un, maço, caixa), entra sem converter e aparece um alerta.",
-        "Cada saldo é o informado: a contagem feita depois da compra anterior vale para a próxima compra. O que sobra não passa para a compra seguinte.",
+        "Cada saldo é o informado e só o aproveitável: o que está dentro da condição de uso e não está comprometido. A contagem feita depois da compra anterior vale para a próxima compra; o que sobra não passa para a compra seguinte.",
         "Caixas por produto: caixa inteira arredonda a parte do produto para cima; fração compra caixas e o resto em kg (\"2 cx e 5 kg\"). Folhas e itens sem embalagem ficam em kg.",
         "A lista sai por fornecedor, com o texto pronto para o WhatsApp.",
         "Produção antes da primeira compra cadastrada fica fora de qualquer compra: a Conferência avisa."
