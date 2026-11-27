@@ -24,6 +24,13 @@
     <p class="muted mt-1 text-sm">Vale quando o pedido não traz medida, no lugar da referência do corte. Exemplo: cenoura ralada, 3 mm (R2.12). Num corte de medida única (palito), é a medida fixa do produto: sai sempre nela, mesmo com outra medida no pedido. Exemplo: vagem em palitos, 40 × 10 mm (R2.11).</p>
   </div>
   <div>
+    <label class="flex items-start gap-2 font-bold">
+      <%= form.check_box :same_day_preparation, class: "mt-1" %>
+      Preparo no dia da entrega
+    </label>
+    <p class="muted mt-1 text-sm">Marcado, o item vem com "Executar em" no próprio dia da entrega, em vez da véspera (R3.7): temperos, folhagens e o Yaksoba. Numa mistura, os ingredientes vão junto; o mesmo ingrediente pedido sozinho segue o cadastro dele. O Gerente de Produção ainda pode mudar o dia na Programação. Não vale para in natura.</p>
+  </div>
+  <div>
     <%= form.label :unit, "Unidade do produto", class: "mb-1 block font-bold" %>
     <%= form.select :unit, OrderLine::UNITS, {}, class: "field w-full" %>
   </div>

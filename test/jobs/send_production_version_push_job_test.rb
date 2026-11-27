@@ -29,7 +29,7 @@ class SendProductionVersionPushJobTest < ActiveSupport::TestCase
     deliveries = with_push { SendProductionVersionPushJob.perform_now(plan.id) }
 
     assert_equal [ ralados ], deliveries.map(&:first)
-    assert_equal "Cenoura ralada · 3 mm: 8,5 → 12,5 kg", deliveries.first.last[:options][:body]
+    assert_equal "Cenoura ralada · 3 mm: 8 → 12 kg", deliveries.first.last[:options][:body]
     assert_not_includes deliveries.map(&:first), palitos
   end
 

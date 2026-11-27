@@ -1,7 +1,7 @@
 # Volume total de compra por dia de compra (CEASA) e matéria-prima, como no passo 3 da esteira simplificada (o MVP):
 # os processados convertidos em matéria-prima pelo fator, mais os pedidos in natura. Cada compra abastece a produção
 # do dia da compra até a véspera da compra seguinte, pelo dia de execução de cada item (escolhido na Programação ou,
-# sem escolha, a véspera da entrega).
+# sem escolha, a véspera da entrega ou, no preparo no dia (R3.7), o dia da entrega).
 # No MVP não há abate de estoque nem caixas: ready e stock_kg ficam vazios, net_kg é o volume total e packages é nil
 # (os campos continuam no Need para quem os lê; o abate e as caixas entram depois do MVP).
 class PurchasePlanner

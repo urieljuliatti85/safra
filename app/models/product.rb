@@ -33,6 +33,10 @@ class Product < ApplicationRecord
     product_group == "raw"
   end
 
+  # Preparo no dia da entrega (R3.7): o "Executar em" do item vem no dia da entrega. In natura não passa pela produção
+  # e segue na véspera.
+  def prepared_on_delivery_day? = same_day_preparation? && !raw?
+
   def sector
     cut&.sector
   end

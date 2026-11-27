@@ -26,9 +26,13 @@ class OrderLine < ApplicationRecord
   # Até quantos dias antes da entrega o item pode ser adiantado.
   EXECUTION_DAYS = 6
 
-  # Dia de execução (esteira simplificada, passo 4): o que o Gerente de Produção escolheu ou, sem escolha, a véspera da
-  # entrega (3.2). A Planilha de Produção e a compra seguem esse dia.
-  def execution_on = execution_date || (delivery_date - 1)
+  # Dia de execução (esteira simplificada, passo 4): o que o Gerente de Produção escolheu ou, sem escolha, o dia padrão.
+  # A Planilha de Produção e a compra seguem esse dia.
+  def execution_on = execution_date || default_execution_on
+
+  # Sem escolha: a véspera da entrega (3.2) ou, no produto de preparo no dia (R3.7: temperos, folhagens, Yaksoba), o
+  # próprio dia da entrega. Os ingredientes de uma mistura seguem o dia do item da mistura.
+  def default_execution_on = product&.prepared_on_delivery_day? ? delivery_date : delivery_date - 1
 
   # Os dias que o Gerente de Produção pode escolher: da entrega até EXECUTION_DAYS dias antes.
   def execution_options = ((delivery_date - EXECUTION_DAYS)..delivery_date).to_a

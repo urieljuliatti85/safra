@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_27_300000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_27_310000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -290,6 +290,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_27_300000) do
     t.datetime "updated_at", null: false
     t.string "default_measure"
     t.integer "rounding", default: 0, null: false
+    t.boolean "same_day_preparation", default: false, null: false
     t.index ["company_id", "code"], name: "index_products_on_company_id_and_code", unique: true
     t.index ["cut_id"], name: "index_products_on_cut_id"
     t.index ["raw_material_id"], name: "index_products_on_raw_material_id"

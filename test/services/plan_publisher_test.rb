@@ -35,7 +35,7 @@ class PlanPublisherTest < ActiveSupport::TestCase
   test "pedido novo vira item adicionado e linha apagada vira removido" do
     result = ProductionPlanner.new(company: company, date: @date - 1).call
     plan = PlanPublisher.production(company: company, result: result)
-    OrderLine.joins(:product).find_by!(products: { code: "couve_picada" }, delivery_date: @date).destroy!
+    OrderLine.joins(:product).find_by!(products: { code: "cenoura_ralada" }, delivery_date: @date).destroy!
     changes = PlanDiff.production(plan, ProductionPlanner.new(company: company, date: @date - 1).call)
     assert_equal [ :removed ], changes.map(&:kind)
   end

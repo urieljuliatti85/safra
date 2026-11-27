@@ -30,7 +30,7 @@
       <tbody>
         <% @products.each do |product| %>
           <tr>
-            <td class="name"><strong><%= product.name %></strong></td>
+            <td class="name"><strong><%= product.name %></strong><% if product.prepared_on_delivery_day? %> <span class="pill">preparo no dia</span><% end %></td>
             <td><%= Product::GROUP_LABELS[product.product_group] %></td>
             <td><%= product.raw_material.name %></td>
             <td data-label="Corte"><%= product.cut&.name || "-" %></td>

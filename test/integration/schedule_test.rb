@@ -87,6 +87,14 @@ class ScheduleTest < ActionDispatch::IntegrationTest
     assert_select "tr#linha-#{line.id} select[name=execution_date] option[selected]", "Ter 13/10"
   end
 
+  test "produto de preparo no dia vem com o dia da entrega em \"Executar em\" (R3.7)" do
+    line = ActsAsTenant.with_tenant(company) do
+      OrderLine.joins(:product).where(products: { code: "alface_picada" }).where("quantity > 0").order(:delivery_date).first
+    end
+    get schedule_path(date: line.delivery_date)
+    assert_select "tr#linha-#{line.id} select[name=execution_date] option[selected]", Formatting.weekday_date(line.delivery_date)
+  end
+
   test "adiantar o item leva ele para a Planilha de Produção do dia escolhido" do
     line = processed_line_on(Date.new(2026, 10, 14))
     patch schedule_execution_path(line, date: "2026-10-13"), params: { execution_date: "2026-10-12" }

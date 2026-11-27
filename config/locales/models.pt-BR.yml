@@ -41,6 +41,7 @@ pt-BR:
         raw_material: Matéria-prima
         cut: Corte
         unit: Unidade
+        same_day_preparation: Preparo no dia da entrega
       customer:
         name: Nome
         short_name: Nome curto

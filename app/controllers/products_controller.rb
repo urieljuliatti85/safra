@@ -58,7 +58,7 @@ class ProductsController < ApplicationController
 
   # Produto in natura não tem corte: o campo é ignorado.
   def product_params
-    permitted = params.require(:product).permit(:name, :product_group, :raw_material_id, :cut_id, :unit, :default_measure, :rounding)
+    permitted = params.require(:product).permit(:name, :product_group, :raw_material_id, :cut_id, :unit, :default_measure, :rounding, :same_day_preparation)
     permitted[:cut_id] = nil if permitted[:product_group] == "raw"
     permitted
   end
