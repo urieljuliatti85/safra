@@ -80,8 +80,7 @@ module ApiPresenter
         { product: item.product.code, name: item.product.name, measure: item.measure, sector: item.product.sector, quantity: number(item.quantity), unit: item.unit,
           breakdown: item.breakdown.map { |b| { customer: b.customer.code, delivery_date: b.delivery_date.iso8601, quantity: number(b.quantity), via: b.via } } }
       end,
-      # A API fica como antes da D42 (fora do MVP): só os aprontes em caixas.
-      aprontes: result.aprontes.select(&:boxes).map { |a| { raw_material: a.raw_material.code, kg: number(a.kg), boxes: a.boxes } } }
+      aprontes: result.aprontes.map { |a| { raw_material: a.raw_material.code, kg: number(a.kg), boxes: a.boxes } } }
   end
 
   def purchase(date, needs, sent, changes)

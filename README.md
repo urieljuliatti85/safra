@@ -158,7 +158,7 @@ JSON sob `/api/v1`, documentada em **`/api-docs`** (Swagger UI; o arquivo OpenAP
 - **Erros** sempre como `{ "error": { "code", "message", "details" } }`; limite de 300 requisições por minuto por chave.
 - **Fora desta versão:** gravar a observação da linha, criar cadastros e enviar produção ou compra aos setores (continuam nas telas).
 
-Os specs de request em `spec/requests/api/v1` (RSpec com rswag) documentam e testam cada endpoint. Depois de mudar a API, regere o OpenAPI e commite: `RAILS_ENV=test bundle exec rake rswag:specs:swaggerize`. O CI recusa o PR se o arquivo estiver desatualizado.
+Os specs de request em `spec/requests/api/v1` (RSpec com rswag) documentam e testam cada endpoint. **A API está fora do MVP:** os specs da API e a checagem do OpenAPI não rodam no pre-commit nem no CI até o pós-MVP, e a API pode ficar atrás do app. Para rodar à mão: `bundle exec rspec`; para regerar o OpenAPI: `RAILS_ENV=test bundle exec rake rswag:specs:swaggerize`.
 
 ## Testes e qualidade
 
