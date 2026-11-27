@@ -28,7 +28,7 @@ class PurchasePlannerUnitsTest < ActiveSupport::TestCase
     assert_equal 3, laranja.packages
     assert_equal 2.5, laranja.net_packages
     assert_not laranja.missing_factor
-    assert_equal "3 cx", Formatting.need_text(laranja)
+    assert_equal "3 cx de 100 un", Formatting.need_text(laranja)
   end
 
   test "laranja em fração: caixas inteiras e o resto em unidades" do
@@ -36,7 +36,7 @@ class PurchasePlannerUnitsTest < ActiveSupport::TestCase
     order(@laranja, 250)
     laranja = need("laranja")
     assert_equal [ 2, 50 ], [ laranja.packages, laranja.loose_units ]
-    assert_equal "2 cx e 50 un", Formatting.need_text(laranja)
+    assert_equal "2 cx de 100 un e 50 un", Formatting.need_text(laranja)
   end
 
   test "melancia comprada por unidade: compra as unidades pedidas" do
