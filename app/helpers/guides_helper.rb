@@ -74,10 +74,11 @@ module GuidesHelper
       ], "Abrir Produção", production_path),
       GuideTopic.new("compras", "Como as compras são calculadas", "A lista da CEASA também é calculada. Ela só é gravada quando você clica em Enviar aos fornecedores.", [
         "Cada linha de pedido vai para a compra do último dia de compra igual ou anterior ao dia de produção dela.",
-        "Processado em kg: kg in natura = kg processado × fator de perda da matéria-prima. In natura entra como foi pedido.",
-        "Sem fator, ou em outra unidade (un, maço, caixa), a quantidade entra sem converter e aparece um alerta.",
-        "Abate o estoque da câmara fria: vale a contagem mais recente até o dia da compra, e o que sobra passa para a compra seguinte.",
-        "Embalagens = kg a comprar ÷ kg por caixa ou saco, arredondado (mínimo 1). Folhas e itens sem embalagem ficam em kg.",
+        "A conta segue a ordem da esteira: pedido, menos o produto pronto, vezes o fator, menos a matéria-prima da câmara, e só então as caixas.",
+        "Produto pronto (contado em Estoque, na unidade do produto) abate o pedido do processado antes do fator. In natura entra como foi pedido.",
+        "Processado em kg: kg in natura = kg a produzir × fator de perda da matéria-prima. Sem fator, ou em outra unidade (un, maço, caixa), entra sem converter e aparece um alerta.",
+        "Cada saldo vale a contagem mais recente até o dia da compra, e o que sobra passa para a compra seguinte.",
+        "Caixas por produto: caixa inteira arredonda a parte do produto para cima; fração compra caixas e o resto em kg (\"2 cx e 5 kg\"). Folhas e itens sem embalagem ficam em kg.",
         "A lista sai por fornecedor, com o texto pronto para o WhatsApp.",
         "Produção antes da primeira compra cadastrada fica fora de qualquer compra: a Conferência avisa."
       ], "Abrir Compras", purchases_path),

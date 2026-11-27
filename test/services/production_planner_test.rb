@@ -67,7 +67,8 @@ class ProductionPlannerTest < ActiveSupport::TestCase
       queries
     end
 
-    assert_operator count_queries.call { PurchasePlanner.new(company: company).call }, :<=, 11
+    # 12: uma consulta a mais para as contagens de produto pronto (D39).
+    assert_operator count_queries.call { PurchasePlanner.new(company: company).call }, :<=, 12
     assert_operator count_queries.call { ProductionPlanner.new(company: company, date: date).call }, :<=, 10
     assert_operator count_queries.call { ScheduleBuilder.new(company: company, date: date).call }, :<=, 8
   end

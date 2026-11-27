@@ -156,4 +156,36 @@ class StockTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Não há dia de compra a partir de 01/12", response.body
   end
+  # --- produto pronto (R3.8, D39) ---
+
+  test "produto pronto da próxima compra aparece para contar, na unidade do produto" do
+    get stock_path(date: "2026-10-12")
+    assert_select "h2", "Produto pronto"
+    assert_select "input[aria-label='Contagem de Cenoura em cubinhos pronto, em kg']"
+  end
+
+  test "salvar o produto pronto abate o pedido antes do fator e aparece na compra" do
+    product = Product.find_by!(code: "cenoura_cubinhos")
+    before = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
+    patch stock_path, params: { date: "2026-10-12", ready_counts: { product.id => "1,5" } }
+    follow_redirect!
+    assert_match "1 contagem salva em 12/10", response.body
+    assert_equal 1.5, ProductStockCount.find_by!(product: product, date: "2026-10-12").quantity.to_f
+
+    after = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
+    assert_equal({ product => 1.5 }, after.ready)
+    assert_in_delta before.kg - 1.5 * product.raw_material.multiply_factor, after.kg, 0.001
+
+    get purchases_path(date: "2026-10-13")
+    assert_match "Produto pronto: Cenoura em cubinhos 1,5 kg abatido do pedido, antes do fator", response.body
+  end
+
+  test "erro no produto pronto não salva nem a matéria-prima" do
+    product = Product.find_by!(code: "cenoura_cubinhos")
+    cenoura = raw_material("cenoura")
+    patch stock_path, params: { date: "2026-10-12", counts: { cenoura.id => "5" }, ready_counts: { product.id => "-1" } }
+    assert_response :unprocessable_entity
+    assert_match "Cenoura em cubinhos pronto", response.body
+    assert_nil StockCount.find_by(raw_material: cenoura, date: "2026-10-12")
+  end
 end
