@@ -8,7 +8,7 @@ class TourTest < ApplicationSystemTestCase
     sign_in_through_form(:office)
 
     assert_current_path orders_path
-    within(".tour-card") { assert_text "Passo 1 de 10"; click_on "Sair" }
+    within(".tour-card") { assert_text "Passo 1 de 9"; click_on "Sair" }
     assert_no_selector ".tour-card"
     assert user_for(:office).reload.tour_seen_at
 
@@ -22,7 +22,7 @@ class TourTest < ApplicationSystemTestCase
     click_on "Tour guiado"
 
     assert_current_path orders_path
-    within(".tour-card") { assert_text "Passo 1 de 10"; assert_text "Pedidos de cada cliente" }
+    within(".tour-card") { assert_text "Passo 1 de 9"; assert_text "Pedidos de cada cliente" }
     assert_selector ".tour-spot"
 
     click_on "Próximo"
@@ -33,11 +33,11 @@ class TourTest < ApplicationSystemTestCase
 
     click_on "Voltar"
     assert_current_path orders_path
-    within(".tour-card") { assert_text "Passo 2 de 10" }
+    within(".tour-card") { assert_text "Passo 2 de 9" }
 
-    (3..10).each do |step|
+    (3..9).each do |step|
       within(".tour-card") { click_on "Próximo" }
-      assert_selector ".tour-card", text: "Passo #{step} de 10"
+      assert_selector ".tour-card", text: "Passo #{step} de 9"
     end
     within(".tour-card") { assert_text "Sempre que precisar"; click_on "Concluir" }
     assert_no_selector ".tour-card"
@@ -53,7 +53,7 @@ class TourTest < ApplicationSystemTestCase
     assert_selector ".flow-step", count: 6
     click_on "Fazer o tour guiado"
     assert_current_path orders_path
-    assert_selector ".tour-card", text: "Passo 1 de 10"
+    assert_selector ".tour-card", text: "Passo 1 de 9"
   end
 
   test "Esc sai do tour e quem é da produção não vê o tour" do

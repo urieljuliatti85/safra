@@ -88,16 +88,17 @@ class CutsTest < ActionDispatch::IntegrationTest
     assert_not Cut.exists?(livre.id)
   end
 
-  test "mudar a antecedência pela tela vale para a produção e avisa plano enviado" do
+  # MVP (esteira simplificada): a Planilha de Produção segue o dia de execução escolhido, não a antecedência do corte.
+  test "mudar a antecedência pela tela grava, mas não muda a produção enviada" do
     PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call)
     cubinhos = Cut.find_by!(code: "cubinhos")
     patch cut_path(cubinhos), params: { cut: { name: cubinhos.name, sector: "cubinho", lead_days: "0" } }
     follow_redirect!
-    assert_match "mudou desde a versão enviada", response.body
+    assert_no_match "mudou desde a versão enviada", response.body
     assert_equal 0, Product.find_by!(code: "baroa_cubinhos").lead_days
   end
 
-  test "um corte novo vira produção: produto e pedido aparecem no setor certo" do
+  test "um corte novo vira produção: produto e pedido aparecem na Planilha de Produção da véspera" do
     post cuts_path, params: { cut: { name: "Palito fino", sector: "palito", lead_days: "0" } }
     cut = Cut.find_by!(name: "Palito fino")
     post products_path, params: { product: { name: "Pepino em palito fino", product_group: "processed", raw_material_id: RawMaterial.find_by!(code: "pepino").id, cut_id: cut.id, unit: "kg" } }
@@ -105,10 +106,10 @@ class CutsTest < ActionDispatch::IntegrationTest
     hbp = Order.joins(:customer).find_by!(customers: { code: "hbp" })
     hbp.lines.create!(product: product, delivery_date: "2026-10-21", quantity: 7, unit: "kg")
 
-    plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 21)).call
+    plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 20)).call
     assert_equal 7, plan.item_for(product.code).quantity
-    get production_path(date: "2026-10-21")
-    assert_select "h2", "Palitos"
+    get production_path(date: "2026-10-20")
+    assert_select "h2", "Ordens de serviço"
     assert_select "td.name", text: /Pepino em palito fino/
   end
 

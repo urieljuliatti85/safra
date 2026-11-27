@@ -167,7 +167,7 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     after_apply = order_state(@serra)
 
     stale = OrderImports::Undoer.new(import: record).stale_after_undo
-    assert_includes stale[:production], Date.new(2026, 10, 15)
+    assert_includes stale[:production], Date.new(2026, 10, 14)
     assert_includes stale[:purchase], Date.new(2026, 10, 13)
     assert_equal after_apply, order_state(@serra)
     assert_equal "applied", record.reload.status

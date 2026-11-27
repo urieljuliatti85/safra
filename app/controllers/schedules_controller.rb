@@ -22,4 +22,15 @@ class SchedulesController < ApplicationController
   rescue ActiveRecord::RecordInvalid
     redirect_to schedule_path(date: date_param(:date, Date.current)), alert: "Marca inválida.", status: :see_other
   end
+
+  # O dia de execução do item (esteira simplificada, passo 4): produzir na véspera ou adiantar. A Planilha de Produção
+  # e a compra seguem esse dia.
+  def execution
+    line = OrderLine.find(params[:id])
+    line.update!(execution_date: date_param(:execution_date, nil))
+    redirect_to schedule_path(date: date_param(:date, line.delivery_date), anchor: "linha-#{line.id}"), status: :see_other,
+                notice: "#{line.product.name}: executar em #{Formatting.weekday_date(line.execution_on)}.", alert: StalePlans.warning(current_company)
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to schedule_path(date: date_param(:date, Date.current)), alert: e.record.errors.full_messages.to_sentence, status: :see_other
+  end
 end

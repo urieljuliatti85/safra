@@ -20,6 +20,25 @@ class OrderLine < ApplicationRecord
   validates :quantity, numericality: { greater_than_or_equal_to: 0, less_than: MAX_QUANTITY }
   validates :unit, inclusion: { in: UNITS }
   validates :schedule_mark, inclusion: { in: SCHEDULE_MARKS.keys }
+  validate :execution_date_before_delivery
+
+  # Até quantos dias antes da entrega o item pode ser adiantado.
+  EXECUTION_DAYS = 6
+
+  # Dia de execução (esteira simplificada, passo 4): o que o Gerente de Produção escolheu ou, sem escolha, a véspera da
+  # entrega (3.2). A Planilha de Produção e a compra seguem esse dia.
+  def execution_on = execution_date || (delivery_date - 1)
+
+  # Os dias que o Gerente de Produção pode escolher: da entrega até EXECUTION_DAYS dias antes.
+  def execution_options = ((delivery_date - EXECUTION_DAYS)..delivery_date).to_a
 
   delegate :customer, to: :order
+
+  private
+
+  def execution_date_before_delivery
+    return if execution_date.nil? || delivery_date.nil? || execution_options.include?(execution_date)
+
+    errors.add(:execution_date, "deve ser entre #{EXECUTION_DAYS} dias antes da entrega e o dia da entrega")
+  end
 end

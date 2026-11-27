@@ -20,12 +20,10 @@ module TourHelper
         text: "Ao enviar, cada célula aparece como novo, alterada ou apaga. Nome que o sistema não conhece: escolha o produto " \
               "uma vez e ele aprende. Célula vazia numa linha com quantidades apaga aquele dia. Confira e clique em Aplicar." },
       { path: schedule_path, target: "main .panel", title: "3. Programação",
-        text: "O que cada cliente recebe, por data de entrega, em quatro dias. O Gerente marca cada item: quadrado, produzir no dia; ponto, já pronto. Bata com o pedido original." },
-      { path: production_path, target: "section[aria-label='Estado do envio']", title: "4. Enviar a produção aos setores",
-        text: "A produção do dia é calculada dos pedidos. Confira e clique em Enviar aos setores: vira a versão 1 e os setores " \
-              "recebem aviso no celular. In natura não entra aqui: vai direto para a compra." },
-      { path: production_path, target: "nav[aria-label='Setores']", title: "Lista de cada setor",
-        text: "Cada setor vê só a versão enviada, na tela ou no PDF, com os aprontes em caixas." },
+        text: "O que cada cliente recebe, por data de entrega, em quatro dias. O Gerente marca cada item (quadrado, produzir no dia; ponto, já pronto) e escolhe em que dia ele é feito." },
+      { path: production_path, target: "section[aria-label='Estado do envio']", title: "4. Enviar a Planilha de Produção",
+        text: "Os itens do dia de execução escolhido na Programação, de todos os clientes. Confira e clique em Enviar a Planilha " \
+              "de Produção: vira a versão 1. In natura não entra aqui: vai direto para a compra." },
       { path: purchases_path, target: "[data-controller='copy']", title: "5. Compra da CEASA",
         text: "No dia de compra a lista já vem com o volume total de cada matéria-prima, por fornecedor. Copie o texto para o WhatsApp " \
               "de cada um e clique em Enviar aos fornecedores." },

@@ -13,7 +13,7 @@ class ProductionVersionNotice
 
   # Setores com itens (primeira versão) ou com mudança (da segunda em diante); "aprontes" quando as caixas mudaram.
   def sectors
-    @sectors ||= if @plan.previous.nil? then @result.sectors
+    @sectors ||= if @plan.previous.nil? then @result.items.map { |item| item.product.sector }.uniq
     else (@changes.filter_map(&:sector) + (aprontes_changed? ? [ ProductionPlanner::APRONTES ] : [])).uniq
     end
   end

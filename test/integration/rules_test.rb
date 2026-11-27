@@ -20,24 +20,14 @@ class RulesTest < ActionDispatch::IntegrationTest
     assert_no_match "Placar contra as planilhas", response.body # comparação com as planilhas fica para depois do MVP
   end
 
-  test "ver efeito mostra o placar antes e depois e não grava nada" do
-    patch rules_path, params: { commit_action: "simulate", cut_leads: { @cubinhos.id => "0" } }
-    assert_response :success
-    assert_match "Efeito sem salvar", response.body
-    assert_match "Nada foi gravado", response.body
-    assert_match "11 → 17", response.body
-    assert_match "passam a bater", response.body
-    assert_equal 1, @cubinhos.reload.lead_days
-    assert_select "select#cut_#{@cubinhos.id} option[selected]", "No dia da entrega" # o formulário guarda o que foi digitado
-  end
-
-  test "salvar grava a antecedência do corte e avisa quando um plano enviado mudou" do
+  # MVP: a antecedência fica guardada, mas a Planilha de Produção segue o dia de execução escolhido.
+  test "salvar grava a antecedência do corte sem mudar a produção enviada" do
     PlanPublisher.production(company: company, result: ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call)
     patch rules_path, params: { commit_action: "save", cut_leads: { @cubinhos.id => "0", @cubos.id => "1" }, raw_lead_days: "2" }
     assert_redirected_to rules_path
     follow_redirect!
     assert_match "Regras salvas", response.body
-    assert_match "mudou desde a versão enviada", response.body
+    assert_no_match "mudou desde a versão enviada", response.body
     assert_equal 0, @cubinhos.reload.lead_days
     assert_equal 2, company.reload.raw_lead_days
   end

@@ -116,19 +116,19 @@ class MobileTest < ApplicationSystemTestCase
     assert_field "Abóbora em cubos em Sáb 17/10"
   end
 
-  test "tocar no número da faixa da semana abre a produção do setor já rolada até a lista dele" do
+  test "tocar no número da faixa da semana abre a Planilha de Produção do dia já rolada até a lista" do
     visit production_path(date: "2026-10-12")
-    find("a.bar[aria-label='Cortes manuais, Ter 13/10: 9 itens']").click # Yaksoba nos ingredientes (D25)
+    find("a.bar[aria-label^='Planilha de Produção, Ter 13/10:']").click
 
-    assert_current_path production_path(date: "2026-10-13", sector: "manual")
-    assert_selector "#setor-manual h2", text: "Cortes manuais"
+    assert_current_path production_path(date: "2026-10-13")
+    assert_selector "#planilha h2", text: "Ordens de serviço"
     page.document.synchronize do
-      top = page.evaluate_script("document.getElementById('setor-manual').getBoundingClientRect().top")
+      top = page.evaluate_script("document.getElementById('planilha').getBoundingClientRect().top")
       # Perto do fim da página o navegador não rola mais: vale a seção na metade de cima, com a página no fim.
       at_end = page.evaluate_script("window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 1")
       half = page.evaluate_script("window.innerHeight / 2")
       ok = top.between?(0, 100) || (at_end && top.between?(0, half))
-      raise Capybara::ExpectationNotMet, "seção do setor em #{top}px, fora do topo" unless ok
+      raise Capybara::ExpectationNotMet, "lista em #{top}px, fora do topo" unless ok
     end
   end
 

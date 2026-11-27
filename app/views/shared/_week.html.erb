@@ -1,11 +1,11 @@
 <%# locals: week (WeekOverview::Result), open_date, path (:production_path ou :purchases_path) %>
 <section class="week" aria-label="Semana" aria-describedby="week-help">
   <p class="week-help" id="week-help">
-    <strong>O número é quantos produtos diferentes o setor produz no dia</strong>, somando todos os clientes (não é kg nem caixa).
-    Conta no dia da produção, não no da entrega. Cada número abre a lista do setor naquele dia.
+    <strong>O número é quantos produtos diferentes a Planilha de Produção tem no dia</strong>, somando todos os clientes (não é kg nem caixa).
+    Conta no dia de execução, não no da entrega. Cada número abre a Planilha de Produção daquele dia.
   </p>
   <div class="week-scroll" data-controller="reveal">
-  <div class="week-grid" role="table" aria-label="Setores por dia da semana">
+  <div class="week-grid" role="table" aria-label="Produção e compra por dia da semana">
     <div role="row" style="display: contents">
       <div class="week-corner" role="columnheader"></div>
       <% week.dates.each do |date| %>
@@ -28,7 +28,7 @@
                       "aria-label": "Compra CEASA, #{weekday_date(cell.date)}#{', dia da compra' if cell.first}" %>
               <% else %>
                 <% level = cell.count >= 6 ? 3 : (cell.count >= 3 ? 2 : 1) %>
-                <%= link_to cell.count, production_path(date: cell.date, sector: lane.sector, anchor: "setor-#{lane.sector}"), class: "bar num", data: { level: level },
+                <%= link_to cell.count, production_path(date: cell.date, anchor: "planilha"), class: "bar num", data: { level: level },
                       "aria-label": "#{lane.label}, #{weekday_date(cell.date)}: #{cell.count} #{cell.count == 1 ? 'item' : 'itens'}" %>
               <% end %>
             <% end %>

@@ -12,7 +12,8 @@ class PlanDiffTest < ActiveSupport::TestCase
 
   def current = ProductionPlanner.new(company: company, date: @date).call
 
-  def lines_of(code) = OrderLine.joins(:product).where(products: { code: code }, delivery_date: @date)
+  # Sem escolha, o que é executado em 13/10 é o entregue na véspera seguinte (14/10).
+  def lines_of(code) = OrderLine.joins(:product).where(products: { code: code }, delivery_date: @date + 1)
 
   test "item que saiu do pedido depois do envio aparece como removido, com o setor da versão enviada" do
     plan = publish
@@ -51,7 +52,7 @@ class PlanDiffTest < ActiveSupport::TestCase
     changes = PlanDiff.production(ProductionPlan.find(plan.id), current).map { |c| [ c.label, c.kind ] }
     assert_includes changes, [ "Cenoura ralada", :removed ]
     assert_includes changes, [ "Cenoura ralada · 3 mm", :added ]
-    assert_equal %w[cenoura_ralada repolho_picado repolho_roxo_picado],
+    assert_equal %w[cenoura_ralada repolho_picado],
                  Product.where(name: changes.map { |label, _| label.split(" · ").first }).order(:code).pluck(:code)
   end
 

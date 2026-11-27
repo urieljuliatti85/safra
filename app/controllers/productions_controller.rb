@@ -25,7 +25,7 @@ class ProductionsController < ApplicationController
 
     plan = PlanPublisher.production(company: current_company, result: @current, user: current_user)
     SendProductionVersionPushJob.perform_later(plan.id)
-    redirect_to production_path(date: @date), notice: "Produção de #{Formatting.short_date(@date)} enviada aos setores (versão #{plan.version})."
+    redirect_to production_path(date: @date), notice: "Planilha de Produção de #{Formatting.short_date(@date)} enviada (versão #{plan.version})."
   end
 
   private

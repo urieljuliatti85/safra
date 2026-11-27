@@ -1,61 +1,36 @@
 require "test_helper"
 
 class ProductionPlannerTest < ActiveSupport::TestCase
-  test "domingo não tem produção: entrega na segunda produzida de véspera cai para sábado" do
-    # 12/10/2026 é segunda; 11/10 é domingo e 10/10 é sábado.
-    friday_plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 10)).call
-    sunday_plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 11)).call
-    assert_empty sunday_plan.items
-    assert_includes friday_plan.delivery_dates, Date.new(2026, 10, 12)
-  end
-
-  test "ralados são produzidos no dia da entrega e cubinhos na véspera" do
+  # Esteira simplificada, passo 4: a Planilha de Produção é pela data de execução. Sem escolha, a véspera da entrega,
+  # para qualquer corte; sem setores e sem aprontes.
+  test "sem escolha, cada item entra na véspera da entrega, qualquer que seja o corte" do
     plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
-    assert_equal [ Date.new(2026, 10, 13) ], plan.item_for("cenoura_ralada").breakdown.reject(&:via).map(&:delivery_date).uniq
+    assert_equal [ Date.new(2026, 10, 14) ], plan.item_for("cenoura_ralada").breakdown.reject(&:via).map(&:delivery_date).uniq
     assert_equal [ Date.new(2026, 10, 14) ], plan.item_for("baroa_cubinhos").breakdown.map(&:delivery_date).uniq
+    assert_empty plan.sectors
+    assert_empty plan.aprontes
   end
 
-  test "lista de um setor só tem os itens dele; a dos aprontes, só as caixas" do
-    plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
-    assert_equal Cut::SECTORS.select { |s| plan.items.any? { |i| i.product.sector == s } } + [ "aprontes" ], plan.sectors
-
-    ralpic = plan.for_sector("ralpic")
-    assert ralpic.items.any?
-    assert ralpic.items.all? { |item| item.product.sector == "ralpic" }
-    assert_empty ralpic.aprontes
-    # 14/10: a Yaksoba entregue em 14/10 é produzida em 13/10, e os ingredientes ficam no dia dela (D25).
-    assert_equal [ Date.new(2026, 10, 13), Date.new(2026, 10, 14) ], ralpic.delivery_dates
-
-    aprontes = plan.for_sector("aprontes")
-    assert_empty aprontes.items
-    assert_equal plan.aprontes, aprontes.aprontes
-    assert_same plan, plan.for_sector(nil)
-  end
-
-  # Relação de descasque e preparo por vegetal e unidade (D42): a laranja descascada entra em unidades ("Laranja
-  # descascada inclui descasque", esteira); a banana embalada não.
-  test "aprontes: laranja descascada em unidade entra no descasque; banana embalada não" do
-    date = Date.new(2026, 10, 14)
-    ActsAsTenant.with_tenant(company) do
-      order = Order.joins(:customer).find_by!(customers: { code: "hbp" }, week_start: Date.new(2026, 10, 12))
-      laranja = Product.find_by!(code: "laranja_desc")
-      banana = Product.find_by!(code: "banana_embalada")
-      delivery = (date..(date + 3)).find { |d| laranja.production_date_for(d) == date }
-      OrderLine.where(product: [ laranja, banana ], delivery_date: delivery).delete_all
-      order.lines.create!(product: laranja, delivery_date: delivery, quantity: 250, unit: "un")
-      order.lines.create!(product: banana, delivery_date: delivery, quantity: 40, unit: "un")
+  test "o dia escolhido na Programação leva o item para aquele dia de execução" do
+    delivery = Date.new(2026, 10, 14)
+    customer_id, quantity = ActsAsTenant.with_tenant(company) do
+      line = OrderLine.joins(:product).where(products: { code: "baroa_cubinhos" }, delivery_date: delivery).where("quantity > 0").first
+      line.update!(execution_date: Date.new(2026, 10, 12))
+      [ line.order.customer_id, line.quantity ]
     end
-    aprontes = ProductionPlanner.new(company: company, date: date).call.aprontes
-    laranja = aprontes.find { |a| a.raw_material.code == "laranja" }
-    assert_equal [ "un", 250, nil, nil ], [ laranja.unit, laranja.quantity, laranja.boxes, laranja.kg ]
-    assert_not(aprontes.any? { |a| a.raw_material.code == "banana_nanica" })
+    on_12 = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 12)).call.item_for("baroa_cubinhos")
+    on_13 = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call.item_for("baroa_cubinhos")
+    assert_includes on_12.breakdown.map { |b| [ b.customer.id, b.delivery_date, b.quantity ] }, [ customer_id, delivery, quantity ]
+    assert_not_includes on_13.to_h.fetch(:breakdown, []).map { |b| [ b.customer.id, b.delivery_date ] }, [ customer_id, delivery ]
   end
 
-  test "aprontes: caixas = ROUND(kg processado / kg por caixa descascada)" do
-    plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
-    batata = plan.aprontes.find { |a| a.raw_material.code == "batata" }
-    assert_equal 36, batata.kg
-    assert_equal (36 / 30.0).round, batata.boxes
+  test "o dia de execução fica entre 6 dias antes da entrega e o dia da entrega" do
+    line = ActsAsTenant.with_tenant(company) { OrderLine.where("quantity > 0").first }
+    ActsAsTenant.with_tenant(company) do
+      assert_not line.update(execution_date: line.delivery_date + 1)
+      assert_not line.update(execution_date: line.delivery_date - 7)
+      assert line.update(execution_date: line.delivery_date)
+    end
   end
 
   test "in natura não entra na produção; as linhas in natura do dia somam a entrega do dia e a da antecedência" do
@@ -202,22 +177,22 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     assert_equal "Revisar a composição", alert.action.label
   end
 
-  # O ralado é feito no dia da entrega e a mistura na véspera: a cenoura ralada avulsa entregue em 21/10 cai no mesmo
-  # dia de produção (21/10) que a Yaksoba entregue em 22/10.
+  # Sem escolha, tudo é feito na véspera: a cenoura ralada avulsa e a Yaksoba entregues no mesmo dia caem no mesmo dia de
+  # execução.
   test "cenoura ralada avulsa sem medida é de 3 mm e soma com a da mistura, numa linha só (R2.12, D30)" do
-    plan = mix_order([ [ "hbp", "yakissoba", 2 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY - 1 ] ])
+    plan = mix_order([ [ "hbp", "yakissoba", 2 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY ] ])
     items = plan.items.select { |i| i.product.code == "cenoura_ralada" }
     assert_equal [ [ "3 mm", 3.5, "Cenoura ralada · 3 mm" ] ], items.map { |i| [ i.measure, i.quantity, i.label ] }
-    assert_equal [ [ "hnorte", 3, nil ], [ "hbp", 0.5, "Yaksoba" ] ], items.first.breakdown.map { |b| [ b.customer.code, b.quantity, b.via ] }
+    assert_equal [ [ "hbp", 0.5, "Yaksoba" ], [ "hnorte", 3, nil ] ], items.first.breakdown.map { |b| [ b.customer.code, b.quantity, b.via ] }
   end
 
   test "o avulso com \"3mm\" escrito no pedido também soma com a mistura (R2.12, D30)" do
-    plan = mix_order([ [ "hbp", "yakissoba", 2 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY - 1, "3mm" ] ])
+    plan = mix_order([ [ "hbp", "yakissoba", 2 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY, "3mm" ] ])
     assert_equal [ 3.5 ], plan.items.select { |i| i.product.code == "cenoura_ralada" }.map(&:quantity)
   end
 
   test "beterraba ralada avulsa sem medida fica na referência do corte, separada da de 3 mm da mistura (R2.4, D30)" do
-    plan = mix_order([ [ "hbp", "salada_roxa", 4 ], [ "hnorte", "beterraba_ralada", 3, "kg", MIX_DAY - 1 ] ])
+    plan = mix_order([ [ "hbp", "salada_roxa", 4 ], [ "hnorte", "beterraba_ralada", 3, "kg", MIX_DAY ] ])
     items = plan.items.select { |i| i.product.code == "beterraba_ralada" }
     assert_equal [ [ "3 a 5 mm", 3 ], [ "3 mm", 1 ] ], items.map { |i| [ i.measure, i.quantity ] }.sort_by(&:first)
   end

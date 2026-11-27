@@ -98,12 +98,12 @@ class OrdersTest < ApplicationSystemTestCase
     assert_text "não é um número"
   end
 
-  test "produção do dia mostra setores e envia aos setores" do
+  test "a Planilha de Produção mostra as ordens de serviço e é enviada" do
     visit production_path(date: "2026-10-13")
-    assert_selector "h2", text: "Ralados, picados e rodelas"
+    assert_selector "h2", text: "Ordens de serviço"
 
-    click_on "Enviar aos setores"
-    assert_text "enviada aos setores (versão 1)"
+    click_on "Enviar a Planilha de Produção"
+    assert_text "Planilha de Produção de 13/10 enviada (versão 1)"
     assert_text "Igual ao que foi enviado"
   end
 end

@@ -1,4 +1,5 @@
-# Faixa da semana: em que dia cada setor produz (contagem de itens) e quais dias cada compra da CEASA cobre.
+# Faixa da semana: quantos itens a Planilha de Produção tem em cada dia de execução e quais dias cada compra da CEASA
+# cobre. Sem setores no MVP (esteira simplificada).
 # Mesmas regras do ProductionPlanner e do PurchasePlanner, calculadas numa só consulta.
 class WeekOverview
   Cell = Data.define(:date, :count, :first, :last)
@@ -23,28 +24,24 @@ class WeekOverview
 
   def production_lanes(dates)
     counts = Hash.new { |hash, key| hash[key] = Set.new }
-    sector_names = {}
     lines = OrderLine.where("quantity > 0").where(delivery_date: @start..(@start + DAYS + 2))
                      .includes({ order: :customer }, product: [ :cut, :production_rule, { components: { component: :cut } } ])
     lines.each do |line|
       next if line.product.raw?
 
-      production_date = line.product.production_date_for(line.delivery_date)
+      production_date = line.execution_on
       next unless dates.include?(production_date)
 
       # Um item por produto, medida e unidade, com a mistura aberta nos ingredientes, como na produção (D24, D25).
       ProductionPlanner.portions(line).each do |portion|
         product = portion.product
-        sector_names[product.sector] = product.cut.sector_name
-        counts[[ product.sector, production_date ]] << [ product.id, Cut.measure_key(ProductionPlanner.measure_of(portion)), portion.unit ]
+        counts[production_date] << [ product.id, Cut.measure_key(ProductionPlanner.measure_of(portion)), portion.unit ]
       end
     end
-    Cut::SECTORS.filter_map do |sector|
-      next unless sector_names.key?(sector)
+    return [] if counts.empty?
 
-      cells = dates.map { |date| Cell.new(date: date, count: counts[[ sector, date ]].size, first: false, last: false) }
-      Lane.new(label: sector_names[sector], kind: :production, cells: cells, sector: sector)
-    end
+    cells = dates.map { |date| Cell.new(date: date, count: counts[date].size, first: false, last: false) }
+    [ Lane.new(label: "Planilha de Produção", kind: :production, cells: cells, sector: nil) ]
   end
 
   def purchase_lane(dates)
