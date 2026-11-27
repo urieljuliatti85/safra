@@ -7,15 +7,15 @@ class DashboardTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "escritório cai no painel com as quatro etapas na ordem do trabalho" do
+  # MVP: a tela inicial é Pedidos; o Painel continua no endereço, fora do menu.
+  test "escritório abre o painel com as quatro etapas na ordem do trabalho" do
     sign_in_as(user_for(:office))
     get root_path
-    assert_redirected_to dashboard_path
-    travel_to(Time.zone.local(2026, 10, 13, 9)) { follow_redirect! }
+    assert_redirected_to orders_path
+    travel_to(Time.zone.local(2026, 10, 13, 9)) { get dashboard_path }
     assert_select "h1", "Painel"
     assert_select ".flow-step h2", count: 4
     assert_equal %w[Pedidos Programação Produção Compras], css_select(".flow-step h2").map(&:text)
-    assert_select "nav a[aria-current=page]", text: "Painel"
     assert_select ".week", count: 0
     assert_select ".flow-step[data-state=ok] a.btn", count: 0
     link = css_select(".flow-step:first-child a").find { |a| a.text.match?(/alertas? para conferir/) }

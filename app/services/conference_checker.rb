@@ -100,7 +100,7 @@ class ConferenceChecker
 
     dates = uncovered.map(&:delivery_date).uniq.sort.map { |d| Formatting.short_date(d) }.join(", ")
     [ alert(:mute, "Compra", "#{uncovered.size} linhas de pedido (entregas em #{dates}) são produzidas antes da primeira compra cadastrada e não entram em nenhuma compra.",
-                action: Action.new("Cadastrar dia de compra", routes.rules_path(anchor: "compras"))) ]
+                action: Action.new("Cadastrar dia de compra", routes.purchase_calendar_path)) ]
   end
 
   def sunday_alerts(lines)

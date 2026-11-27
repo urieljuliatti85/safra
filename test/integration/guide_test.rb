@@ -8,7 +8,7 @@ class GuideTest < ActionDispatch::IntegrationTest
     get guide_path
     assert_response :success
     assert_select "h2#guide-after", "Depois da importação"
-    %w[desfazer programacao producao compras conferencia regras cadastros].each do |id|
+    %w[desfazer programacao producao compras cadastros].each do |id|
       assert_select "nav[aria-label='Assuntos'] a[href='##{id}']"
       assert_select "section##{id} h3"
     end

@@ -20,7 +20,7 @@ class PurchasesController < ApplicationController
   private
 
   def load_plan
-    @purchase_dates = PurchaseDay.order(:date).pluck(:date)
+    @purchase_dates = PurchaseCalendar.new(current_company).dates
     @date = date_param(:date, @purchase_dates.reverse.find { |d| d <= Date.current } || @purchase_dates.first)
     @result = PurchasePlanner.new(company: current_company).call
     @needs = @result.purchases.fetch(@date, [])

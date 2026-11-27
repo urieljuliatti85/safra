@@ -50,7 +50,7 @@ class StocksController < ApplicationController
   def load_data
     @query = params[:q].to_s.strip
     @all = params[:todas].present?
-    @purchase_date = purchase_visible? ? PurchaseDay.where(date: @date..).order(:date).pick(:date) : nil
+    @purchase_date = purchase_visible? ? PurchaseCalendar.new(current_company).on_or_after(@date) : nil
     needs = @purchase_date ? PurchasePlanner.new(company: current_company).call.purchases.fetch(@purchase_date, []).select { |n| n.unit == "kg" } : []
     @needs = needs.index_by { |n| n.raw_material.id }
     @today = StockCount.where(date: @date).index_by(&:raw_material_id)

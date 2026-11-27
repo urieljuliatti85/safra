@@ -7,7 +7,7 @@ class SheetComparison
 
     def purchases = @purchases ||= PurchasePlanner.new(company: @company).call.purchases
 
-    def purchase_days = @purchase_days ||= PurchaseDay.pluck(:date).to_set
+    def purchase_days = @purchase_days ||= PurchaseCalendar.new(@company).dates.to_set
 
     def rows_for(sheet)
       groups = classify(sheet)
@@ -33,7 +33,7 @@ class SheetComparison
     def reason_for(status, date, raw_material, needs, unit, planilha, sistema)
       return [ nil, nil ] if status == :ok
       return [ :text, nil ] if status == :not_comparable
-      return [ :not_purchase_day, "cadastre #{date.strftime('%d/%m')} em Compras" ] unless purchase_days.include?(date)
+      return [ :not_purchase_day, "#{date.strftime('%d/%m')} não é dia de compra (Cadastros › Dias de compra)" ] unless purchase_days.include?(date)
       return [ :not_in_sheet, "outro fornecedor, estoque ou outra compra?" ] if status == :only_system
       return [ :no_order, nil ] if needs.empty?
       return [ :other_unit, "Safra: #{needs.map { |n| fmt(n.kg, n.unit) }.join(' + ')}" ] if needs.none? { |n| n.unit == unit || (n.unit == "kg" && unit != "un") }

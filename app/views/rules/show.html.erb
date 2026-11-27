@@ -116,25 +116,3 @@
   </div>
 <% end %>
 
-<section id="compras" class="panel mt-6" aria-label="Dias de compra na CEASA">
-  <div class="panel-head"><h2>Dias de compra na CEASA</h2><span class="meta">cada compra abastece a produção até a véspera da seguinte</span></div>
-  <% if @purchase_days.any? %>
-    <ul class="grid gap-1 p-3">
-      <% @purchase_days.each do |day| %>
-        <li class="flex items-center gap-3">
-          <span class="num min-w-32 font-bold"><%= weekday_date(day.date) %>/<%= day.date.year %></span>
-          <%= button_to "Remover", purchase_day_path(day), method: :delete, class: "btn", form: { data: { turbo_confirm: "Remover o dia de compra #{weekday_date(day.date)}? As compras e a produção que dependem dele são recalculadas." } } %>
-        </li>
-      <% end %>
-    </ul>
-  <% else %>
-    <p class="muted p-3">Nenhum dia de compra cadastrado.</p>
-  <% end %>
-  <%= form_with url: purchase_days_path, method: :post, class: "flex flex-wrap items-end gap-3 border-t border-line-soft p-3", data: { turbo: false } do %>
-    <div>
-      <label for="date" class="mb-1 block text-sm font-bold">Novo dia de compra</label>
-      <input id="date" type="date" name="date" required class="field">
-    </div>
-    <%= button_tag type: "submit", class: "btn" do %><%= icon :plus %>Adicionar<% end %>
-  <% end %>
-</section>

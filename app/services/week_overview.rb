@@ -48,7 +48,7 @@ class WeekOverview
   end
 
   def purchase_lane(dates)
-    purchase_dates = PurchaseDay.where(date: (@start - 7)..(@start + DAYS + 7)).order(:date).pluck(:date)
+    purchase_dates = PurchaseCalendar.new(@company).between((@start - 7)..(@start + DAYS + 7))
     return nil if purchase_dates.empty?
 
     cells = dates.map do |date|

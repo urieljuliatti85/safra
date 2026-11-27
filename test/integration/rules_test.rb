@@ -18,7 +18,6 @@ class RulesTest < ActionDispatch::IntegrationTest
     assert_select "select#cut_#{@cubinhos.id} option[selected]", "1 dia antes"
     assert_select "select#raw_lead_days option[selected]", "1 dia antes"
     assert_no_match "Placar contra as planilhas", response.body # comparação com as planilhas fica para depois do MVP
-    assert_select "#compras li", 3
   end
 
   test "ver efeito mostra o placar antes e depois e não grava nada" do
@@ -81,28 +80,6 @@ class RulesTest < ActionDispatch::IntegrationTest
     assert_equal 1, ActsAsTenant.with_tenant(other) { cut.reload.lead_days }
   end
 
-  test "adicionar e remover dia de compra" do
-    post purchase_days_path, params: { date: "2026-10-22" }
-    assert_redirected_to rules_path(anchor: "compras")
-    day = PurchaseDay.find_by!(date: "2026-10-22")
-    follow_redirect!
-    assert_match "adicionado", response.body
-
-    post purchase_days_path, params: { date: "2026-10-22" }
-    follow_redirect!
-    assert_match "já existia", response.body
-
-    delete purchase_day_path(day)
-    assert_not PurchaseDay.exists?(day.id)
-  end
-
-  test "data inválida de compra não cria" do
-    assert_no_difference -> { PurchaseDay.count } do
-      post purchase_days_path, params: { date: "lixo" }
-    end
-    assert_redirected_to rules_path(anchor: "compras")
-  end
-
   test "produção não acessa as regras" do
     sign_in_as(user_for(:production))
     get rules_path
@@ -110,7 +87,5 @@ class RulesTest < ActionDispatch::IntegrationTest
     patch rules_path, params: { commit_action: "save", cut_leads: { @cubinhos.id => "0" } }
     assert_redirected_to production_path
     assert_equal 1, @cubinhos.reload.lead_days
-    post purchase_days_path, params: { date: "2026-10-22" }
-    assert_redirected_to production_path
   end
 end

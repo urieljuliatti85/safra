@@ -19,7 +19,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_response :success
     sign_in_as(user_for(:office))
     get users_path
-    assert_redirected_to dashboard_path
+    assert_redirected_to orders_path
     follow_redirect!
     assert_match "Você não tem acesso a essa tela", response.body
   end

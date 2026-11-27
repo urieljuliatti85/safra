@@ -19,15 +19,12 @@ module ApplicationHelper
   # Telas do menu principal que a pessoa pode abrir. As que têm ícone viram aba na barra de baixo do celular.
   def nav_items
     [
-      { label: "Painel", path: dashboard_path, controllers: %w[dashboards], icon: :dashboard, allowed: policy(:dashboard).show? },
       { label: "Pedidos", path: orders_path, controllers: %w[orders], icon: :orders, allowed: policy(:order).index? },
       { label: "Programação", path: schedule_path, controllers: %w[schedules], allowed: policy(:schedule).show? },
       { label: "Produção", path: production_path, controllers: %w[productions], icon: :production, allowed: policy(:production).show? },
       { label: "Compras", path: purchases_path, controllers: %w[purchases], icon: :purchases, allowed: policy(:purchase).show? },
       { label: "Estoque", path: stock_path, controllers: %w[stocks], allowed: policy(:stock).show? },
-      { label: "Conferência", path: conference_path, controllers: %w[conferences], allowed: policy(:conference).show? },
-      { label: "Regras", path: rules_path, controllers: %w[rules], allowed: policy(:rule).show? },
-      { label: "Cadastros", path: raw_materials_path, controllers: %w[raw_materials products customers suppliers customer_aliases cuts],
+      { label: "Cadastros", path: raw_materials_path, controllers: %w[raw_materials products customers suppliers customer_aliases cuts purchase_calendars],
         allowed: policy(:raw_material).index? }
     ].select { |item| item[:allowed] }
   end

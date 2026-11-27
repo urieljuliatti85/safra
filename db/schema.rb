@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_27_270000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_27_280000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -80,6 +80,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_27_270000) do
     t.datetime "updated_at", null: false
     t.integer "raw_lead_days", default: 1, null: false
     t.boolean "active", default: true, null: false
+    t.integer "purchase_weekdays", default: [1, 4], null: false, array: true
   end
 
   create_table "comparison_notes", force: :cascade do |t|
