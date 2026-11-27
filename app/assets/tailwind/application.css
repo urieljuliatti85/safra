@@ -408,6 +408,7 @@
     .stock-sheet td { border: 0; padding: 0 !important; text-align: left !important; }
     .stock-sheet td.count { display: flex; align-items: center; gap: .375rem; }
     .stock-sheet td.count::after { content: "kg"; color: var(--color-ink-soft); }
+    .ready-sheet td.count::after { content: none; }
     .stock-sheet td.count .field { font-size: 1rem; }
     .stock-sheet td[data-label]::before { content: attr(data-label) " "; font-weight: 500; color: var(--color-ink-soft); }
     .stock-sheet td.is-empty { display: none; }

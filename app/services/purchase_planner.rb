@@ -7,7 +7,8 @@ class PurchasePlanner
     :raw_material, :unit,
     :processed_quantity, # pedido em produtos processados (na unidade do pedido)
     :raw_quantity,       # pedido in natura (na unidade do pedido)
-    :kg,                 # necessidade bruta em kg in natura
+    :ready,              # { produto => quantidade } de produto pronto abatida do pedido, antes do fator (R3.8)
+    :kg,                 # necessidade em kg in natura, já sem o produto pronto
     :stock_kg,           # abatido da câmara fria
     :net_kg,             # necessidade líquida em kg
     :packages,           # caixas/sacos inteiros a comprar, somados por produto (R3.9); nil se não dá para calcular
@@ -51,7 +52,7 @@ class PurchasePlanner
       purchase_date = purchase_dates.select { |date| date <= production_date }.max
       (uncovered << line) && next unless purchase_date
 
-      need = (needs[purchase_date][[ product.raw_material, line.unit ]] ||= { processed: 0, raw: 0, kg: 0, missing_factor: false, breakdown: [] })
+      need = (needs[purchase_date][[ product.raw_material, line.unit ]] ||= { processed: 0, raw: 0, missing_factor: false, breakdown: [] })
       add_quantity(need, product, line)
       need[:breakdown] << Breakdown.new(
         customer: line.order.customer, product: product, delivery_date: line.delivery_date,
@@ -61,44 +62,45 @@ class PurchasePlanner
     [ needs, uncovered ]
   end
 
+  # Soma o pedido processado e o in natura; o kg é calculado no finalize, depois do produto pronto.
   def add_quantity(need, product, line)
-    quantity = line.quantity
-    factor = product.raw_material.multiply_factor
     if product.raw?
-      need[:raw] += quantity
-      need[:kg] += quantity
-    elsif line.unit != "kg"
-      need[:processed] += quantity
-      need[:kg] += quantity
-      need[:missing_factor] = true
+      need[:raw] += line.quantity
     else
-      need[:processed] += quantity
-      need[:kg] += factor ? quantity * factor : quantity
-      need[:missing_factor] = true unless factor
+      need[:processed] += line.quantity
+      need[:missing_factor] = true if line.unit != "kg" || product.raw_material.multiply_factor.nil?
     end
   end
 
-  # O estoque da câmara fria abate a compra: a contagem mais recente até o dia da compra vale para ela, e o que
-  # sobra depois de abater vai para a compra seguinte, a não ser que uma contagem nova (feita depois da compra
-  # anterior) o substitua. Só abate o que é pedido em kg.
+  # A conta segue a ordem da esteira (R3.8, D39): pedido, menos o saldo de produto pronto, vezes o fator, menos o saldo
+  # de matéria-prima, e só então o arredondamento por produto (R3.9). Cada saldo vale para a compra assim: a contagem
+  # mais recente até o dia da compra entra nela, e o que sobra depois de abater vai para a compra seguinte, a não ser
+  # que uma contagem nova (feita depois da compra anterior) o substitua. O produto pronto abate só o pedido na unidade
+  # do produto; a matéria-prima, só o que é pedido em kg.
   def finalize(raw_needs, purchase_dates)
     counts = StockCount.order(:date, :id).to_a
+    ready_counts = ProductStockCount.order(:date, :id).to_a
     stock = Hash.new(0)
+    ready = Hash.new(0)
     previous_date = nil
     purchase_dates.index_with do |date|
-      apply_counts(stock, counts, previous_date, date)
+      apply_counts(stock, counts, previous_date, date, :raw_material_id, :kg)
+      apply_counts(ready, ready_counts, previous_date, date, :product_id, :quantity)
       previous_date = date
       raw_needs[date].map do |(raw_material, unit), need|
-        stock_kg = unit == "kg" ? [ stock[raw_material.id], need[:kg] ].min : 0
+        kg_by_product = need[:breakdown].group_by(&:product).transform_values { |lines| lines.sum { |b| line_kg(b.product, unit, b.quantity) } }
+        ready_used = deduct_ready(ready, need[:breakdown], unit, kg_by_product)
+        kg = kg_by_product.values.sum
+        stock_kg = unit == "kg" ? [ stock[raw_material.id], kg ].min : 0
         stock[raw_material.id] -= stock_kg if stock_kg.positive?
-        net_kg = [ need[:kg] - stock_kg, 0 ].max
+        net_kg = [ kg - stock_kg, 0 ].max
 
-        packages, loose_kg = packages_for(raw_material, unit, need, net_kg)
+        packages, loose_kg = packages_for(raw_material, unit, kg_by_product, kg, net_kg)
 
         Need.new(
           raw_material: raw_material, unit: unit,
-          processed_quantity: need[:processed], raw_quantity: need[:raw],
-          kg: need[:kg], stock_kg: stock_kg, net_kg: net_kg,
+          processed_quantity: need[:processed], raw_quantity: need[:raw], ready: ready_used,
+          kg: kg, stock_kg: stock_kg, net_kg: net_kg,
           packages: packages, loose_kg: loose_kg,
           net_packages: packages && (net_kg / raw_material.kg_per_package).round(2),
           missing_factor: need[:missing_factor],
@@ -108,40 +110,51 @@ class PurchasePlanner
     end
   end
 
+  # Abate o produto pronto do pedido de cada produto processado, antes do fator. Só quando o pedido está na unidade do
+  # produto (quilos e unidades não se misturam). Muda kg_by_product e o saldo; devolve { produto => quantidade abatida }.
+  def deduct_ready(ready, breakdown, unit, kg_by_product)
+    breakdown.group_by(&:product).each_with_object({}) do |(product, lines), used|
+      next if product.raw? || product.unit != unit || !ready[product.id].positive?
+
+      quantity = [ ready[product.id], lines.sum(&:quantity) ].min
+      ready[product.id] -= quantity
+      kg_by_product[product] -= line_kg(product, unit, quantity)
+      used[product] = quantity
+    end
+  end
+
   # Arredondamento por produto (R3.9, D41): o kg líquido da matéria-prima é repartido entre os produtos na proporção
-  # do kg bruto de cada um. Produto de caixa inteira arredonda a sua parte para cima; produto em fração entra com o kg
-  # exato. Soma tudo: as caixas inteiras, mais o kg das frações em caixas e o resto em kg ("2 cx e 5 kg").
-  # Devolve [caixas, kg avulsos], ou [nil, 0] sem kg por embalagem.
-  def packages_for(raw_material, unit, need, net_kg)
+  # do kg de cada um (já sem o produto pronto). Produto de caixa inteira arredonda a sua parte para cima; produto em
+  # fração entra com o kg exato. Soma tudo: as caixas inteiras, mais o kg das frações em caixas e o resto em kg
+  # ("2 cx e 5 kg"). Devolve [caixas, kg avulsos], ou [nil, 0] sem kg por embalagem.
+  def packages_for(raw_material, unit, kg_by_product, kg, net_kg)
     per_package = raw_material.kg_per_package
     return [ nil, 0 ] unless unit == "kg" && per_package.to_d.positive?
     return [ 0, 0 ] unless net_kg.positive?
 
-    gross_by_product = need[:breakdown].group_by(&:product).transform_values do |lines|
-      lines.sum { |b| gross_kg(b.product, b.quantity) }
-    end
     whole_boxes = 0
     fraction_kg = 0
-    gross_by_product.each do |product, gross|
-      share = (net_kg * gross / need[:kg]).round(3)
+    kg_by_product.each do |product, product_kg|
+      share = (net_kg * product_kg / kg).round(3)
       product.fraction_rounding? ? fraction_kg += share : whole_boxes += (share / per_package).ceil
     end
     fraction_boxes = (fraction_kg / per_package).floor
     [ whole_boxes + fraction_boxes, (fraction_kg - fraction_boxes * per_package).round(3) ]
   end
 
-  # Mesmo kg que add_quantity soma para a linha (in natura, ou processado vezes o fator).
-  def gross_kg(product, quantity)
+  # Mesmo kg que add_quantity soma para a linha: in natura e unidade diferente de kg entram como estão; processado em
+  # kg, vezes o fator.
+  def line_kg(product, unit, quantity)
     factor = product.raw_material.multiply_factor
-    product.raw? || factor.nil? ? quantity : quantity * factor
+    product.raw? || unit != "kg" || factor.nil? ? quantity : quantity * factor
   end
 
   # Contagens feitas depois da compra anterior (ou até a primeira compra) substituem o que sobrou.
-  def apply_counts(stock, counts, previous_date, date)
+  def apply_counts(stock, counts, previous_date, date, key, value)
     counts.each do |count|
       next if count.date > date || (previous_date && count.date <= previous_date)
 
-      stock[count.raw_material_id] = count.kg
+      stock[count.public_send(key)] = count.public_send(value)
     end
   end
 end

@@ -12,6 +12,7 @@ pt-BR:
       company: { one: empresa, other: empresas }
       purchase_day: { one: dia de compra, other: dias de compra }
       stock_count: { one: contagem de estoque, other: contagens de estoque }
+      product_stock_count: { one: contagem de produto pronto, other: contagens de produto pronto }
       order_line: { one: linha de pedido, other: linhas de pedido }
       order_import: { one: importação, other: importações }
       production_plan: { one: envio da produção, other: envios da produção }
@@ -84,6 +85,10 @@ pt-BR:
         kg: Kg
         date: Data
         raw_material: Matéria-prima
+      product_stock_count:
+        quantity: Quantidade
+        date: Data
+        product: Produto
       order_line:
         quantity: Quantidade
         unit: Unidade

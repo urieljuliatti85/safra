@@ -2,7 +2,7 @@
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="page-title">Estoque da câmara fria</h1>
-    <p class="page-sub">Conte o que há na câmara e digite em kg. A compra da CEASA abate o que está contado; o que sobra segue para a compra seguinte, até uma contagem nova. <strong>Campo vazio</strong> é não contado (nada é abatido), <strong>0</strong> é câmara vazia.</p>
+    <p class="page-sub">Conte o que há na câmara: matéria-prima em kg e, mais abaixo, o produto pronto. A compra da CEASA abate o que está contado; o que sobra segue para a compra seguinte, até uma contagem nova. <strong>Campo vazio</strong> é não contado (nada é abatido), <strong>0</strong> é câmara vazia.</p>
   </div>
   <%= day_nav(@date, :stock_path) %>
 </div>
@@ -25,7 +25,7 @@
   <%= form_with url: stock_path, method: :get, class: "search-form ml-auto flex flex-wrap items-center gap-2", data: { turbo: false } do %>
     <%= hidden_field_tag :date, @date.iso8601 %>
     <%= label_tag :q, "Buscar", class: "sr-only" %>
-    <%= search_field_tag :q, @query, placeholder: "Buscar matéria-prima", class: "field" %>
+    <%= search_field_tag :q, @query, placeholder: "Buscar matéria-prima ou produto", class: "field" %>
     <% if purchase_visible? %><label class="flex items-center gap-2"><%= check_box_tag :todas, "1", @all, class: "size-5" %>Mostrar todas (<%= @total %>)</label><% end %>
     <%= button_tag "Filtrar", type: "submit", class: "btn" %>
   <% end %>
@@ -36,7 +36,7 @@
   <%= hidden_field_tag :q, @query if @query.present? %>
   <%= hidden_field_tag :todas, "1" if @all %>
   <div class="sheet-wrap">
-    <table class="sheet stock-sheet">
+    <table class="sheet stock-sheet raw-sheet">
       <thead>
         <tr>
           <th class="sticky-col">Matéria-prima</th>
@@ -66,6 +66,35 @@
         <% end %>
         <% if @raw_materials.empty? %>
           <tr><td colspan="6" class="muted p-6 text-center">Nenhuma matéria-prima para mostrar. Marque "Mostrar todas" para contar qualquer uma.</td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  <h2 class="mt-6 mb-2 text-lg font-bold">Produto pronto</h2>
+  <p class="page-sub mb-3">O que já está pronto na câmara, na unidade do produto. A compra abate do pedido antes do fator de conversão; o que sobra segue para a compra seguinte, até uma contagem nova.</p>
+  <div class="sheet-wrap">
+    <table class="sheet stock-sheet ready-sheet">
+      <thead>
+        <tr>
+          <th class="sticky-col">Produto</th>
+          <th scope="col" class="px-2 text-right">Contagem de <%= short_date(@date) %></th>
+          <th scope="col" class="px-2 text-right">Contagem anterior</th>
+          <% if @purchase_date %><th scope="col" class="px-2 text-right">Abate do pedido em <%= short_date(@purchase_date) %></th><% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @products.each do |product| %>
+          <% previous = @ready_previous[product.id] %>
+          <% used = @ready_used[product.id] %>
+          <tr>
+            <th scope="row" class="sticky-col font-medium"><%= product.name %></th>
+            <td class="count px-1 text-right"><%= text_field_tag "ready_counts[#{product.id}]", (qty(@ready_today[product.id].quantity) if @ready_today[product.id]), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Contagem de #{product.name} pronto, em #{product.unit}" %><span class="unit-label ml-1 muted text-sm"><%= product.unit %></span></td>
+            <td class="num px-2 text-right muted <%= 'is-empty' unless previous %>" data-label="Anterior"><%= previous ? "#{qty(previous.quantity)} #{product.unit} em #{short_date(previous.date)}" : "-" %></td>
+            <% if @purchase_date %><td class="num px-2 text-right <%= 'is-empty' unless used %>" data-label="Abate"><%= used ? "#{qty(used)} #{product.unit}" : "-" %></td><% end %>
+          </tr>
+        <% end %>
+        <% if @products.empty? %>
+          <tr><td colspan="4" class="muted p-6 text-center">Nenhum produto para mostrar. Marque "Mostrar todas" para contar qualquer um.</td></tr>
         <% end %>
       </tbody>
     </table>

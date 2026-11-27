@@ -14,6 +14,7 @@ class Product < ApplicationRecord
   has_many :customer_aliases, dependent: :destroy
   has_many :sheet_aliases, dependent: :destroy
   has_many :order_lines, dependent: :restrict_with_error
+  has_many :ready_counts, class_name: "ProductStockCount", dependent: :destroy
   # Ingredientes, quando o produto é uma mistura (D18).
   has_many :components, -> { order(percentage: :desc) }, class_name: "ProductComponent", dependent: :destroy, inverse_of: :product
   # Ingrediente de alguma mistura não pode ser apagado sem tirar da mistura antes.
