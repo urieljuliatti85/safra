@@ -6,7 +6,6 @@ class IndicatorsTest < ActionDispatch::IntegrationTest
     get indicators_path(week: "2026-10-12")
     assert_response :success
     assert_select "h1", "BI"
-    assert_select "nav a[aria-current=page]", text: "BI"
     assert_select ".bi-facts dt", count: 3
     assert_select ".bi-cols li", count: 7
     assert_select "#bi-days"

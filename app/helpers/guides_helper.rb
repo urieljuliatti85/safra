@@ -33,7 +33,7 @@ module GuidesHelper
         "In natura não entra na produção: vai direto para a compra."
       ], "Abrir Produção", production_path),
       GuideStep.new("Compra da CEASA", [
-        "No dia de compra a lista já vem com perdas e estoque abatidos, por fornecedor.",
+        "No dia de compra a lista já vem com o volume total de cada matéria-prima, por fornecedor.",
         "Copie o texto para o WhatsApp de cada fornecedor e clique em Enviar aos fornecedores."
       ], "Abrir Compras", purchases_path),
       GuideStep.new("Quando o pedido muda", [
@@ -73,12 +73,9 @@ module GuidesHelper
         "Enviar aos setores grava a versão 1 e avisa no celular. Se o pedido mudar depois, a tela mostra o que mudou para enviar a versão 2."
       ], "Abrir Produção", production_path),
       GuideTopic.new("compras", "Como as compras são calculadas", "A lista da CEASA também é calculada. Ela só é gravada quando você clica em Enviar aos fornecedores.", [
-        "Cada linha de pedido vai para a compra do último dia de compra igual ou anterior ao dia de produção dela.",
-        "A conta segue a ordem da esteira: pedido, menos o produto pronto, vezes o fator, menos a matéria-prima da câmara, e só então as caixas.",
-        "Produto pronto (contado em Estoque, na unidade do produto) abate o pedido do processado antes do fator. In natura entra como foi pedido.",
-        "Processado em kg: kg in natura = kg a produzir × fator de perda da matéria-prima. Sem fator, ou em outra unidade (un, maço, caixa), entra sem converter e aparece um alerta.",
-        "Cada saldo é o informado e só o aproveitável: o que está dentro da condição de uso e não está comprometido. A contagem feita depois da compra anterior vale para a próxima compra; o que sobra não passa para a compra seguinte.",
-        "Caixas por produto: caixa inteira arredonda a parte do produto para cima; fração compra caixas e o resto em kg (\"2 cx e 5 kg\"). Folhas e itens sem embalagem ficam em kg.",
+        "Cada linha de pedido vai para a compra do último dia de compra igual ou anterior à véspera da entrega: a compra de segunda cobre as entregas de terça a quinta; a de quinta, de sexta em diante.",
+        "Volume total: o processado vezes o fator de perda da matéria-prima, mais o in natura como foi pedido. Sem fator, ou em outra unidade (un, maço, caixa), entra sem converter e aparece um alerta.",
+        "A compra não abate o estoque e não arredonda em caixas.",
         "A lista sai por fornecedor, com o texto pronto para o WhatsApp.",
         "Produção antes da primeira compra cadastrada fica fora de qualquer compra: a Conferência avisa."
       ], "Abrir Compras", purchases_path),
@@ -88,8 +85,7 @@ module GuidesHelper
         "A mesma matéria-prima pedida em unidades diferentes (kg e un, por exemplo): não dá para somar.",
         "Matéria-prima sem fornecedor, fator marcado para revisar, entregas no domingo e linhas que ficam fora de qualquer compra.",
         "Quantidade fora do comum: 5 vezes ou mais o que o cliente costuma pedir daquele produto, provável zero a mais.",
-        "Cada alerta tem um link para a tela onde se corrige.",
-        "Em Sistema × planilhas, os números das planilhas feitas à mão aparecem ao lado do que o Safra calcula, com o motivo provável de cada diferença."
+        "Cada alerta tem um link para a tela onde se corrige."
       ], "Abrir Conferência", conference_path),
       GuideTopic.new("regras", "O que são as Regras", "São os critérios de data que a programação, a produção e as compras usam.", [
         "Antecedência por corte: quantos dias antes da entrega cada corte é produzido (0 = no dia da entrega).",

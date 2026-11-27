@@ -2,7 +2,7 @@
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="page-title">Estoque da câmara fria</h1>
-    <p class="page-sub">Conte só o <strong>saldo aproveitável</strong>: o que está dentro da condição de uso e não está comprometido. O que está estragado, separado para um cliente ou fora de uso não entra. Matéria-prima em kg e, mais abaixo, o produto pronto. A contagem vale para a próxima compra da CEASA, que abate o que está contado. "Disponível" é o último saldo contado mais o recebido nas compras depois dele (Recebimento). <strong>Campo vazio</strong> é não contado (nada é abatido), <strong>0</strong> é nada aproveitável.</p>
+    <p class="page-sub">O produto pronto que sobrou na câmara fria (excedente da produção), na unidade do produto: só o <strong>aproveitável</strong>, dentro da condição de uso e ainda não separado para um cliente. <strong>Campo vazio</strong> é não contado, <strong>0</strong> é nada aproveitável. A compra da CEASA não abate o estoque.</p>
   </div>
   <%= day_nav(@date, :stock_path) %>
 </div>
@@ -15,17 +15,10 @@
 <% end %>
 
 <div class="mb-4 flex flex-wrap items-center gap-3">
-  <% if purchase_visible? %>
-  <p class="num">
-    <% if @purchase_date %>Próxima compra a partir desta contagem: <strong><%= weekday_date(@purchase_date) %></strong>. <%= link_to "Ver compra", purchases_path(date: @purchase_date), class: "underline" %>
-    <% else %>Não há dia de compra a partir de <%= short_date(@date) %>. <%= link_to "Cadastrar em Regras", rules_path(anchor: "compras"), class: "underline" %>
-    <% end %>
-  </p>
-  <% end %>
   <%= form_with url: stock_path, method: :get, class: "search-form ml-auto flex flex-wrap items-center gap-2", data: { turbo: false } do %>
     <%= hidden_field_tag :date, @date.iso8601 %>
     <%= label_tag :q, "Buscar", class: "sr-only" %>
-    <%= search_field_tag :q, @query, placeholder: "Buscar matéria-prima ou produto", class: "field" %>
+    <%= search_field_tag :q, @query, placeholder: "Buscar produto", class: "field" %>
     <% if purchase_visible? %><label class="flex items-center gap-2"><%= check_box_tag :todas, "1", @all, class: "size-5" %>Mostrar todas (<%= @total %>)</label><% end %>
     <%= button_tag "Filtrar", type: "submit", class: "btn" %>
   <% end %>
@@ -35,49 +28,7 @@
   <%= hidden_field_tag :date, @date.iso8601 %>
   <%= hidden_field_tag :q, @query if @query.present? %>
   <%= hidden_field_tag :todas, "1" if @all %>
-  <div class="sheet-wrap">
-    <table class="sheet stock-sheet raw-sheet">
-      <thead>
-        <tr>
-          <th class="sticky-col">Matéria-prima</th>
-          <th scope="col" class="px-2 text-right">Aproveitável em <%= short_date(@date) %> (kg)</th>
-          <th scope="col" class="px-2 text-right">Contagem anterior</th>
-          <th scope="col" class="px-2 text-right">Recebido depois</th>
-          <th scope="col" class="px-2 text-right">Disponível</th>
-          <% if @purchase_date %>
-            <th scope="col" class="px-2 text-right">Precisa em <%= short_date(@purchase_date) %></th>
-            <th scope="col" class="px-2 text-right">Abate do estoque</th>
-            <th scope="col" class="px-2 text-right">Comprar</th>
-          <% end %>
-        </tr>
-      </thead>
-      <tbody>
-        <% @raw_materials.each do |rm| %>
-          <% need = @needs[rm.id] %>
-          <% previous = @previous[rm.id] %>
-          <tr>
-            <th scope="row" class="sticky-col font-medium"><%= rm.name %></th>
-            <td class="count px-1 text-right"><%= text_field_tag "counts[#{rm.id}]", (qty(@today[rm.id].kg) if @today[rm.id]), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Contagem de #{rm.name}" %></td>
-            <td class="num px-2 text-right muted <%= 'is-empty' unless previous %>" data-label="Anterior"><%= previous ? "#{qty(previous.kg)} kg em #{short_date(previous.date)}" : "-" %></td>
-            <% received = @received.fetch(rm.id, 0) %>
-            <% last = @today[rm.id] || previous %>
-            <td class="num px-2 text-right <%= 'is-empty' unless received.positive? %>" data-label="Recebido"><%= received.positive? ? "#{qty(received)} kg" : "-" %></td>
-            <td class="num px-2 text-right <%= 'is-empty' unless last || received.positive? %>" data-label="Disponível"><%= last || received.positive? ? "#{qty((last&.kg || 0) + received)} kg" : "-" %></td>
-            <% if @purchase_date %>
-              <td class="num px-2 text-right <%= 'is-empty' unless need %>" data-label="Precisa"><%= need ? "#{qty(need.kg)} kg" : "-" %></td>
-              <td class="num px-2 text-right <%= 'is-empty' unless need&.stock_kg&.positive? %>" data-label="Abate"><%= need && need.stock_kg.positive? ? "#{qty(need.stock_kg)} kg" : "-" %></td>
-              <td class="num px-2 text-right font-bold <%= 'is-empty' unless need %>" data-label="Comprar"><%= need ? need_text(need) : "-" %></td>
-            <% end %>
-          </tr>
-        <% end %>
-        <% if @raw_materials.empty? %>
-          <tr><td colspan="8" class="muted p-6 text-center">Nenhuma matéria-prima para mostrar. Marque "Mostrar todas" para contar qualquer uma.</td></tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-  <h2 class="mt-6 mb-2 text-lg font-bold">Produto pronto</h2>
-  <p class="page-sub mb-3">O produto pronto aproveitável na câmara, na unidade do produto: dentro da condição de uso e ainda não separado para um cliente. A próxima compra abate do pedido antes do fator de conversão.</p>
+  <h2 class="mb-2 text-lg font-bold">Produto pronto</h2>
   <div class="sheet-wrap">
     <table class="sheet stock-sheet ready-sheet">
       <thead>
@@ -85,28 +36,25 @@
           <th class="sticky-col">Produto</th>
           <th scope="col" class="px-2 text-right">Aproveitável em <%= short_date(@date) %></th>
           <th scope="col" class="px-2 text-right">Contagem anterior</th>
-          <% if @purchase_date %><th scope="col" class="px-2 text-right">Abate do pedido em <%= short_date(@purchase_date) %></th><% end %>
         </tr>
       </thead>
       <tbody>
         <% @products.each do |product| %>
           <% previous = @ready_previous[product.id] %>
-          <% used = @ready_used[product.id] %>
           <tr>
             <th scope="row" class="sticky-col font-medium"><%= product.name %></th>
             <td class="count px-1 text-right"><%= text_field_tag "ready_counts[#{product.id}]", (qty(@ready_today[product.id].quantity) if @ready_today[product.id]), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Contagem de #{product.name} pronto, em #{product.unit}" %><span class="unit-label ml-1 muted text-sm"><%= product.unit %></span></td>
             <td class="num px-2 text-right muted <%= 'is-empty' unless previous %>" data-label="Anterior"><%= previous ? "#{qty(previous.quantity)} #{product.unit} em #{short_date(previous.date)}" : "-" %></td>
-            <% if @purchase_date %><td class="num px-2 text-right <%= 'is-empty' unless used %>" data-label="Abate"><%= used ? "#{qty(used)} #{product.unit}" : "-" %></td><% end %>
           </tr>
         <% end %>
         <% if @products.empty? %>
-          <tr><td colspan="4" class="muted p-6 text-center">Nenhum produto para mostrar. Marque "Mostrar todas" para contar qualquer um.</td></tr>
+          <tr><td colspan="3" class="muted p-6 text-center">Nenhum produto para mostrar. Marque "Mostrar todas" para contar qualquer um.</td></tr>
         <% end %>
       </tbody>
     </table>
   </div>
   <div class="savebar">
     <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar contagem<% end %>
-    <span class="muted text-sm">Use vírgula para decimais. A lista mostra o que a próxima compra precisa e o que já tem contagem.</span>
+    <span class="muted text-sm">Use vírgula para decimais. A lista mostra os produtos da próxima compra e os que já têm contagem.</span>
   </div>
 <% end %>

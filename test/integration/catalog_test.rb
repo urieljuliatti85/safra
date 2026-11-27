@@ -21,7 +21,7 @@ class CatalogTest < ActionDispatch::IntegrationTest
     assert_select "input[aria-label='Kg por embalagem de Cenoura'][value='20']"
     assert_select "select[aria-label='Fornecedor de Cenoura'] option[selected]", "Fornecedor B"
     assert_select "th a", text: "Cebola"
-    assert_match "Compras iguais às planilhas importadas", response.body
+    assert_no_match "Compras iguais às planilhas importadas", response.body
   end
 
   test "marca matéria-prima sem fator (processada) e sem kg por embalagem (caixa ou saco)" do
@@ -172,18 +172,6 @@ class CatalogTest < ActionDispatch::IntegrationTest
     get edit_product_path(Product.find_by!(code: "salada_roxa"))
     assert_select "li", /Beterraba ralada · 3 mm: 25%/
   end
-
-  test "o arredondamento da compra é escolhido no produto: caixa inteira ou fração (R3.9)" do
-    product = Product.find_by!(code: "cenoura_ralada")
-    get edit_product_path(product)
-    assert_select "label", "Arredondamento da compra"
-    assert_select "option[selected]", "Caixa inteira"
-    patch product_path(product), params: { product: { name: product.name, product_group: "processed", raw_material_id: product.raw_material_id,
-                                                      cut_id: product.cut_id, unit: "kg", rounding: "fraction" } }
-    assert product.reload.fraction_rounding?
-  end
-
-  # --- clientes e apelidos ---
 
   test "criar cliente gera o código e leva para os apelidos" do
     post customers_path, params: { customer: { name: "Restaurante Novo Ltda", short_name: "Novo", order_source: "xlsx" } }

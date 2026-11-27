@@ -26,7 +26,6 @@ module ApplicationHelper
       { label: "Produção", path: production_path, controllers: %w[productions], icon: :production, allowed: policy(:production).show? },
       { label: "Compras", path: purchases_path, controllers: %w[purchases], icon: :purchases, allowed: policy(:purchase).show? },
       { label: "Estoque", path: stock_path, controllers: %w[stocks], allowed: policy(:stock).show? },
-      { label: "BI", path: indicators_path, controllers: %w[indicators], allowed: policy(:indicator).show? },
       { label: "Conferência", path: conference_path, controllers: %w[conferences], allowed: policy(:conference).show? },
       { label: "Regras", path: rules_path, controllers: %w[rules], allowed: policy(:rule).show? },
       { label: "Cadastros", path: raw_materials_path, controllers: %w[raw_materials products customers suppliers customer_aliases cuts],
