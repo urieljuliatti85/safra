@@ -124,6 +124,7 @@ Regras que ajudam a entender a conferência:
 - Com mais de uma aba (por exemplo, cotação e pedido), vale a que tem mais produtos com quantidade.
 - Uma planilha por vez: processados e in natura costumam vir em arquivos separados.
 - A planilha precisa caber numa semana de pedido, da segunda até a segunda seguinte. Se passar disso (por exemplo, de sexta a terça), a conferência avisa e não deixa importar: separe em uma planilha por semana.
+- **Apagar pedido** (em Pedidos, escritório e administrador; "Semana inteira" ou um dia de entrega): tira os itens do cliente, digitados ou importados, com o que geraram: Programação, Planilha de Produção, Compras e Pesagem voltam sozinhas, e as versões enviadas da Planilha de Produção e das Compras com itens dele são apagadas. A planilha que fica sem nada no pedido volta a pendente e os apelidos que ela criou saem. O Estoque não muda. Fica a versão "Pedido apagado" no histórico.
 - **Desfazer** (pílula na grade ou na tela da importação) devolve o pedido ao que era antes da planilha nos produtos e dias que ela tocou, apaga os apelidos que ela criou e reabre a importação. Alterações feitas no pedido depois da importação são listadas antes e se perdem. As versões da Planilha de Produção e das Compras enviadas depois da importação, com itens dela, são apagadas junto (listadas antes de confirmar); as enviadas antes ficam.
 
 

@@ -26,6 +26,17 @@
     <div class="flex flex-wrap items-center gap-2">
       <%= link_to new_order_import_path(customer: @customer.code), class: "btn", data: { tour: "import" } do %><%= icon :plus %>Importar<% end %>
       <%= link_to "#versoes", class: "btn", "aria-label": "Versões desta semana" do %><%= icon :history %>Versões<% if @versions.any? %> <span class="pill pill-draft num">v<%= @versions.first.version %></span><% end %><% end %>
+      <% clear_days = policy(:order).clear? ? @order.lines.where("quantity > 0").distinct.order(:delivery_date).pluck(:delivery_date) : [] %>
+      <% if clear_days.any? %>
+        <%= form_with url: order_clear_path(customer: @customer.code, week: @week_start), method: :delete, class: "flex items-center gap-2",
+              data: { turbo_confirm: "Apagar o pedido de #{@customer.short_name} escolhido ao lado? Todos os itens saem, digitados ou importados, " \
+                                                   "com o que geraram: Programação, Planilha de Produção, Compras, Pesagem, as versões enviadas com itens dele " \
+                                                   "e os apelidos das planilhas que ficarem vazias. O Estoque não muda." } do %>
+          <%= label_tag :day, "Apagar pedido", class: "sr-only" %>
+          <%= select_tag :day, options_for_select([ [ "Semana inteira", "" ] ] + clear_days.map { |d| [ weekday_date(d), d.iso8601 ] }), class: "field", id: "apagar-pedido-dia" %>
+          <%= button_tag type: "submit", class: "btn" do %><%= icon :undo %>Apagar pedido<% end %>
+        <% end %>
+      <% end %>
     </div>
     <div class="flex items-center gap-2">
       <%= link_to icon(:chevron_left), orders_path(customer: @customer.code, week: @week_start - 7), class: "icon-btn", "aria-label": "Semana anterior" %>
