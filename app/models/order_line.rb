@@ -3,6 +3,9 @@ class OrderLine < ApplicationRecord
   UNITS = %w[kg un cx mç crivo dz].freeze
   # Teto de digitação, bem abaixo do que cabe em decimal(10,3): um número maior é erro de digitação.
   MAX_QUANTITY = 1_000_000
+  # Marca de andamento na Programação (R3.4, D35), escolhida pelo Gerente de Produção. A quantidade não se divide.
+  SCHEDULE_MARKS = { "produce" => "produzir no dia", "ready" => "já pronto" }.freeze
+  SCHEDULE_SYMBOLS = { "produce" => "□", "ready" => "•" }.freeze
 
   acts_as_tenant :company
   include Auditable
@@ -16,6 +19,7 @@ class OrderLine < ApplicationRecord
   validates :delivery_date, presence: true
   validates :quantity, numericality: { greater_than_or_equal_to: 0, less_than: MAX_QUANTITY }
   validates :unit, inclusion: { in: UNITS }
+  validates :schedule_mark, inclusion: { in: SCHEDULE_MARKS.keys }
 
   delegate :customer, to: :order
 end

@@ -1,8 +1,9 @@
 <% content_for :title, "Programação · Safra" %>
+<% can_mark = policy(:schedule).mark? %>
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="page-title">Programação de entregas</h1>
-    <p class="page-sub">O que cada cliente pediu para o dia e quando cada item é produzido.</p>
+    <p class="page-sub">Por cliente e data de entrega, de <%= weekday_date(@date) %> a <%= weekday_date(@end_date) %> (quatro dias). <%= OrderLine::SCHEDULE_SYMBOLS["produce"] %> produzir no dia · <%= OrderLine::SCHEDULE_SYMBOLS["ready"] %> já pronto.</p>
   </div>
   <div class="flex items-center gap-3">
     <%= day_nav(@date, :schedule_path) %>
@@ -11,23 +12,35 @@
 </div>
 <div class="space-y-4">
   <% if @groups.empty? %>
-    <p class="panel p-8 text-center muted">Nenhuma entrega em <%= weekday_date(@date) %>.</p>
+    <p class="panel p-8 text-center muted">Nenhuma entrega de <%= weekday_date(@date) %> a <%= weekday_date(@end_date) %>.</p>
   <% end %>
   <% @groups.each do |group| %>
     <section class="panel">
       <div class="panel-head"><h2><%= group.customer.name %></h2><span class="meta num"><%= group.entries.size %> itens</span></div>
       <table class="ops-table">
-        <thead><tr><th>Produto</th><th class="col-qty">Qtd.</th><th class="col-unit">Un.</th><th>Produzir em</th></tr></thead>
+        <thead><tr><th>Andamento</th><th>Entrega</th><th>Produto</th><th class="col-qty">Qtd.</th><th class="col-unit">Un.</th></tr></thead>
         <tbody>
           <% group.entries.each do |entry| %>
-            <tr>
+            <% other = entry.mark == "ready" ? "produce" : "ready" %>
+            <tr id="linha-<%= entry.line_id %>">
+              <td class="who">
+                <% if can_mark %>
+                  <%= button_to schedule_mark_path(entry.line_id, date: @date, mark: other), method: :patch, class: "btn", form: { class: "inline" },
+                                "aria-pressed": entry.mark == "ready",
+                                "aria-label": "#{entry.product.name}, entrega #{short_date(entry.delivery_date)}: #{OrderLine::SCHEDULE_MARKS[entry.mark]}. Marcar como #{OrderLine::SCHEDULE_MARKS[other]}" do %>
+                    <%= OrderLine::SCHEDULE_SYMBOLS[entry.mark] %> <%= OrderLine::SCHEDULE_MARKS[entry.mark] %>
+                  <% end %>
+                <% else %>
+                  <%= OrderLine::SCHEDULE_SYMBOLS[entry.mark] %> <%= OrderLine::SCHEDULE_MARKS[entry.mark] %>
+                <% end %>
+              </td>
+              <td class="who"><%= weekday_date(entry.delivery_date) %></td>
               <td class="name">
                 <%= entry.product.name %>
                 <% if entry.note %><span class="line-note"><%= icon :note %><span><span class="sr-only">Observação: </span><%= entry.note %></span></span><% end %>
               </td>
               <td class="qty" data-unit="<%= entry.unit %>"><%= qty(entry.quantity) %></td>
               <td class="unit"><%= entry.unit %></td>
-              <td class="who"><%= entry.production_date ? weekday_date(entry.production_date) : "compra (in natura)" %></td>
             </tr>
           <% end %>
         </tbody>

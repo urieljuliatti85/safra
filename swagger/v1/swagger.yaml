@@ -425,6 +425,13 @@ components:
                     note:
                       type: string
                       nullable: true
+                    mark:
+                      type: string
+                      enum:
+                      - produce
+                      - ready
+                      description: 'produce: quadrado, produzir no dia; ready: ponto,
+                        já pronto (R3.4)'
     Production:
       type: object
       required:

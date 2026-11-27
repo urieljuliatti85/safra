@@ -22,7 +22,7 @@ module TourHelper
       { path: conference_path, target: ".alert-list", title: "3. Conferência",
         text: "Alertas da semana: matéria-prima sem fator, unidade diferente, data estranha. Cada alerta leva à tela onde se corrige." },
       { path: schedule_path, target: "main .panel", title: "4. Programação",
-        text: "O que cada cliente recebe em cada dia de entrega e quando cada item é produzido. Bata com o pedido original." },
+        text: "O que cada cliente recebe, por data de entrega, em quatro dias. O Gerente marca cada item: quadrado, produzir no dia; ponto, já pronto. Bata com o pedido original." },
       { path: production_path, target: "section[aria-label='Estado do envio']", title: "5. Enviar a produção aos setores",
         text: "A produção do dia é calculada dos pedidos. Confira e clique em Enviar aos setores: vira a versão 1 e os setores " \
               "recebem aviso no celular. In natura não entra aqui: vai direto para a compra." },

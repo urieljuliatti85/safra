@@ -65,7 +65,7 @@ module ApiPresenter
         { customer: customer(group.customer),
           items: group.entries.map do |entry|
             { product: entry.product.code, name: entry.product.name, quantity: number(entry.quantity), unit: entry.unit,
-              production_date: entry.production_date&.iso8601, note: entry.note }
+              production_date: entry.production_date&.iso8601, note: entry.note, mark: entry.mark }
           end }
       end }
   end

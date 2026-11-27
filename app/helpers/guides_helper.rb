@@ -24,7 +24,7 @@ module GuidesHelper
         "Alerta não bloqueia nada; cada um leva à tela onde se corrige."
       ], "Abrir Conferência", conference_path),
       GuideStep.new("Programação", [
-        "O que cada cliente recebe em cada dia de entrega e quando cada item é produzido.",
+        "O que cada cliente recebe, por data de entrega, em quatro dias. O Gerente marca cada item: quadrado, produzir no dia; ponto, já pronto.",
         "Bata com o pedido original do cliente."
       ], "Abrir Programação", schedule_path),
       GuideStep.new("Enviar a produção", [
@@ -57,11 +57,11 @@ module GuidesHelper
         "Pedido salvo na grade também volta atrás: clique em Versões no topo da tela de Pedidos, abra a versão e clique em Restaurar esta versão.",
         "Cada salvamento que muda o pedido (grade, planilha, imagem, desfazer) vira uma versão, com quem fez, quando e o que mudou. Restaurar grava uma versão nova: nenhuma é apagada."
       ], "Abrir Pedidos", orders_path),
-      GuideTopic.new("programacao", "Como a programação é montada", "Nada é digitado: ela sai das linhas de pedido, dia de entrega por dia de entrega.", [
-        "Para cada dia de entrega, lista o que cada cliente pediu, separado em processados, in natura e frutas.",
-        "Ao lado de cada item vem o dia em que ele é produzido: entrega menos a antecedência do corte (ou a exceção do produto, em Regras).",
-        "Domingo não tem produção: o item cai para sábado.",
-        "In natura não tem dia de produção: vai direto para a compra.",
+      GuideTopic.new("programacao", "Como a programação é montada", "Nada é digitado: ela sai das linhas de pedido, por cliente e data de entrega.", [
+        "Mostra quatro dias de entrega a partir do dia escolhido, mesmo atravessando de uma semana para outra. A mesma programação serve para vários dias.",
+        "Cada item traz a quantidade total pedida, sem dividir.",
+        "Antes de cada item vem a marca do Gerente de Produção: quadrado, produzir no dia; ponto, já pronto (adiantado). Todo item começa com o quadrado.",
+        "A marca fica no item do pedido: aparece em todo período que inclua aquela entrega e continua se a quantidade mudar.",
         "Mudou o pedido, mudou a programação. Ela não tem versão: é sempre a conta do pedido atual."
       ], "Abrir Programação", schedule_path),
       GuideTopic.new("producao", "Como a produção é calculada", "A produção de um dia junta tudo o que precisa estar pronto naquele dia, de todos os clientes.", [

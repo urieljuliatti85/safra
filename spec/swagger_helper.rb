@@ -85,7 +85,8 @@ RSpec.configure do |config|
                                     customers: { type: :array, items: { type: :object, properties: { customer: { "$ref" => "#/components/schemas/Customer" },
                                                                                                      items: { type: :array, items: { type: :object, properties: {
                                                                                                        product: { type: :string }, name: { type: :string }, quantity: { type: :number }, unit: { type: :string },
-                                                                                                       production_date: { type: :string, format: :date, nullable: true }, note: { type: :string, nullable: true } } } } } } } } },
+                                                                                                       production_date: { type: :string, format: :date, nullable: true }, note: { type: :string, nullable: true },
+                                                                                                       mark: { type: :string, enum: %w[produce ready], description: "produce: quadrado, produzir no dia; ready: ponto, já pronto (R3.4)" } } } } } } } } },
           Production: { type: :object, required: %w[date items aprontes],
                         properties: { date: { type: :string, format: :date }, sent_version: { "$ref" => "#/components/schemas/PlanVersion" },
                                       changes_since_sent: { type: :array, items: { "$ref" => "#/components/schemas/Change" } },

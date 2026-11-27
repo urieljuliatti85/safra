@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_27_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_27_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -175,6 +175,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_27_120000) do
     t.datetime "updated_at", null: false
     t.string "measure"
     t.string "af_number"
+    t.string "schedule_mark", default: "produce", null: false
     t.index ["company_id", "delivery_date"], name: "index_order_lines_on_company_id_and_delivery_date"
     t.index ["order_id", "af_number"], name: "index_order_lines_on_order_id_and_af_number"
     t.index ["order_id"], name: "index_order_lines_on_order_id"
