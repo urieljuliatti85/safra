@@ -55,6 +55,7 @@ module GuidesHelper
         "Os apelidos que a planilha criou são removidos, e os que ela trocou voltam ao produto anterior.",
         "A planilha volta a ficar pendente: corrija e importe de novo, se quiser.",
         "Antes de confirmar, o sistema avisa o que foi mudado no pedido depois da importação: desfazer passa por cima dessas mudanças.",
+        "Lançou o cliente, a semana ou o dia errado, digitado ou importado? Em Pedidos, escolha \"Semana inteira\" ou um dia e clique em \"Apagar pedido\": os itens saem com o que geraram (Programação, Planilha de Produção, Compras, Pesagem e as versões enviadas com itens deles). A planilha que ficou vazia volta a pendente, sem os apelidos que criou. O Estoque não muda.",
         "Desfazer tira do processo o que a importação gerou: Programação, Planilha de Produção, Compras e Pesagem voltam sozinhas, e as versões da Planilha de Produção e das Compras enviadas depois da importação, com itens dela, são apagadas. O que foi enviado antes fica.",
         "Pedido salvo na grade também volta atrás: clique em Versões no topo da tela de Pedidos, abra a versão e clique em Restaurar esta versão.",
         "Cada salvamento que muda o pedido (grade, planilha, imagem, desfazer) vira uma versão, com quem fez, quando e o que mudou. Restaurar grava uma versão nova: nenhuma é apagada."

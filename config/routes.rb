@@ -42,6 +42,7 @@ Rails.application.routes.draw do
   patch "orders", to: "orders#update"
   patch "orders/received", to: "orders#received", as: :order_received
   patch "orders/cancel_items", to: "orders#cancel_items", as: :order_cancel_items
+  delete "orders/week", to: "orders#clear", as: :order_clear
   resources :order_versions, only: :show do
     post :restore, on: :member
   end

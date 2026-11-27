@@ -68,6 +68,21 @@ class OrdersController < ApplicationController
     end
   end
 
+  # "Apagar pedido": as linhas do cliente na semana, ou num dia de entrega dela, digitadas ou importadas, saem do pedido
+  # com o que geraram (OrderClearer).
+  def clear
+    return head(:unprocessable_entity) if @customer.nil?
+
+    back = orders_path(customer: @customer.code, week: @week_start)
+    day = date_param(:day, nil)
+    return redirect_to(back, alert: "Escolha um dia desta semana.", status: :see_other) if day && !@order.week_dates.cover?(day)
+
+    result = OrderClearer.new(order: @order, date: day).call
+    return redirect_to(back, alert: result.errors.to_sentence, status: :see_other) unless result.ok?
+
+    redirect_to back, status: :see_other, notice: cleared_notice(result, day), alert: StalePlans.warning(current_company)
+  end
+
   private
 
   # Só caminho do próprio app ("/orders...", "/order_imports/5"), nunca outro site.
@@ -96,6 +111,16 @@ class OrdersController < ApplicationController
 
     version = @order.versions.maximum(:version)
     "Pedido salvo: versão #{version}, #{plural_changes(@order.versions.find_by(version: version))}."
+  end
+
+  def cleared_notice(result, day)
+    what = day ? "de #{Formatting.weekday_date(day)}" : "da semana de #{Formatting.short_date(@week_start)}"
+    notice = "Pedido de #{@customer.short_name} #{what} apagado: #{result.removed_lines} #{result.removed_lines == 1 ? 'item' : 'itens'}."
+    removed = result.removed_plans.map { |plan| helpers.sent_plan_label(plan) }
+    notice += " Versões enviadas apagadas: #{removed.join(', ')}." if removed.any?
+    reopened = result.reopened_imports.map(&:filename)
+    notice += " Planilha de novo pendente, sem os apelidos que criou: #{reopened.join(', ')}." if reopened.any?
+    notice
   end
 
   def plural_changes(version)

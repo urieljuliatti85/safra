@@ -97,15 +97,7 @@ module OrderImports
       return [] unless undoable?
 
       since = imported_at or return []
-      dates = touched_dates
-      customer = @import.customer
-      production = ProductionPlan.sent.where(sent_at: since..).includes(:items).select do |plan|
-        plan.items.any? { |item| Array(item.breakdown).any? { |b| b["customer_code"] == customer.code && dates.include?(b["delivery_date"]) } }
-      end
-      purchase = PurchasePlan.where.not(sent_at: nil).where(sent_at: since..).includes(:items).select do |plan|
-        plan.items.any? { |item| Array(item.breakdown).any? { |b| b["customer"] == customer.short_name && dates.include?(b["delivery_date"]) } }
-      end
-      (production + purchase).sort_by { |plan| [ plan.date, plan.class.name, plan.version ] }
+      SentPlans.with_items(customer: @import.customer, dates: touched_dates, since: since)
     end
 
     private
@@ -194,10 +186,13 @@ module OrderImports
       end
     end
 
-    # Só mexe no apelido se ele ainda aponta para o produto que a importação gravou.
-    def restore_aliases
-      snapshot["aliases"].each do |entry|
-        record = CustomerAlias.find_by(customer: @import.customer, name_in_order: entry["name"])
+    def restore_aliases = self.class.restore_aliases(@import)
+
+    # Os apelidos que a planilha criou saem; os que ela trocou voltam ao produto anterior. Só mexe no apelido se ele
+    # ainda aponta para o produto que a importação gravou. Usado também pelo "Apagar pedido" (OrderClearer).
+    def self.restore_aliases(import)
+      Array(import.payload.dig("undo", "aliases")).each do |entry|
+        record = CustomerAlias.find_by(customer: import.customer, name_in_order: entry["name"])
         next if record.nil? || record.product_id != entry["product_id"]
 
         if entry["previous_product_id"] && Product.exists?(entry["previous_product_id"])
