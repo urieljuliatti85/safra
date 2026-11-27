@@ -38,7 +38,7 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
       assert Order.where(week_start: "2026-10-12").all? { |order| order.lines.all? { |line| order.week_dates.cover?(line.delivery_date) } }
       assert_equal 5, Order.joins(:customer).find_by!(customers: { code: "amoll" }, week_start: "2026-10-19").lines.count
       assert_equal 375, OrderLine.count
-      assert_equal 3, PurchaseDay.count
+      assert_equal [ 2, 4 ], company.reload.purchase_weekdays # terça e quinta, como nas planilhas de exemplo
       assert_equal 0, Product.where(product_group: "processed", cut_id: nil).count
     end
   end
@@ -76,14 +76,12 @@ class ConferenciaPlanilhasTest < ActiveSupport::TestCase
   test "em produção, o seed carrega só os cadastros, sem a semana de exemplo" do
     ActsAsTenant.with_tenant(company) do
       Order.joins(:customer).where(customers: { code: "nutrir" }).destroy_all
-      PurchaseDay.delete_all
       CustomerAlias.find_by!(name_in_order: "SELETA PRIMAVERA").destroy!
 
       load_seeds_in_production
 
       assert CustomerAlias.exists?(name_in_order: "SELETA PRIMAVERA")
       assert_not Order.joins(:customer).exists?(customers: { code: "nutrir" })
-      assert_equal 0, PurchaseDay.count
     end
   end
 

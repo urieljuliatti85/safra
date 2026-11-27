@@ -85,11 +85,11 @@ class DashboardSummary
   end
 
   def purchase_stage(result)
-    date = PurchaseDay.where(date: @date..).order(:date).pick(:date)
+    date = PurchaseCalendar.new(@company).on_or_after(@date)
     helpers = Rails.application.routes.url_helpers
     return Stage.new(key: :purchase, title: "Compras", state: :idle, status: "Sem dia de compra cadastrado",
                      facts: [ "Sem os dias da CEASA, a compra não é calculada" ], action_label: "Cadastrar dias de compra",
-                     action_path: helpers.rules_path(anchor: "compras"), secondary: nil) unless date
+                     action_path: helpers.purchase_calendar_path, secondary: nil) unless date
 
     needs = result.purchases.fetch(date, [])
     sent = PurchasePlan.where(date: date).where.not(sent_at: nil).order(:version).last

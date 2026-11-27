@@ -19,10 +19,6 @@ module GuidesHelper
         "Confira e clique em Importar no pedido.",
         "Importou errado? Em Pedidos, clique na pill Desfazer da planilha."
       ], "Importar", new_order_import_path),
-      GuideStep.new("Conferência", [
-        "Alertas da semana: matéria-prima sem fator, unidade diferente, data estranha.",
-        "Alerta não bloqueia nada; cada um leva à tela onde se corrige."
-      ], "Abrir Conferência", conference_path),
       GuideStep.new("Programação", [
         "O que cada cliente recebe, por data de entrega, em quatro dias. O Gerente marca cada item: quadrado, produzir no dia; ponto, já pronto.",
         "Bata com o pedido original do cliente."
@@ -76,30 +72,15 @@ module GuidesHelper
         "Cada linha de pedido vai para a compra do último dia de compra igual ou anterior à véspera da entrega: a compra de segunda cobre as entregas de terça a quinta; a de quinta, de sexta em diante.",
         "Volume total: o processado vezes o fator de perda da matéria-prima, mais o in natura como foi pedido. Sem fator, ou em outra unidade (un, maço, caixa), entra sem converter e aparece um alerta.",
         "A compra não abate o estoque e não arredonda em caixas.",
-        "A lista sai por fornecedor, com o texto pronto para o WhatsApp.",
-        "Produção antes da primeira compra cadastrada fica fora de qualquer compra: a Conferência avisa."
+        "A lista sai por fornecedor, com o texto pronto para o WhatsApp."
       ], "Abrir Compras", purchases_path),
-      GuideTopic.new("conferencia", "O que é a Conferência", "É a checagem do pedido da semana antes de produzir e comprar. Alerta não bloqueia nada.", [
-        "Observações escritas nos pedidos, para ninguém esquecer.",
-        "Matéria-prima sem fator de perda: a compra não consegue converter para kg in natura.",
-        "A mesma matéria-prima pedida em unidades diferentes (kg e un, por exemplo): não dá para somar.",
-        "Matéria-prima sem fornecedor, fator marcado para revisar, entregas no domingo e linhas que ficam fora de qualquer compra.",
-        "Quantidade fora do comum: 5 vezes ou mais o que o cliente costuma pedir daquele produto, provável zero a mais.",
-        "Cada alerta tem um link para a tela onde se corrige."
-      ], "Abrir Conferência", conference_path),
-      GuideTopic.new("regras", "O que são as Regras", "São os critérios de data que a programação, a produção e as compras usam.", [
-        "Antecedência por corte: quantos dias antes da entrega cada corte é produzido (0 = no dia da entrega).",
-        "Exceções por produto: um produto que foge da regra do corte dele.",
-        "In natura: com quantos dias de antecedência o que não é processado entra na compra.",
-        "Dias de compra na CEASA: cada compra abastece a produção do dia dela até a véspera da seguinte.",
-        "Ver efeito compara a mudança com as planilhas sem gravar nada. Depois de salvar, tudo é recalculado e as versões já enviadas mostram o que mudou."
-      ], "Abrir Regras", rules_path),
       GuideTopic.new("cadastros", "O que fica em Cadastros", "A importação não cria produto nem cliente. Ela só ensina apelidos.", [
         "Matérias-primas: fornecedor, fator de perda, kg por caixa ou saco de compra e kg por caixa descascada.",
         "Produtos: matéria-prima + corte (cenoura + cubinhos), grupo e unidade.",
         "Clientes: em cada cliente, os apelidos, ou seja, como ele escreve cada produto. Os nomes que você escolheu na importação ficam aqui. Apelido errado se remove aqui, senão o erro se repete na próxima planilha.",
         "Cortes: o setor de produção e a antecedência de cada corte.",
-        "Fornecedores: para quem vai cada lista da CEASA."
+        "Fornecedores: para quem vai cada lista da CEASA.",
+        "Dias de compra: os dias da semana em que se compra na CEASA (segunda e quinta, por padrão)."
       ], "Abrir Cadastros", raw_materials_path)
     ]
   end

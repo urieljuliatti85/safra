@@ -50,7 +50,7 @@ class ProductionsController < ApplicationController
     return unless @draft
 
     @raw_lines = planner.raw_lines
-    @purchase_date = PurchaseDay.where(date: ..@date).maximum(:date)
+    @purchase_date = PurchaseCalendar.new(current_company).on_or_before(@date)
     @raw_note = raw_note
     @empty_message = empty_message if @current.items.empty?
   end

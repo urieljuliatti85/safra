@@ -15,7 +15,7 @@ module Api
       end
 
       def purchases
-        dates = PurchaseDay.order(:date).pluck(:date)
+        dates = PurchaseCalendar.new(current_company).dates
         date = date_param(:date, dates.reverse.find { |d| d <= Date.current } || dates.first)
         needs = date ? PurchasePlanner.new(company: current_company).call.purchases.fetch(date, []) : []
         sent = date && PurchasePlan.where(date: date).where.not(sent_at: nil).order(:version).last

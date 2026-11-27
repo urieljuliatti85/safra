@@ -16,7 +16,6 @@ data_dir = Rails.root.join(ENV.fetch("SEEDS_DIR", "db/seeds_data"))
 product_groups = { "processado" => "processed", "in_natura" => "raw", "fruta" => "fruit" }
 week_start = Date.new(2026, 10, 12)
 # Dias de compra na CEASA da semana (planilha 03 - COMPRAS CEASA e protótipo).
-purchase_dates = [ Date.new(2026, 10, 13), Date.new(2026, 10, 15), Date.new(2026, 10, 19) ]
 
 load_yaml = ->(name) { YAML.safe_load_file(data_dir.join(name), permitted_classes: [ Date ]) }
 # Registro novo recebe os atributos do YAML; um que já existe fica como está.
@@ -112,7 +111,8 @@ ActsAsTenant.with_tenant(company) do
       )
     end
 
-    purchase_dates.each { |date| PurchaseDay.find_or_create_by!(date: date) } if sample_week
+    # A empresa fictícia compra às terças e quintas, como nas planilhas de exemplo (13 e 15/10); a real, segunda e quinta (padrão).
+    company.update!(purchase_weekdays: [ 2, 4 ]) if sample_week
 
     load_yaml.call("apelidos_planilhas.yml").each do |row|
       target, records = { "produto" => [ "product", products ], "materia_prima" => [ "raw_material", raw_materials ], "cliente" => [ "customer", customers ] }.fetch(row["alvo"])

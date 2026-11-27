@@ -66,10 +66,10 @@ Rails.application.routes.draw do
   get "purchases", to: "purchases#show"
   post "purchases/publish", to: "purchases#publish", as: :publish_purchase
   resource :rules, only: %i[show update], path: "regras"
-  resources :purchase_days, only: %i[create destroy], path: "dias-de-compra"
 
   scope path: "cadastros" do
     resources :suppliers, path: "fornecedores", except: :show
+    resource :purchase_calendar, only: %i[show update], path: "dias-de-compra"
     resources :raw_materials, path: "materias-primas", except: :show do
       patch :bulk_update, path: "lote", on: :collection
     end

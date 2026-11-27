@@ -36,7 +36,7 @@ class PurchasePlanner
 
   def call
     ActsAsTenant.with_tenant(@company) do
-      purchase_dates = PurchaseDay.order(:date).pluck(:date)
+      purchase_dates = PurchaseCalendar.new(@company).dates
       raw_needs, uncovered = accumulate(purchase_dates)
       Result.new(purchases: finalize(raw_needs, purchase_dates), uncovered: uncovered)
     end

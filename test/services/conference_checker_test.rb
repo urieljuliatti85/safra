@@ -66,23 +66,27 @@ class ConferenceCheckerTest < ActiveSupport::TestCase
     assert_equal "/cadastros/materias-primas?filter=no_supplier", alert.action.path
   end
 
-  test "produção antes da primeira compra aponta para os dias de compra nas regras" do
-    ActsAsTenant.with_tenant(company) { PurchaseDay.where(date: ..Date.new(2026, 10, 13)).destroy_all }
+  # Sem dia de compra cadastrado, nenhuma linha entra em compra.
+  def without_purchase_days = company.update_columns(purchase_weekdays: [])
+
+  test "produção sem dia de compra aponta para Cadastros › Dias de compra" do
+    without_purchase_days
     alert = ConferenceChecker.new(company: company).call.find { |a| a.kind == "Compra" }
     assert_equal "Cadastrar dia de compra", alert.action.label
-    assert_equal "/regras#compras", alert.action.path
+    assert_equal "/cadastros/dias-de-compra", alert.action.path
   end
 
   test "usa a compra já calculada por quem chama, sem refazer" do
-    ActsAsTenant.with_tenant(company) { PurchaseDay.where(date: ..Date.new(2026, 10, 13)).destroy_all }
+    without_purchase_days
     calculated = PurchasePlanner::Result.new(purchases: {}, uncovered: [])
     alerts = ConferenceChecker.new(company: company, purchase_result: calculated).call
     assert_nil alerts.find { |a| a.kind == "Compra" }
   end
 
   test "com a compra do Painel, os alertas são os mesmos de calcular sozinho, em cada semana" do
+    without_purchase_days
     result = ActsAsTenant.with_tenant(company) { PurchasePlanner.new(company: company).call }
-    assert result.uncovered.any?, "os seeds precisam ter linhas sem compra para o caso valer"
+    assert result.uncovered.any?, "sem dia de compra, as linhas ficam sem compra"
     [ nil, Date.new(2026, 10, 12), Date.new(2026, 10, 19) ].each do |week|
       alone = ConferenceChecker.new(company: company, week: week).call
       shared = ConferenceChecker.new(company: company, week: week, purchase_result: result).call

@@ -1,0 +1,17 @@
+<% content_for :title, "Dias de compra · Safra" %>
+<div class="mb-4">
+  <h1 class="page-title">Cadastros</h1>
+  <p class="page-sub">Os dias da semana em que se compra na CEASA. Cada compra abastece a produção do dia dela até a véspera da compra seguinte. Vale para todas as semanas.</p>
+</div>
+<%= render "catalog/tabs" %>
+<%= form_with url: purchase_calendar_path, method: :patch, class: "panel p-4", data: { turbo: false } do %>
+  <fieldset>
+    <legend class="mb-2 font-bold">Dias de compra na CEASA</legend>
+    <div class="flex flex-wrap gap-4">
+      <% PurchaseCalendar::WEEKDAYS.each do |day, label| %>
+        <label class="flex items-center gap-2"><%= check_box_tag "weekdays[]", day, current_company.purchase_weekdays.include?(day), id: "weekday_#{day}", class: "size-5" %><%= label %></label>
+      <% end %>
+    </div>
+  </fieldset>
+  <div class="mt-4"><%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar<% end %></div>
+<% end %>

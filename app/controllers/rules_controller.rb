@@ -31,7 +31,6 @@ class RulesController < ApplicationController
     @products_per_cut = Product.group(:cut_id).count
     @exceptions = ProductionRule.includes(:product).sort_by { |rule| rule.product.name }
     @exception_candidates = Product.where.not(product_group: "raw").where.not(id: ProductionRule.select(:product_id)).order(:name)
-    @purchase_days = PurchaseDay.order(:date)
     @scores = SheetComparison.new(current_company).scores
   end
 end
