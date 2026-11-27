@@ -75,19 +75,17 @@ class PurchasePlanner
   end
 
   # A conta segue a ordem da esteira (R3.8, D39): pedido, menos o saldo de produto pronto, vezes o fator, menos o saldo
-  # de matéria-prima, e só então o arredondamento por produto (R3.9). Cada saldo vale para a compra assim: a contagem
-  # mais recente até o dia da compra entra nela, e o que sobra depois de abater vai para a compra seguinte, a não ser
-  # que uma contagem nova (feita depois da compra anterior) o substitua. O produto pronto abate só o pedido na unidade
-  # do produto; a matéria-prima, só o que é pedido em kg.
+  # de matéria-prima, e só então o arredondamento por produto (R3.9). O saldo é o informado (esteira: "conversões
+  # vigentes e saldos informados"): a contagem feita depois da compra anterior, até o dia da compra, vale só para ela.
+  # Nada passa de uma compra para outra (a sobra levada adiante vinha das planilhas). O produto pronto abate só o pedido
+  # na unidade do produto; a matéria-prima, só o que é pedido em kg.
   def finalize(raw_needs, purchase_dates)
     counts = StockCount.order(:date, :id).to_a
     ready_counts = ProductStockCount.order(:date, :id).to_a
-    stock = Hash.new(0)
-    ready = Hash.new(0)
     previous_date = nil
     purchase_dates.index_with do |date|
-      apply_counts(stock, counts, previous_date, date, :raw_material_id, :kg)
-      apply_counts(ready, ready_counts, previous_date, date, :product_id, :quantity)
+      stock = informed(counts, previous_date, date, :raw_material_id, :kg)
+      ready = informed(ready_counts, previous_date, date, :product_id, :quantity)
       previous_date = date
       raw_needs[date].map do |(raw_material, unit), need|
         kg_by_product = need[:breakdown].group_by(&:product).transform_values { |lines| lines.sum { |b| line_kg(b.product, unit, b.quantity) } }
@@ -179,12 +177,12 @@ class PurchasePlanner
     product.raw? || unit != "kg" || factor.nil? ? quantity : quantity * factor
   end
 
-  # Contagens feitas depois da compra anterior (ou até a primeira compra) substituem o que sobrou.
-  def apply_counts(stock, counts, previous_date, date, key, value)
-    counts.each do |count|
+  # Saldo informado para a compra: a contagem mais recente feita depois da compra anterior (ou até a primeira compra).
+  def informed(counts, previous_date, date, key, value)
+    counts.each_with_object(Hash.new(0)) do |count, saldo|
       next if count.date > date || (previous_date && count.date <= previous_date)
 
-      stock[count.public_send(key)] = count.public_send(value)
+      saldo[count.public_send(key)] = count.public_send(value)
     end
   end
 end

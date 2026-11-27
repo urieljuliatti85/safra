@@ -68,7 +68,7 @@ module GuidesHelper
         "Entra cada linha de pedido cujo dia de produção (entrega menos antecedência) é o dia escolhido.",
         "Soma por produto e unidade, com a abertura por cliente e por dia de entrega.",
         "Separa por setor, conforme o corte: descascados inteiros, cortes manuais, ralados/picados/rodelas, palitos, cubinhos e frutas.",
-        "Aprontes (descasque e preparo, por vegetal): em kg, caixas a descascar = kg processado ÷ kg por caixa descascada da matéria-prima, arredondado; descascados inteiros não entram. Em unidade, entram os cortes que passam pelo descasque (laranja descascada), com o total em unidades.",
+        "Aprontes (descasque e preparo, por vegetal): em kg, caixas a descascar = kg processado ÷ kg por caixa descascada da matéria-prima, arredondado; descascados inteiros não entram. Em unidade, entra a laranja descascada (a esteira diz que ela inclui descasque), com o total em unidades.",
         "In natura não entra na produção.",
         "Enviar aos setores grava a versão 1 e avisa no celular. Se o pedido mudar depois, a tela mostra o que mudou para enviar a versão 2."
       ], "Abrir Produção", production_path),
@@ -77,7 +77,7 @@ module GuidesHelper
         "A conta segue a ordem da esteira: pedido, menos o produto pronto, vezes o fator, menos a matéria-prima da câmara, e só então as caixas.",
         "Produto pronto (contado em Estoque, na unidade do produto) abate o pedido do processado antes do fator. In natura entra como foi pedido.",
         "Processado em kg: kg in natura = kg a produzir × fator de perda da matéria-prima. Sem fator, ou em outra unidade (un, maço, caixa), entra sem converter e aparece um alerta.",
-        "Cada saldo vale a contagem mais recente até o dia da compra, e o que sobra passa para a compra seguinte.",
+        "Cada saldo é o informado: a contagem feita depois da compra anterior vale para a próxima compra. O que sobra não passa para a compra seguinte.",
         "Caixas por produto: caixa inteira arredonda a parte do produto para cima; fração compra caixas e o resto em kg (\"2 cx e 5 kg\"). Folhas e itens sem embalagem ficam em kg.",
         "A lista sai por fornecedor, com o texto pronto para o WhatsApp.",
         "Produção antes da primeira compra cadastrada fica fora de qualquer compra: a Conferência avisa."
