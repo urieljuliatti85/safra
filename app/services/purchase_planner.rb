@@ -13,7 +13,8 @@ class PurchasePlanner
     :net_kg,             # necessidade líquida em kg
     :packages,           # caixas/sacos inteiros a comprar, somados por produto (R3.9); nil se não dá para calcular
     :loose_kg,           # kg além das caixas, dos produtos comprados em fração (R3.9: "2 caixas e 5 kg")
-    :net_packages,       # kg líquido em caixas, antes do arredondamento (para a tela)
+    :loose_units,        # unidades além das caixas, da fruta em unidade comprada em fração (R3.10: "2 cx e 20 un")
+    :net_packages,       # líquido em caixas, antes do arredondamento (para a tela)
     :missing_factor,     # true quando faltou fator ou a unidade não é kg (quantidade somada sem converter)
     :breakdown
   )
@@ -68,7 +69,8 @@ class PurchasePlanner
       need[:raw] += line.quantity
     else
       need[:processed] += line.quantity
-      need[:missing_factor] = true if line.unit != "kg" || product.raw_material.multiply_factor.nil?
+      raw_material = product.raw_material
+      need[:missing_factor] = true if line.unit == "kg" ? raw_material.multiply_factor.nil? : !raw_material.converts_units?(line.unit)
     end
   end
 
@@ -95,14 +97,14 @@ class PurchasePlanner
         stock[raw_material.id] -= stock_kg if stock_kg.positive?
         net_kg = [ kg - stock_kg, 0 ].max
 
-        packages, loose_kg = packages_for(raw_material, unit, kg_by_product, kg, net_kg)
+        packages, loose_kg, loose_units = unit == "kg" ? packages_for(raw_material, unit, kg_by_product, kg, net_kg) + [ 0 ] : unit_packages_for(raw_material, unit, kg_by_product)
 
         Need.new(
           raw_material: raw_material, unit: unit,
           processed_quantity: need[:processed], raw_quantity: need[:raw], ready: ready_used,
           kg: kg, stock_kg: stock_kg, net_kg: net_kg,
-          packages: packages, loose_kg: loose_kg,
-          net_packages: packages && (net_kg / raw_material.kg_per_package).round(2),
+          packages: packages, loose_kg: loose_kg, loose_units: loose_units,
+          net_packages: packages && net_packages(raw_material, unit, net_kg),
           missing_factor: need[:missing_factor],
           breakdown: need[:breakdown]
         )
@@ -140,6 +142,34 @@ class PurchasePlanner
     end
     fraction_boxes = (fraction_kg / per_package).floor
     [ whole_boxes + fraction_boxes, (fraction_kg - fraction_boxes * per_package).round(3) ]
+  end
+
+  # Fruta pedida por unidade (R3.10, D40). Comprada por unidade (melancia): compra as unidades pedidas. Comprada em
+  # caixa com as unidades por caixa cadastradas (laranja, 100): cada produto de caixa inteira arredonda a sua parte para
+  # cima; os de fração somam as unidades e compram as caixas inteiras e o resto em unidades. Devolve
+  # [caixas ou unidades, 0, unidades avulsas], ou [nil, 0, 0] quando não converte (fica o alerta).
+  def unit_packages_for(raw_material, unit, units_by_product)
+    return [ nil, 0, 0 ] unless raw_material.converts_units?(unit)
+
+    units = units_by_product.values.sum
+    return [ units.ceil, 0, 0 ] if raw_material.purchase_package == "un"
+
+    per_package = raw_material.units_per_package
+    whole_boxes = 0
+    fraction_units = 0
+    units_by_product.each do |product, quantity|
+      product.fraction_rounding? ? fraction_units += quantity : whole_boxes += (quantity / per_package).ceil
+    end
+    fraction_boxes = (fraction_units / per_package).floor
+    [ whole_boxes + fraction_boxes, 0, (fraction_units - fraction_boxes * per_package).ceil ]
+  end
+
+  # O líquido em caixas antes de arredondar: kg ÷ kg por caixa, ou unidades ÷ unidades por caixa.
+  def net_packages(raw_material, unit, net)
+    return (net / raw_material.kg_per_package).round(2) if unit == "kg"
+    return net if raw_material.purchase_package == "un"
+
+    (net / raw_material.units_per_package).round(2)
   end
 
   # Mesmo kg que add_quantity soma para a linha: in natura e unidade diferente de kg entram como estão; processado em

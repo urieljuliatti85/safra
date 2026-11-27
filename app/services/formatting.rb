@@ -21,14 +21,15 @@ module Formatting
     "#{WEEKDAYS[date.wday]} #{short_date(date)}"
   end
 
-  # Quantidade a comprar de uma PurchasePlanner::Need: "13 cx", "2 cx e 5 kg", "42,4 kg", "5 mç".
+  # Quantidade a comprar de uma PurchasePlanner::Need: "13 cx", "2 cx e 5 kg", "2 cx e 20 un", "42,4 kg", "5 mç".
   def need_text(need)
     return "#{qty(need.net_kg)} #{need.unit}" unless need.packages
 
     package = PACKAGE_LABELS.fetch(need.raw_material.purchase_package, need.raw_material.purchase_package)
-    return "#{need.packages} #{package}" unless need.loose_kg.positive?
-    return "#{qty(need.loose_kg)} kg" if need.packages.zero?
+    loose = [ ("#{qty(need.loose_kg)} kg" if need.loose_kg.positive?), ("#{need.loose_units} un" if need.loose_units.positive?) ].compact
+    return "#{need.packages} #{package}" if loose.empty?
+    return loose.join(" e ") if need.packages.zero?
 
-    "#{need.packages} #{package} e #{qty(need.loose_kg)} kg"
+    "#{need.packages} #{package} e #{loose.join(' e ')}"
   end
 end

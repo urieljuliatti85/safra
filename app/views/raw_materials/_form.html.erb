@@ -13,7 +13,7 @@
     <%= form.label :purchase_package, "Compra em", class: "mb-1 block font-bold" %>
     <%= form.select :purchase_package, RawMaterial::PACKAGES.map { |p| [ { "cx" => "caixa", "sc" => "saco", "kg" => "kg", "un" => "unidade" }.fetch(p), p ] }, {}, class: "field w-full" %>
   </div>
-  <div class="grid gap-4 sm:grid-cols-3">
+  <div class="grid gap-4 sm:grid-cols-4">
     <div>
       <%= form.label :multiply_factor, "Fator", class: "mb-1 block font-bold" %>
       <%= form.text_field :multiply_factor, value: (qty(raw_material.multiply_factor) if raw_material.multiply_factor), inputmode: "decimal", class: "field w-full" %>
@@ -23,11 +23,15 @@
       <%= form.text_field :kg_per_package, value: (qty(raw_material.kg_per_package) if raw_material.kg_per_package), inputmode: "decimal", class: "field w-full" %>
     </div>
     <div>
+      <%= form.label :units_per_package, "Unidades por embalagem", class: "mb-1 block font-bold" %>
+      <%= form.text_field :units_per_package, inputmode: "numeric", class: "field w-full" %>
+    </div>
+    <div>
       <%= form.label :kg_per_peeled_box, "Kg por caixa descascada", class: "mb-1 block font-bold" %>
       <%= form.text_field :kg_per_peeled_box, value: (qty(raw_material.kg_per_peeled_box) if raw_material.kg_per_peeled_box), inputmode: "decimal", class: "field w-full" %>
     </div>
   </div>
-  <p class="muted text-sm">Fator: quantos kg in natura saem para 1 kg processado. Kg por embalagem: o peso da caixa ou do saco que se compra. Kg por caixa descascada: para o cálculo de aprontes.</p>
+  <p class="muted text-sm">Fator: quantos kg in natura saem para 1 kg processado. Kg por embalagem: o peso da caixa ou do saco que se compra. Unidades por embalagem: para fruta pedida por unidade (laranja, 100 por caixa); comprada por unidade (melancia), escolha "un" na embalagem. Kg por caixa descascada: para o cálculo de aprontes.</p>
   <div>
     <%= form.label :note, "Observação", class: "mb-1 block font-bold" %>
     <%= form.text_area :note, rows: 2, class: "field w-full" %>

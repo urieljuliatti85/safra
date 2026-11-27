@@ -28,7 +28,7 @@ class ConferenceChecker
       lines = OrderLine.where("quantity > 0")
       lines = lines.where(delivery_date: week_range) if @week
       lines = lines.includes({ order: :customer }, product: [ :cut, :components, { raw_material: :supplier } ])
-      alerts = line_note_alerts(lines) + missing_factor_alerts(lines) + unit_alerts(lines) +
+      alerts = line_note_alerts(lines) + missing_factor_alerts(lines) + units_per_package_alerts(lines) + unit_alerts(lines) +
                supplier_alerts(lines) + factor_note_alerts(lines) + uncovered_alerts + sunday_alerts(lines) +
                outlier_alerts(lines) + deadline_alerts + single_measure_alerts(lines) + mixture_alerts(lines)
       alerts.sort_by { |a| [ a.level == :warn ? 0 : 1, a.kind, a.message ] }
@@ -45,12 +45,24 @@ class ConferenceChecker
     end
   end
 
+  # Fruta pedida por unidade que a matéria-prima converte (R3.10, D40) não precisa de fator.
   def missing_factor_alerts(lines)
-    lines.reject { |l| l.product.raw? || l.product.raw_material.multiply_factor }
+    lines.reject { |l| l.product.raw? || l.product.raw_material.multiply_factor || l.product.raw_material.converts_units?(l.unit) }
          .group_by { |l| l.product.raw_material }.map do |raw_material, group|
       names = group.map { |l| l.product.name }.uniq.sort.join(", ")
       alert(:warn, "Sem fator", "#{raw_material.name}: sem fator de conversão, então a compra não é calculada (#{names}).",
                 action: raw_material_action("Completar o fator", raw_material))
+    end
+  end
+
+  # Pedido em unidade de fruta comprada em caixa, sem as unidades por caixa no cadastro (R3.10, D40): a compra fica
+  # na quantidade pedida, sem virar caixas.
+  def units_per_package_alerts(lines)
+    lines.select { |l| l.unit == "un" && %w[cx sc].include?(l.product.raw_material.purchase_package) && !l.product.raw_material.converts_units?("un") }
+         .group_by { |l| l.product.raw_material }.map do |raw_material, group|
+      names = group.map { |l| l.product.name }.uniq.sort.join(", ")
+      alert(:warn, "Sem unidades por caixa", "#{raw_material.name}: pedido em unidade, mas sem unidades por caixa no cadastro, então a compra não vira caixas (#{names}).",
+                action: raw_material_action("Completar as unidades por caixa", raw_material))
     end
   end
 

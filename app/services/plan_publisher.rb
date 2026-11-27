@@ -29,7 +29,7 @@ class PlanPublisher
           plan = PurchasePlan.create!(date: date, version: next_version(PurchasePlan, date), sent_at: Time.current)
           needs.each do |need|
             plan.items.create!(
-              raw_material: need.raw_material, unit: need.unit, kg: need.net_kg, packages: need.packages, loose_kg: need.loose_kg,
+              raw_material: need.raw_material, unit: need.unit, kg: need.net_kg, packages: need.packages, loose_kg: need.loose_kg, loose_units: need.loose_units,
               breakdown: need.breakdown.map do |b|
                 { customer: b.customer.short_name, product: b.product.name, delivery_date: b.delivery_date.iso8601, quantity: b.quantity.to_f, unit: b.unit }
               end

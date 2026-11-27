@@ -55,6 +55,7 @@ ActsAsTenant.with_tenant(company) do
         multiply_factor: row["fator_multiplicar"],
         kg_per_package: row["kg_por_embalagem"],
         kg_per_peeled_box: row["kg_por_caixa_descascada"],
+        units_per_package: row["unidades_por_embalagem"],
         purchase_package: row["embalagem_compra"],
         note: row["observacao"]
       )

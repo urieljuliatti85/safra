@@ -85,7 +85,7 @@ class RawMaterialsController < ApplicationController
   end
 
   def raw_material_params
-    params.require(:raw_material).permit(:name, :supplier_id, :purchase_package, :multiply_factor, :kg_per_package, :kg_per_peeled_box, :note)
+    params.require(:raw_material).permit(:name, :supplier_id, :purchase_package, :multiply_factor, :kg_per_package, :kg_per_peeled_box, :units_per_package, :note)
   end
 
   def load_index

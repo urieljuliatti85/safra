@@ -45,7 +45,7 @@ class PurchasePlannerTest < ActiveSupport::TestCase
 
   test "fração menor que uma caixa sai só em kg" do
     need = PurchasePlanner::Need.new(raw_material: Struct.new(:purchase_package).new("cx"), unit: "kg", processed_quantity: 0, raw_quantity: 0, ready: {},
-                                     kg: 5, stock_kg: 0, net_kg: 5, packages: 0, loose_kg: 5.to_d, net_packages: 0.25, missing_factor: false, breakdown: [])
+                                     kg: 5, stock_kg: 0, net_kg: 5, packages: 0, loose_kg: 5.to_d, loose_units: 0, net_packages: 0.25, missing_factor: false, breakdown: [])
     assert_equal "5 kg", Formatting.need_text(need)
   end
 
