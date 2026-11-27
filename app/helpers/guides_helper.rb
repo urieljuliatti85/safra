@@ -13,15 +13,15 @@ module GuidesHelper
         "Pedido por telefone ou WhatsApp: digite direto na grade do cliente."
       ], "Abrir Pedidos", orders_path),
       GuideStep.new("Conferir a planilha", [
-        "Antes de gravar, cada célula aparece como novo, alterada ou apaga.",
+        "Antes de gravar, cada célula aparece como novo, alterada ou mantido.",
         "Nome que o sistema não conhece: escolha o produto uma vez e ele aprende.",
-        "Célula vazia numa linha com quantidades apaga aquele dia do pedido.",
+        "Célula vazia ou 0 não tira item do pedido: o que já estava fica. Para tirar, use \"Cancelar item\" na grade.",
         "Confira e clique em Importar no pedido.",
         "Importou errado? Em Pedidos, clique na pill Desfazer da planilha."
       ], "Importar", new_order_import_path),
       GuideStep.new("Programação", [
         "O que cada cliente recebe, por data de entrega, em quatro dias. O Gerente marca cada item: quadrado, produzir no dia; ponto, já pronto.",
-        "Em \"Executar em\", o Gerente escolhe o dia em que cada item é feito: a véspera da entrega, ou outro dia para adiantar.",
+        "Em \"Executar em\", o Gerente escolhe o dia em que cada item é feito: a véspera da entrega, ou outro dia para adiantar. Temperos, folhagens e o Yaksoba (marcados com \"Preparo no dia da entrega\" no cadastro do produto) já vêm no dia da entrega.",
         "Bata com o pedido original do cliente."
       ], "Abrir Programação", schedule_path),
       GuideStep.new("Enviar a Planilha de Produção", [
@@ -67,14 +67,14 @@ module GuidesHelper
         "Mudou o pedido, mudou a programação. Ela não tem versão: é sempre a conta do pedido atual."
       ], "Abrir Programação", schedule_path),
       GuideTopic.new("producao", "Como a Planilha de Produção é montada", "Ela sai da escolha do Gerente: o que produzir ou adiantar, e em que dia.", [
-        "Entra cada linha de pedido cujo dia de execução (escolhido na Programação; sem escolha, a véspera da entrega) é o dia aberto.",
+        "Entra cada linha de pedido cujo dia de execução (escolhido na Programação; sem escolha, a véspera da entrega ou, no preparo no dia, o dia da entrega) é o dia aberto.",
         "Soma por produto e unidade, com a abertura por cliente e por dia de entrega. As misturas entram pelos ingredientes.",
         "É uma lista só, sem setores.",
         "In natura não entra na produção.",
         "Enviar a Planilha de Produção grava a versão 1. Se o pedido mudar depois, a tela mostra o que mudou para enviar a versão 2."
       ], "Abrir Produção", production_path),
       GuideTopic.new("compras", "Como as compras são calculadas", "A lista da CEASA também é calculada. Ela só é gravada quando você clica em Enviar aos fornecedores.", [
-        "Cada linha de pedido vai para a compra do último dia de compra igual ou anterior ao dia de execução dela (sem escolha, a véspera da entrega).",
+        "Cada linha de pedido vai para a compra do último dia de compra igual ou anterior ao dia de execução dela (sem escolha, a véspera da entrega ou, no preparo no dia, o dia da entrega).",
         "Volume total: o processado vezes o fator de perda da matéria-prima, mais o in natura como foi pedido. Sem fator, ou em outra unidade (un, maço, caixa), entra sem converter e aparece um alerta.",
         "A compra não abate o estoque e não arredonda em caixas.",
         "A lista sai por fornecedor, com o texto pronto para o WhatsApp."

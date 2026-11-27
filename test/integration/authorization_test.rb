@@ -55,7 +55,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     end
     get production_path(date: "2026-10-13")
     assert_select "tr", text: /Cenoura ralada/ do
-      assert_select "td.qty", "8,5"
+      assert_select "td.qty", "8"
     end
     assert_select ".tag-change", count: 0
     assert_match "O escritório tem alterações ainda não enviadas", response.body
@@ -65,7 +65,7 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     sign_in_as(user_for(:office))
     get production_path(date: "2026-10-13")
     assert_select "tr", text: /Cenoura ralada/ do
-      assert_select "td.qty", "12,5"
+      assert_select "td.qty", "12"
     end
     assert_match "Mudou depois do envio", response.body
   end
@@ -93,11 +93,11 @@ class AuthorizationTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Substituída", response.body
     assert_select "tr", text: /Cenoura ralada/ do
-      assert_select "td.qty", "8,5"
+      assert_select "td.qty", "8"
     end
     get production_version_path(second)
     assert_match "Vale esta versão", response.body
-    assert_match "Cenoura ralada · 3 mm</strong>: 8,5 → 12,5", response.body
+    assert_match "Cenoura ralada · 3 mm</strong>: 8 → 12", response.body
     get production_version_path(first, format: :pdf)
     assert_equal "application/pdf", response.media_type
   end

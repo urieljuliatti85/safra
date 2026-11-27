@@ -3,7 +3,7 @@
   <div>
     <h1 class="page-title">Planilha de Produção</h1>
     <p class="page-sub">
-      Pela data de execução. Cada item entra no dia escolhido em "Executar em", na Programação (sem escolha, a véspera da entrega).
+      Pela data de execução. Cada item entra no dia escolhido em "Executar em", na Programação (sem escolha, a véspera da entrega ou, nos produtos de preparo no dia, o próprio dia da entrega).
       <% if @result.delivery_dates.any? %>Atende entregas de <%= @result.delivery_dates.map { |d| weekday_date(d) }.join(", ") %>.<% else %>Nenhum item para executar neste dia.<% end %>
     </p>
   </div>

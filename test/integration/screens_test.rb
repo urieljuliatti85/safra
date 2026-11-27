@@ -91,7 +91,7 @@ class ScreensTest < ActionDispatch::IntegrationTest
   end
 
   test "a Planilha de Produção é uma lista só, sem setores nem aprontes" do
-    get production_path(date: "2026-10-13")
+    get production_path(date: "2026-10-14") # a Yaksoba entregue em 14/10 é feita no dia (R3.7)
     assert_response :success
     assert_select "h1", "Planilha de Produção"
     assert_select "h2", "Ordens de serviço"

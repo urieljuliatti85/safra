@@ -420,7 +420,6 @@
   .import-cell.is-new { font-weight: 800; color: var(--color-accent); }
   .import-cell.is-changed { font-weight: 800; background: var(--color-change-wash); }
   .import-cell.is-changed .was { color: var(--color-change); }
-  .import-cell.is-removed { color: var(--color-change); }
 
   /* Pedido em imagem: a imagem fica à vista enquanto se digita */
   .split { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }

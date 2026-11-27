@@ -1,4 +1,5 @@
 # Produtos usados nos pedidos da semana de 12/10/2026. Processados = matéria-prima + corte.
+# preparo_no_dia: true = preparo no dia da entrega (R3.7): temperos, folhagens e o Yaksoba. "Executar em" vem no dia da entrega.
 - codigo: abobora_cubos
   nome: Abóbora em cubos
   grupo: processado
@@ -47,6 +48,7 @@
   materia_prima: alface
   unidade: kg
   corte: picado
+  preparo_no_dia: true
 - codigo: banana_cubinhos
   nome: Banana em cubinhos
   grupo: processado
@@ -131,6 +133,7 @@
   materia_prima: brocolis
   unidade: kg
   corte: floretes
+  preparo_no_dia: true
 - codigo: cebola_cubinhos
   nome: Cebola em cubinhos
   grupo: processado
@@ -204,6 +207,7 @@
   materia_prima: couve
   unidade: kg
   corte: picado
+  preparo_no_dia: true
 - codigo: couve_flor
   nome: Couve-flor em floretes
   grupo: processado
@@ -273,6 +277,7 @@
   materia_prima: mistura
   unidade: kg
   corte: mistura
+  preparo_no_dia: true
 - codigo: seleta
   nome: Seleta jardineira
   grupo: processado

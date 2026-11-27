@@ -1,6 +1,6 @@
 # Planilha de Produção de um dia de execução (esteira simplificada, passo 4): o que produzir por produto, com a abertura
 # por cliente e entrega. Entra cada item cujo dia de execução (escolhido pelo Gerente de Produção na Programação, ou a
-# véspera da entrega) é o dia. Sem setores e sem aprontes no MVP.
+# véspera da entrega, ou o dia da entrega no preparo no dia, R3.7) é o dia. Sem setores e sem aprontes no MVP.
 # Referência: funções producao() e aprontes() do protótipo (docs/prototipo/safra.html, privado).
 class ProductionPlanner
   # measure: a medida que orienta o preparo (Cut#measure_for). Duas medidas do mesmo produto são dois itens (R2.4, D24).

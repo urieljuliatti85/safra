@@ -21,13 +21,16 @@ class PurchasePlannerTest < ActiveSupport::TestCase
     assert result.uncovered.all? { |line| line.delivery_date - 1 < Date.new(2026, 10, 13) }
   end
 
-  # Cada compra abastece a produção do dia dela até a véspera da compra seguinte; a produção é a véspera da entrega.
+  # Cada compra abastece a produção do dia dela até a véspera da compra seguinte, pelo dia de execução (a véspera da
+  # entrega ou, no preparo no dia, R3.7, o próprio dia da entrega).
   test "a compra de segunda cobre as entregas de terça a quinta, e a de quinta as de sexta em diante" do
     result = PurchasePlanner.new(company: company).call
-    on_13 = result.purchases.fetch(Date.new(2026, 10, 13)).flat_map(&:breakdown).map(&:delivery_date).uniq
-    on_15 = result.purchases.fetch(Date.new(2026, 10, 15)).flat_map(&:breakdown).map(&:delivery_date).uniq
-    assert on_13.all? { |d| d - 1 >= Date.new(2026, 10, 13) && d - 1 < Date.new(2026, 10, 15) }
-    assert on_15.all? { |d| d - 1 >= Date.new(2026, 10, 15) }
+    on_13 = result.purchases.fetch(Date.new(2026, 10, 13)).flat_map(&:breakdown)
+    on_15 = result.purchases.fetch(Date.new(2026, 10, 15)).flat_map(&:breakdown)
+    assert on_13.all? { |b| b.production_date >= Date.new(2026, 10, 13) && b.production_date < Date.new(2026, 10, 15) }
+    assert on_15.all? { |b| b.production_date >= Date.new(2026, 10, 15) }
+    assert_includes on_13.map { |b| [ b.product.code, b.delivery_date, b.production_date ] },
+                    [ "alface_picada", Date.new(2026, 10, 13), Date.new(2026, 10, 13) ], "preparo no dia: executa e compra pelo dia da entrega"
   end
 
   test "estoque contado não abate a compra (MVP: volume total)" do

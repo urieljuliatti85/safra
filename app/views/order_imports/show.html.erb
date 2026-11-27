@@ -32,7 +32,7 @@
 <% end %>
 
 <p class="mb-3 text-sm muted num">
-  <%= plural(counts[:new], "célula nova", "células novas") %> · <%= plural(counts[:changed], "alterada", "alteradas") %> · <%= plural(counts[:removed], "removida", "removidas") %> ·
+  <%= plural(counts[:new], "célula nova", "células novas") %> · <%= plural(counts[:changed], "alterada", "alteradas") %> · <%= plural(counts[:kept], "mantida", "mantidas") %> ·
   <strong class="<%= 'text-change' if counts[:unmatched].positive? %>"><%= plural(counts[:unmatched], "produto para escolher", "produtos para escolher") %></strong> ·
   <%= plural(@import.payload["ignored_blank"].to_i, "linha sem quantidade ignorada", "linhas sem quantidade ignoradas") %>
 </p>
@@ -76,7 +76,7 @@
               <td class="num text-center import-cell is-<%= cell.status %>">
                 <% if cell.status == :new %><span><%= qty(cell.new_quantity) %></span><span class="was">novo</span>
                 <% elsif cell.status == :changed %><span><%= qty(cell.new_quantity) %></span><span class="was">era <%= qty(cell.current) %></span>
-                <% elsif cell.status == :removed %><span>-</span><span class="was">apaga <%= qty(cell.current) %></span>
+                <% elsif cell.status == :kept %><span><%= qty(cell.current) %></span><span class="was" title="Vazio ou 0 no arquivo não tira item do pedido. Para tirar, use &quot;Cancelar item&quot; na grade.">mantido</span>
                 <% elsif cell.status == :same %><span><%= qty(cell.new_quantity) %></span>
                 <% else %><span class="muted">·</span>
                 <% end %>

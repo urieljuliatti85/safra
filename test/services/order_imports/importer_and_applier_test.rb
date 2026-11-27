@@ -31,19 +31,36 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
     assert_equal 1, OrderImports::Preview.new(record).counts[:unmatched]
   end
 
-  test "prévia compara com o pedido de hoje: igual, alterado, novo e removido" do
+  def cenoura_ralada_case
     product = Product.find_by!(code: "cenoura_ralada")
     order = Order.find_by!(customer: @serra, week_start: Date.new(2026, 10, 12))
     order.lines.find_by!(product: product, delivery_date: Date.new(2026, 10, 12)).update!(quantity: 9)  # arquivo traz 10: alterado
     order.lines.find_by!(product: product, delivery_date: Date.new(2026, 10, 13)).destroy!              # arquivo traz 3: novo
-    order.lines.create!(product: product, unit: "kg", delivery_date: Date.new(2026, 10, 16), quantity: 4) # arquivo vazio: removido
+    order.lines.create!(product: product, unit: "kg", delivery_date: Date.new(2026, 10, 16), quantity: 4) # arquivo vazio: mantido
+    [ product, order ]
+  end
 
+  test "prévia compara com o pedido de hoje: igual, alterado, novo e mantido (vazio não apaga, R1.38)" do
+    cenoura_ralada_case
     cells = OrderImports::Preview.new(import("pedido_com_unidade.xlsx", @serra)).lines
                                  .find { |l| l.row["name"] == "Cenoura Ralada" }.cells.index_by(&:date)
-    assert_equal %i[changed new same same removed empty same],
+    assert_equal %i[changed new same same kept empty same],
                  (12..18).map { |day| cells[Date.new(2026, 10, day)].status }
     assert_equal 9, cells[Date.new(2026, 10, 12)].current
     assert_equal 10, cells[Date.new(2026, 10, 12)].new_quantity
+  end
+
+  test "a planilha não tira item que já estava: vazio no arquivo mantém a quantidade e o dia de execução (R1.38, D23)" do
+    product, order = cenoura_ralada_case
+    kept = order.lines.find_by!(product: product, delivery_date: Date.new(2026, 10, 16))
+    kept.update!(execution_date: Date.new(2026, 10, 14), schedule_mark: "ready")
+    record = import("pedido_com_unidade.xlsx", @serra)
+    assert_equal 1, OrderImports::Preview.new(record).counts[:kept]
+
+    result = OrderImports::Applier.new(import: record, mappings: {}).call
+    assert result.ok?, result.errors.inspect
+    assert_equal [ 4, Date.new(2026, 10, 14), "ready" ], kept.reload.then { |l| [ l.quantity, l.execution_date, l.schedule_mark ] }
+    assert_equal 10, order.lines.find_by!(product: product, delivery_date: Date.new(2026, 10, 12)).quantity
   end
 
   test "aplicar grava o pedido, ignora linhas escolhidas e lembra o nome novo como apelido" do

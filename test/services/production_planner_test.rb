@@ -177,18 +177,44 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     assert_equal "Revisar a composição", alert.action.label
   end
 
-  # Sem escolha, tudo é feito na véspera: a cenoura ralada avulsa e a Yaksoba entregues no mesmo dia caem no mesmo dia de
-  # execução.
+  # A Yaksoba é de preparo no dia (R3.7): entregue em 21/10, é feita em 21/10, o mesmo dia de execução da cenoura ralada
+  # avulsa entregue em 22/10 (véspera).
   test "cenoura ralada avulsa sem medida é de 3 mm e soma com a da mistura, numa linha só (R2.12, D30)" do
-    plan = mix_order([ [ "hbp", "yakissoba", 2 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY ] ])
+    plan = mix_order([ [ "hbp", "yakissoba", 2, "kg", MIX_DAY - 1 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY ] ])
     items = plan.items.select { |i| i.product.code == "cenoura_ralada" }
     assert_equal [ [ "3 mm", 3.5, "Cenoura ralada · 3 mm" ] ], items.map { |i| [ i.measure, i.quantity, i.label ] }
     assert_equal [ [ "hbp", 0.5, "Yaksoba" ], [ "hnorte", 3, nil ] ], items.first.breakdown.map { |b| [ b.customer.code, b.quantity, b.via ] }
   end
 
   test "o avulso com \"3mm\" escrito no pedido também soma com a mistura (R2.12, D30)" do
-    plan = mix_order([ [ "hbp", "yakissoba", 2 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY, "3mm" ] ])
+    plan = mix_order([ [ "hbp", "yakissoba", 2, "kg", MIX_DAY - 1 ], [ "hnorte", "cenoura_ralada", 3, "kg", MIX_DAY, "3mm" ] ])
     assert_equal [ 3.5 ], plan.items.select { |i| i.product.code == "cenoura_ralada" }.map(&:quantity)
+  end
+
+  # Preparo no dia da entrega (R3.7): temperos, folhagens e o Yaksoba vêm com "Executar em" no dia da entrega. Os
+  # ingredientes do Yaksoba vão junto; a mesma cenoura ralada pedida sozinha segue na véspera.
+  test "Yaksoba de preparo no dia: ingredientes no dia da entrega; a cenoura ralada avulsa fica na véspera (R3.7)" do
+    mix_order([ [ "hbp", "yakissoba", 2 ], [ "hnorte", "cenoura_ralada", 3 ] ])
+    eve = ProductionPlanner.new(company: company, date: MIX_DAY - 1).call
+    same_day = ProductionPlanner.new(company: company, date: MIX_DAY).call
+    assert_equal [ [ "hnorte", 3, nil ] ], eve.item_for("cenoura_ralada").breakdown.map { |b| [ b.customer.code, b.quantity, b.via ] }
+    assert_equal [ [ "hbp", 0.5, "Yaksoba" ] ], same_day.item_for("cenoura_ralada").breakdown.map { |b| [ b.customer.code, b.quantity, b.via ] }
+    assert_equal [ "Yaksoba" ], same_day.item_for("brocolis").breakdown.map(&:via)
+  end
+
+  test "folhagem de preparo no dia vem no dia da entrega; o Gerente ainda pode adiantar; in natura segue na véspera (R3.7)" do
+    ActsAsTenant.with_tenant(company) do
+      order = Order.create!(customer: Customer.find_by!(code: "hbp"), week_start: Date.new(2026, 10, 19))
+      alface = order.lines.create!(product: Product.find_by!(code: "alface_picada"), delivery_date: MIX_DAY, quantity: 5, unit: "kg")
+      assert_equal MIX_DAY, alface.execution_on
+      alface.update!(execution_date: MIX_DAY - 1)
+      assert_equal MIX_DAY - 1, alface.execution_on
+
+      raw = Product.find_by!(product_group: "raw")
+      raw.update!(same_day_preparation: true)
+      line = order.lines.create!(product: raw, delivery_date: MIX_DAY, quantity: 5, unit: "kg")
+      assert_equal MIX_DAY - 1, line.execution_on
+    end
   end
 
   test "beterraba ralada avulsa sem medida fica na referência do corte, separada da de 3 mm da mistura (R2.4, D30)" do

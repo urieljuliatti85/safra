@@ -35,7 +35,7 @@ class ProductionVersionNoticeTest < ActiveSupport::TestCase
     assert_equal [ "ralpic" ], notice.sectors
     message = notice.message_for(%w[ralpic palito])
     assert_equal "Produção Ter 13/10: v2 enviada", message.title
-    assert_equal "Cenoura ralada · 3 mm: 8,5 → 12,5 kg", message.options[:body]
+    assert_equal "Cenoura ralada · 3 mm: 8 → 12 kg", message.options[:body]
     assert_nil notice.message_for(%w[palito cubinho])
     assert_equal "producao-2026-10-13", message.options[:tag]
   end

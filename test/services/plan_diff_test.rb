@@ -52,7 +52,8 @@ class PlanDiffTest < ActiveSupport::TestCase
     changes = PlanDiff.production(ProductionPlan.find(plan.id), current).map { |c| [ c.label, c.kind ] }
     assert_includes changes, [ "Cenoura ralada", :removed ]
     assert_includes changes, [ "Cenoura ralada · 3 mm", :added ]
-    assert_equal %w[cenoura_ralada repolho_picado],
+    # O repolho picado de 3 mm só vinha da Yaksoba, que agora é feita no dia da entrega (14/10, R3.7).
+    assert_equal %w[cenoura_ralada],
                  Product.where(name: changes.map { |label, _| label.split(" · ").first }).order(:code).pluck(:code)
   end
 

@@ -82,7 +82,8 @@ ActsAsTenant.with_tenant(company) do
         raw_material: raw_materials.fetch(row["materia_prima"]),
         cut: row["corte"] && cuts.fetch(row["corte"]),
         unit: row["unidade"],
-        default_measure: row["medida"]
+        default_measure: row["medida"],
+        same_day_preparation: row["preparo_no_dia"] || false
       )
       [ row["codigo"], product ]
     end

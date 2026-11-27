@@ -167,6 +167,17 @@ class CatalogTest < ActionDispatch::IntegrationTest
     patch product_path(product), params: { product: { name: product.name, product_group: "processed", raw_material_id: product.raw_material_id,
                                                       cut_id: product.cut_id, unit: "kg", default_measure: " 3 mm " } }
     assert_equal "3 mm", product.reload.default_measure
+  end
+
+  test "o cadastro do produto marca o preparo no dia da entrega, e a lista mostra (R3.7)" do
+    product = ActsAsTenant.with_tenant(company) { Product.find_by!(code: "beterraba_ralada") }
+    get edit_product_path(product)
+    assert_select "input[type=checkbox][name='product[same_day_preparation]']"
+    patch product_path(product), params: { product: { name: product.name, product_group: "processed", raw_material_id: product.raw_material_id,
+                                                      cut_id: product.cut_id, unit: "kg", same_day_preparation: "1" } }
+    assert product.reload.same_day_preparation?
+    get products_path(q: "beterraba ralada")
+    assert_select "td.name .pill", "preparo no dia"
 
     get edit_product_path(Product.find_by!(code: "salada_roxa"))
     assert_select "li", /Beterraba ralada · 3 mm: 25%/
