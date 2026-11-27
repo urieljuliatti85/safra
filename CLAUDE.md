@@ -20,6 +20,8 @@ Dores relatadas: (1) redigitação; (2) consolidação por produto e corte sem p
 
 **A referência de domínio é a esteira operacional (`docs/esteira.md`)**, enviada pelo Gerente de Produção e Responsável Técnico em 27/10/2026. Ela está acima das planilhas: as planilhas mostram o resultado, a esteira mostra o processo.
 
+**O MVP é a esteira simplificada** (`docs/referencia/esteira/esteira-simplificada-25-11-2026.md`, decisão de 27/11/2026): só entra no sistema o que está nos cinco passos dela, e as "regras separadas" dela como cadastro. O resto, inclusive o que só está na esteira original, entra depois. Mapa do que fica, muda, falta e sai: `docs/roteiro.md`, "O MVP é a esteira simplificada".
+
 **Só fatos confirmados.** Uma regra de negócio só entra no sistema depois de confirmada com o Gerente de Produção, etapa por etapa, na pauta `docs/duvidas.md` (resposta, fonte, data), e registrada em `docs/regras.md`, a única fonte de regra para o código. O ciclo completo (preparar, conversar, consolidar, decidir, implementar, validar) e a situação de cada etapa estão em `docs/roteiro.md`. Nada de regra deduzida das planilhas. O que o sistema faz hoje em cada etapa, comparado com a esteira, está em `docs/lacunas.md`.
 
 O que o código já tem (abaixo) foi modelado a partir das planilhas, antes da esteira, e **não está confirmado**:
