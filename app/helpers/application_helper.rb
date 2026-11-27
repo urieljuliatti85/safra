@@ -90,4 +90,9 @@ module ApplicationHelper
     else "#{attribute}: #{before} → #{after}"
     end
   end
+
+  # "Produção de 13/10 v1" ou "Compra de 12/10 v2": a versão enviada, para os avisos do desfazer.
+  def sent_plan_label(plan)
+    "#{plan.is_a?(ProductionPlan) ? 'Produção' : 'Compra'} de #{Formatting.short_date(plan.date)} v#{plan.version}"
+  end
 end

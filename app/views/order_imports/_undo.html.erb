@@ -8,7 +8,19 @@
   <section id="desfazer" class="panel mb-4" aria-label="<%= label %>">
     <div class="panel-head"><h2><%= label %></h2></div>
     <div class="p-3 text-sm">
-      <p class="mb-2"><%= intro %> Programação, produção e compras são recalculadas sozinhas.</p>
+      <p class="mb-2"><%= intro %> Programação, produção, compras e pesagem são recalculadas sozinhas.</p>
+      <% if @plans_to_remove.any? %>
+        <div class="flash flash-alert" role="alert">
+          <%= icon :alert %>
+          <div>
+            <p class="font-bold">Estas versões foram enviadas depois<%= @import.image? ? " da digitação" : " da importação" %>, com itens dela, e serão apagadas:</p>
+            <ul class="list-disc ml-5">
+              <% @plans_to_remove.each do |plan| %><li><%= sent_plan_label(plan) %>, enviada em <%= l(plan.sent_at, format: "%d/%m %H:%M") %></li><% end %>
+            </ul>
+            <p>Se outro cliente estava na mesma versão, envie de novo depois de desfazer.</p>
+          </div>
+        </div>
+      <% end %>
       <% if @later_edits.any? %>
         <div class="flash flash-alert" role="alert">
           <%= icon :alert %>
@@ -27,7 +39,7 @@
         <div class="flash flash-alert" role="alert">
           <%= icon :alert %>
           <div>
-            <p class="font-bold">Já foram enviadas versões que vão ficar diferentes do pedido. Nada é reenviado sozinho:</p>
+            <p class="font-bold">Outras versões enviadas vão ficar diferentes do pedido. Nada é reenviado sozinho:</p>
             <ul class="list-disc ml-5">
               <% stale[:production].each do |date| %><li><%= link_to "Produção de #{short_date(date)}", production_path(date: date) %>: confira e envie a nova versão aos setores.</li><% end %>
               <% stale[:purchase].each do |date| %><li><%= link_to "Compra de #{short_date(date)}", purchases_path(date: date) %>: confira e envie a nova lista.</li><% end %>
@@ -36,7 +48,7 @@
         </div>
       <% end %>
       <%= button_to undo_order_import_path(@import), method: :post, class: "btn",
-            form: { class: "inline", data: { turbo_confirm: "#{label} de #{@import.filename}? O pedido de #{@import.customer.short_name} volta ao que era antes#{' e as alterações feitas depois se perdem' if @later_edits.any?}." } } do %>
+            form: { class: "inline", data: { turbo_confirm: "#{label} de #{@import.filename}? O pedido de #{@import.customer.short_name} volta ao que era antes#{' e as alterações feitas depois se perdem' if @later_edits.any?}#{" e #{@plans_to_remove.size == 1 ? 'a versão enviada é apagada' : "#{@plans_to_remove.size} versões enviadas são apagadas"}" if @plans_to_remove.any?}." } } do %>
         <%= icon :undo %><%= label %>
       <% end %>
     </div>

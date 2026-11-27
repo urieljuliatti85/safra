@@ -6,11 +6,15 @@ module OrderImports
   # - PDF de AFs: pelas versões que ele gravou em cada semana; cada AF volta ao que era (a nova sai, a alteração volta à
   #   lista anterior) e o número da AF de cada linha volta pelo retrato gravado ao aplicar (`af_lines`). PDF aplicado
   #   antes desse retrato existir não é desfeito: sem ele, a próxima alteração da AF não acharia as linhas dela.
-  # Programação, produção e compras são calculadas do pedido e voltam sozinhas. Versões já enviadas aos setores ficam
-  # como estão: a tela mostra a diferença e o reenvio é com o usuário. Desfazer não pede a confirmação das 48 h (D8).
+  # Programação, produção, compras e pesagem são calculadas do pedido e voltam sozinhas. As versões da Planilha de
+  # Produção e das Compras enviadas depois da importação, que trazem algum item dela (o cliente e um dia de entrega que
+  # ela mudou), são apagadas junto: desfazer tira do processo tudo o que a importação gerou. O que foi enviado antes
+  # dela fica. Desfazer não pede a confirmação das 48 h (D8).
   class Undoer
     Edit = Data.define(:product, :unit, :date, :imported, :current)
-    Result = Data.define(:errors, :changed_dates) do
+    Result = Data.define(:errors, :changed_dates, :removed_plans) do
+      def initialize(errors:, changed_dates:, removed_plans: []) = super
+
       def ok?
         errors.empty?
       end
@@ -55,7 +59,11 @@ module OrderImports
 
       stale = nil
       ActiveRecord::Base.transaction do
-        stale = { production: StalePlans.dates(@import.company), purchase: StalePlans.purchase_dates(@import.company) } if restore.ok?
+        plans = plans_to_remove
+        if restore.ok?
+          plans.each(&:destroy!)
+          stale = { production: StalePlans.dates(@import.company), purchase: StalePlans.purchase_dates(@import.company) }
+        end
         raise ActiveRecord::Rollback
       end
       @import.reload
@@ -74,10 +82,30 @@ module OrderImports
           next
         end
 
+        plans = plans_to_remove
         result = restore
         raise ActiveRecord::Rollback unless result.ok?
+
+        plans.each(&:destroy!)
+        result = Result.new(errors: [], changed_dates: result.changed_dates, removed_plans: plans)
       end
       result
+    end
+
+    # Versões enviadas (Planilha de Produção e Compras) que saíram depois da importação e trazem algum item dela.
+    def plans_to_remove
+      return [] unless undoable?
+
+      since = imported_at or return []
+      dates = touched_dates
+      customer = @import.customer
+      production = ProductionPlan.sent.where(sent_at: since..).includes(:items).select do |plan|
+        plan.items.any? { |item| Array(item.breakdown).any? { |b| b["customer_code"] == customer.code && dates.include?(b["delivery_date"]) } }
+      end
+      purchase = PurchasePlan.where.not(sent_at: nil).where(sent_at: since..).includes(:items).select do |plan|
+        plan.items.any? { |item| Array(item.breakdown).any? { |b| b["customer"] == customer.short_name && dates.include?(b["delivery_date"]) } }
+      end
+      (production + purchase).sort_by { |plan| [ plan.date, plan.class.name, plan.version ] }
     end
 
     private
@@ -85,6 +113,21 @@ module OrderImports
     def reset
       @cells = nil
       @current = nil
+    end
+
+    # Quando a importação entrou no pedido: a primeira versão gravada por ela desde o último desfazer.
+    def imported_at
+      versions = OrderVersion.where(order_import: @import).order(:id).to_a
+      last_undo = versions.rindex { |version| version.source == "undo" }
+      versions = versions.drop(last_undo + 1) if last_undo
+      versions.first&.created_at
+    end
+
+    # Os dias de entrega ("2026-10-13") em que a importação mudou alguma quantidade.
+    def touched_dates
+      cells.values.flat_map(&:values).flat_map do |by_date|
+        by_date.filter_map { |date, (before, after)| date if quantity(before) != quantity(after) }
+      end.to_set
     end
 
     def snapshot

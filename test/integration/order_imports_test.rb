@@ -97,6 +97,23 @@ class OrderImportsTest < ActionDispatch::IntegrationTest
     assert_equal "pending", ActsAsTenant.with_tenant(company) { import.reload.status }
   end
 
+  test "desfazer pela tela avisa e apaga a Planilha de Produção enviada depois da importação" do
+    travel_to Time.zone.local(2026, 10, 5, 9)
+    upload("pedido_com_unidade.xlsx", "hnorte")
+    import = ActsAsTenant.with_tenant(company) { OrderImport.order(:id).last }
+    post apply_order_import_path(import)
+    travel 1.minute
+    post publish_production_path(date: "2026-10-14")
+    plan = ActsAsTenant.with_tenant(company) { ProductionPlan.latest_sent(Date.new(2026, 10, 14)) }
+
+    get order_import_path(import)
+    assert_select "section[aria-label='Desfazer importação'] li", /Produção de 14\/10 v#{plan.version}/
+    post undo_order_import_path(import)
+    follow_redirect!
+    assert_match "Versões enviadas apagadas: Produção de 14/10 v#{plan.version}", response.body
+    assert_not ActsAsTenant.with_tenant(company) { ProductionPlan.exists?(plan.id) }
+  end
+
   test "planilha aplicada não é reaberta pelo status, só desfazendo" do
     upload("pedido_com_unidade.xlsx", "hnorte")
     import = ActsAsTenant.with_tenant(company) { OrderImport.order(:id).last }

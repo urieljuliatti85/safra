@@ -124,7 +124,7 @@ Regras que ajudam a entender a conferência:
 - Com mais de uma aba (por exemplo, cotação e pedido), vale a que tem mais produtos com quantidade.
 - Uma planilha por vez: processados e in natura costumam vir em arquivos separados.
 - A planilha precisa caber numa semana de pedido, da segunda até a segunda seguinte. Se passar disso (por exemplo, de sexta a terça), a conferência avisa e não deixa importar: separe em uma planilha por semana.
-- **Desfazer** (pílula na grade ou na tela da importação) devolve o pedido ao que era antes da planilha nos produtos e dias que ela tocou, apaga os apelidos que ela criou e reabre a importação. Alterações feitas no pedido depois da importação são listadas antes e se perdem.
+- **Desfazer** (pílula na grade ou na tela da importação) devolve o pedido ao que era antes da planilha nos produtos e dias que ela tocou, apaga os apelidos que ela criou e reabre a importação. Alterações feitas no pedido depois da importação são listadas antes e se perdem. As versões da Planilha de Produção e das Compras enviadas depois da importação, com itens dela, são apagadas junto (listadas antes de confirmar); as enviadas antes ficam.
 
 
 ## Validar o teste com as planilhas
