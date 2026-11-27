@@ -20,8 +20,11 @@ class ProductionPlanner
   Portion = Data.define(:product, :measure, :unit, :quantity, :customer, :delivery_date, :via)
   # Soma dos percentuais tratada como a mistura inteira: o Vinagrete tem três partes iguais de 33,3333% (R1.20).
   WHOLE_MIX = (BigDecimal("99.99")..BigDecimal("100.01"))
-  # Caixas a aprontar (descascadas) por matéria-prima.
-  Apronte = Data.define(:raw_material, :kg, :boxes)
+  # Relação de descasque e preparo (aprontes): total a preparar por vegetal e unidade (R3.8, R3.11, D42). Em kg, com o kg
+  # por caixa descascada, vira caixas; em unidade (laranja descascada), fica a quantidade.
+  Apronte = Data.define(:raw_material, :unit, :quantity, :boxes) do
+    def kg = unit == "kg" ? quantity : nil
+  end
   Result = Data.define(:date, :items, :delivery_dates, :aprontes) do
     def item_for(product_code)
       items.find { |item| item.product.code == product_code }
@@ -103,19 +106,28 @@ class ProductionPlanner
     )
   end
 
+  # Em kg, como sempre: processado fora dos descascados inteiros, com o kg por caixa descascada. Em unidade: os cortes
+  # que passam pelo descasque (Cut#peeled, D42), somados por vegetal.
   def self.aprontes(items)
-    by_raw_material = Hash.new(0)
+    totals = Hash.new(0)
     items.each do |item|
       product = item.product
-      next unless item.unit == "kg" && product.sector != "descasc"
-      next if product.raw_material.kg_per_peeled_box.blank?
+      next unless apronte?(item, product)
 
-      by_raw_material[product.raw_material] += item.quantity
+      totals[[ product.raw_material, item.unit ]] += item.quantity
     end
-    by_raw_material.map do |raw_material, kg|
-      Apronte.new(raw_material: raw_material, kg: kg, boxes: (kg / raw_material.kg_per_peeled_box).round)
-    end.sort_by { |apronte| apronte.raw_material.name }
+    totals.map do |(raw_material, unit), quantity|
+      boxes = (quantity / raw_material.kg_per_peeled_box).round if unit == "kg"
+      Apronte.new(raw_material: raw_material, unit: unit, quantity: quantity, boxes: boxes)
+    end.sort_by { |apronte| [ apronte.raw_material.name, apronte.unit ] }
   end
+
+  def self.apronte?(item, product)
+    return product.sector != "descasc" && product.raw_material.kg_per_peeled_box.present? if item.unit == "kg"
+
+    product.cut&.peeled?
+  end
+  private_class_method :apronte?
 
   private
 

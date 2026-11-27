@@ -68,7 +68,7 @@ module GuidesHelper
         "Entra cada linha de pedido cujo dia de produção (entrega menos antecedência) é o dia escolhido.",
         "Soma por produto e unidade, com a abertura por cliente e por dia de entrega.",
         "Separa por setor, conforme o corte: descascados inteiros, cortes manuais, ralados/picados/rodelas, palitos, cubinhos e frutas.",
-        "Aprontes: caixas a descascar = kg processado ÷ kg por caixa descascada da matéria-prima, arredondado. Descascados inteiros não entram.",
+        "Aprontes (descasque e preparo, por vegetal): em kg, caixas a descascar = kg processado ÷ kg por caixa descascada da matéria-prima, arredondado; descascados inteiros não entram. Em unidade, entram os cortes que passam pelo descasque (laranja descascada), com o total em unidades.",
         "In natura não entra na produção.",
         "Enviar aos setores grava a versão 1 e avisa no celular. Se o pedido mudar depois, a tela mostra o que mudou para enviar a versão 2."
       ], "Abrir Produção", production_path),

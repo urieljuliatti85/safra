@@ -38,17 +38,17 @@
   <section class="panel">
     <div class="panel-head">
       <h2>Aprontes</h2>
-      <span class="meta">caixas para descascar</span>
+      <span class="meta">descasque e preparo, por vegetal</span>
     </div>
     <table class="ops-table">
-      <thead><tr><th>Matéria-prima</th><th class="col-qty">kg processado</th><th class="col-qty">Caixas</th></tr></thead>
+      <thead><tr><th>Matéria-prima</th><th class="col-qty">Processado</th><th class="col-qty">Caixas</th></tr></thead>
       <tbody>
         <% result.aprontes.each do |apronte| %>
           <tr>
             <td class="name"><%= apronte.raw_material.name %></td>
-            <td class="qty only-desktop"><%= qty(apronte.kg) %></td>
-            <td class="qty boxes" data-unit="cx"><%= apronte.boxes %></td>
-            <td class="who only-mobile"><%= qty(apronte.kg) %> kg processados</td>
+            <td class="qty only-desktop"><%= qty(apronte.quantity) %> <%= apronte.unit %></td>
+            <td class="qty boxes" data-unit="<%= apronte.boxes ? "cx" : apronte.unit %>"><%= apronte.boxes || qty(apronte.quantity) %></td>
+            <td class="who only-mobile"><%= apronte.boxes ? "#{qty(apronte.quantity)} kg processados" : "a descascar, em #{apronte.unit}" %></td>
           </tr>
         <% end %>
       </tbody>

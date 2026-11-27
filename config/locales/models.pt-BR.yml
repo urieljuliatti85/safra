@@ -73,6 +73,7 @@ pt-BR:
         sector: Setor
         sector_name: Nome do setor
         lead_days: Antecedência
+        peeled: Passa pelo descasque
       company:
         name: Nome
         active: Ativa

@@ -15,6 +15,11 @@
       <span>Medida única</span>
     </label>
     <p class="muted mt-1 text-sm">O corte sai sempre nesta medida, mesmo quando o pedido traz outra. Ex.: palitos, 10 × 10 × 60 mm. Um produto pode ter a sua, em Produtos (a vagem em palitos, 40 × 10 mm).</p>
+    <label class="mt-2 flex items-center gap-2">
+      <%= form.check_box :peeled %>
+      <span>Passa pelo descasque</span>
+    </label>
+    <p class="muted mt-1 text-sm">O pedido em unidade deste corte entra nos aprontes, por vegetal e unidade. Ex.: laranja descascada, 250 un. Pedido em kg entra pelo kg por caixa descascada da matéria-prima, como sempre.</p>
   </div>
   <div>
     <%= form.label :sector, "Setor (lista de produção em que aparece)", class: "mb-1 block font-bold" %>

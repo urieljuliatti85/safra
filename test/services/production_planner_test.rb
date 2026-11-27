@@ -32,6 +32,28 @@ class ProductionPlannerTest < ActiveSupport::TestCase
     assert_same plan, plan.for_sector(nil)
   end
 
+  # Relação de descasque e preparo por vegetal e unidade (R3.11, D42): a laranja descascada entra em unidades, pelo
+  # corte que passa pelo descasque; a banana embalada não.
+  test "aprontes: laranja descascada em unidade entra pelo corte que passa pelo descasque" do
+    date = Date.new(2026, 10, 14)
+    ActsAsTenant.with_tenant(company) do
+      order = Order.joins(:customer).find_by!(customers: { code: "hbp" }, week_start: Date.new(2026, 10, 12))
+      laranja = Product.find_by!(code: "laranja_desc")
+      banana = Product.find_by!(code: "banana_embalada")
+      delivery = (date..(date + 3)).find { |d| laranja.production_date_for(d) == date }
+      OrderLine.where(product: [ laranja, banana ], delivery_date: delivery).delete_all
+      order.lines.create!(product: laranja, delivery_date: delivery, quantity: 250, unit: "un")
+      order.lines.create!(product: banana, delivery_date: delivery, quantity: 40, unit: "un")
+    end
+    aprontes = ProductionPlanner.new(company: company, date: date).call.aprontes
+    laranja = aprontes.find { |a| a.raw_material.code == "laranja" }
+    assert_equal [ "un", 250, nil, nil ], [ laranja.unit, laranja.quantity, laranja.boxes, laranja.kg ]
+    assert_not(aprontes.any? { |a| a.raw_material.code == "banana_nanica" })
+
+    ActsAsTenant.with_tenant(company) { Cut.find_by!(code: "descascada_un").update!(peeled: false) }
+    assert_not(ProductionPlanner.new(company: company, date: date).call.aprontes.any? { |a| a.raw_material.code == "laranja" })
+  end
+
   test "aprontes: caixas = ROUND(kg processado / kg por caixa descascada)" do
     plan = ProductionPlanner.new(company: company, date: Date.new(2026, 10, 13)).call
     batata = plan.aprontes.find { |a| a.raw_material.code == "batata" }
