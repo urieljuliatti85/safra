@@ -14,6 +14,9 @@ class StockTest < ActionDispatch::IntegrationTest
     get stock_path(date: "2026-10-12")
     assert_response :success
     assert_select "h1", "Estoque da câmara fria"
+    # Só o saldo aproveitável entra (R6.2, D49).
+    assert_select ".page-sub", /Conte só o saldo aproveitável: o que está dentro da condição de uso e não está comprometido/
+    assert_select "th", text: "Aproveitável em 12/10 (kg)"
     assert_match "Próxima compra a partir desta contagem", response.body
     assert_match "Ter 13/10", response.body
     assert_select "th", text: /Precisa em 13\/10/
