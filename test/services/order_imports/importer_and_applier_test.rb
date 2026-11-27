@@ -153,7 +153,7 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
   end
 
   test "simular o desfazer lista os planos enviados que vão mudar sem gravar nada" do
-    # Cenoura ralada sai no dia da entrega: 15/10 cai na compra de 15/10.
+    # Cenoura ralada entregue em 15/10 é produzida na véspera (14/10) e cai na compra de 13/10.
     Order.find_by!(customer: @serra, week_start: Date.new(2026, 10, 12)).lines
          .find_by!(product: Product.find_by!(code: "cenoura_ralada"), delivery_date: Date.new(2026, 10, 15)).update!(quantity: 50)
     record = import("pedido_com_unidade.xlsx", @serra)
@@ -168,7 +168,7 @@ class OrderImports::ImporterAndApplierTest < ActiveSupport::TestCase
 
     stale = OrderImports::Undoer.new(import: record).stale_after_undo
     assert_includes stale[:production], Date.new(2026, 10, 15)
-    assert_includes stale[:purchase], Date.new(2026, 10, 15)
+    assert_includes stale[:purchase], Date.new(2026, 10, 13)
     assert_equal after_apply, order_state(@serra)
     assert_equal "applied", record.reload.status
   end
