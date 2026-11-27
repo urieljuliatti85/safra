@@ -19,6 +19,24 @@ module DetachedNodeAsStale
 end
 Selenium::WebDriver::Remote::Response.prepend(DetachedNodeAsStale)
 
+# Entre um teste e outro o Capybara 3.40 limpa cookies e localStorage com Storage.clearDataForOrigin(origin: "*").
+# Do Chrome 158 em diante o "*" é recusado ("* is not a valid URL") e todo teste de sistema falha no reset. O teste
+# só abre o servidor do próprio Capybara, então limpar a origem dele dá no mesmo. Tirar quando o Capybara corrigir.
+require "capybara/selenium/driver"
+require "capybara/selenium/driver_specializations/chrome_driver"
+
+module ClearStorageOfTheTestServer
+  private
+
+  def execute_cdp(cmd, params = {})
+    server = Capybara.current_session.server
+    return super unless cmd == "Storage.clearDataForOrigin" && params[:origin] == "*" && server
+
+    super(cmd, params.merge(origin: server.base_url))
+  end
+end
+Capybara::Selenium::Driver::ChromeDriver.prepend(ClearStorageOfTheTestServer)
+
 # Celular de 390 px num navegador separado: o Chrome headless não abre janela com menos de 500 px, então a tela é
 # emulada pelo ChromeDriver. Sessão própria: a largura e o sessionStorage do celular não passam para os outros testes.
 # Sem animação: a grade rola até a linha nova com scroll suave (order_lines_controller#focus), e um clique durante a
