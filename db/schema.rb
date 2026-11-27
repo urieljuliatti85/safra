@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_27_240000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_27_260000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -327,6 +327,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_27_240000) do
     t.index ["company_id", "date", "version"], name: "index_purchase_plans_on_company_id_and_date_and_version", unique: true
   end
 
+  create_table "purchase_receipts", force: :cascade do |t|
+    t.bigint "company_id", null: false
+    t.bigint "raw_material_id", null: false
+    t.date "date", null: false
+    t.string "unit", default: "kg", null: false
+    t.integer "packages"
+    t.decimal "loose", precision: 10, scale: 3, default: "0.0", null: false
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["company_id", "date", "raw_material_id", "unit"], name: "index_purchase_receipts_unique", unique: true
+    t.index ["company_id"], name: "index_purchase_receipts_on_company_id"
+    t.index ["raw_material_id"], name: "index_purchase_receipts_on_raw_material_id"
+  end
+
   create_table "push_subscriptions", force: :cascade do |t|
     t.bigint "company_id", null: false
     t.bigint "user_id", null: false
@@ -515,6 +530,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_27_240000) do
   add_foreign_key "purchase_plan_items", "purchase_plans"
   add_foreign_key "purchase_plan_items", "raw_materials"
   add_foreign_key "purchase_plans", "companies"
+  add_foreign_key "purchase_receipts", "companies"
+  add_foreign_key "purchase_receipts", "raw_materials"
   add_foreign_key "push_subscriptions", "companies"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "raw_materials", "companies"

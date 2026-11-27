@@ -1,0 +1,54 @@
+<% content_for :title, "Recebimento · Safra" %>
+<div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="page-title">Recebimento da compra de <%= weekday_date(@date) %></h1>
+    <p class="page-sub">Anote o que chegou de fato, na unidade da relação (caixas ou sacos e o avulso), e a divergência. O recebido entra na matéria-prima disponível, no Estoque. O que fazer com uma divergência (comprar de novo, ajustar) é decisão do responsável.</p>
+  </div>
+  <%= link_to purchases_path(date: @date), class: "btn" do %><%= icon :chevron_left %>Voltar à compra<% end %>
+</div>
+
+<% if @errors.present? %>
+  <div class="flash flash-alert" role="alert">
+    <%= icon :alert %>
+    <div><p class="font-bold">Nada foi salvo. Corrija:</p><ul class="list-disc ml-5"><% @errors.each do |error| %><li><%= error %></li><% end %></ul></div>
+  </div>
+<% end %>
+
+<% if @plan.nil? %>
+  <p class="panel p-8 text-center muted">A compra de <%= weekday_date(@date) %> ainda não foi enviada aos fornecedores. O recebimento confere o que foi enviado.</p>
+<% else %>
+  <%= form_with url: purchase_receipt_path, method: :patch, data: { turbo: false } do %>
+    <%= hidden_field_tag :date, @date.iso8601 %>
+    <section class="panel">
+      <div class="panel-head"><h2>Versão <%= @plan.version %> enviada</h2><span class="meta num"><%= @items.size %> itens</span></div>
+      <div class="sheet-wrap">
+        <table class="ops-table receipt-table">
+          <thead><tr><th>Matéria-prima</th><th>Enviado</th><th>Recebido</th><th>Diferença</th><th>Divergência</th></tr></thead>
+          <tbody>
+            <% @items.each do |item| %>
+              <% receipt = @receipts[[ item.raw_material_id, item.unit ]] %>
+              <% content = item.raw_material.package_content(item.unit) %>
+              <% package = Formatting::PACKAGE_LABELS.fetch(item.raw_material.purchase_package, item.raw_material.purchase_package) %>
+              <tr>
+                <td class="name"><%= item.raw_material.name %></td>
+                <td class="num" data-label="Enviado"><%= need_text(item) %></td>
+                <td class="count" data-label="Recebido">
+                  <% if content %>
+                    <%= text_field_tag "receipts[#{item.id}][packages]", receipt&.packages, inputmode: "numeric", autocomplete: "off", class: "field w-16 text-right", "aria-label": "#{item.raw_material.name}: #{package} recebidas" %> <%= package %> de <%= qty(content) %> <%= item.unit %> e
+                  <% end %>
+                  <%= text_field_tag "receipts[#{item.id}][loose]", (qty(receipt.loose) if receipt && (receipt.loose.positive? || !content)), inputmode: "decimal", autocomplete: "off", class: "field w-20 text-right", "aria-label": "#{item.raw_material.name}: #{content ? 'avulso' : 'quantidade'} recebido em #{item.unit}" %> <%= item.unit %>
+                </td>
+                <td class="num" data-label="Diferença"><%= receipt ? receipt_difference(item, receipt) : "-" %></td>
+                <td data-label="Divergência"><%= text_field_tag "receipts[#{item.id}][note]", receipt&.note, autocomplete: "off", class: "field w-full", placeholder: "Ex.: 2 caixas amassadas", "aria-label": "Divergência de #{item.raw_material.name}" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <div class="savebar">
+      <%= button_tag type: "submit", class: "btn btn-primary" do %><%= icon :check %>Salvar recebimento<% end %>
+      <span class="muted text-sm">Deixe a linha vazia para o que ainda não chegou. Use vírgula para decimais.</span>
+    </div>
+  <% end %>
+<% end %>
