@@ -65,6 +65,8 @@ Rails.application.routes.draw do
   get "production/versions/:id", to: "production_versions#show", as: :production_version
   get "purchases", to: "purchases#show"
   post "purchases/publish", to: "purchases#publish", as: :publish_purchase
+  get "recebimento", to: "purchase_receipts#show", as: :purchase_receipt
+  patch "recebimento", to: "purchase_receipts#update"
   resource :rules, only: %i[show update], path: "regras"
   resources :purchase_days, only: %i[create destroy], path: "dias-de-compra"
 

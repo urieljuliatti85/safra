@@ -2,7 +2,7 @@
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
   <div>
     <h1 class="page-title">Estoque da câmara fria</h1>
-    <p class="page-sub">Conte só o <strong>saldo aproveitável</strong>: o que está dentro da condição de uso e não está comprometido. O que está estragado, separado para um cliente ou fora de uso não entra. Matéria-prima em kg e, mais abaixo, o produto pronto. A contagem vale para a próxima compra da CEASA, que abate o que está contado. <strong>Campo vazio</strong> é não contado (nada é abatido), <strong>0</strong> é nada aproveitável.</p>
+    <p class="page-sub">Conte só o <strong>saldo aproveitável</strong>: o que está dentro da condição de uso e não está comprometido. O que está estragado, separado para um cliente ou fora de uso não entra. Matéria-prima em kg e, mais abaixo, o produto pronto. A contagem vale para a próxima compra da CEASA, que abate o que está contado. "Disponível" é o último saldo contado mais o recebido nas compras depois dele (Recebimento). <strong>Campo vazio</strong> é não contado (nada é abatido), <strong>0</strong> é nada aproveitável.</p>
   </div>
   <%= day_nav(@date, :stock_path) %>
 </div>
@@ -42,6 +42,8 @@
           <th class="sticky-col">Matéria-prima</th>
           <th scope="col" class="px-2 text-right">Aproveitável em <%= short_date(@date) %> (kg)</th>
           <th scope="col" class="px-2 text-right">Contagem anterior</th>
+          <th scope="col" class="px-2 text-right">Recebido depois</th>
+          <th scope="col" class="px-2 text-right">Disponível</th>
           <% if @purchase_date %>
             <th scope="col" class="px-2 text-right">Precisa em <%= short_date(@purchase_date) %></th>
             <th scope="col" class="px-2 text-right">Abate do estoque</th>
@@ -57,6 +59,10 @@
             <th scope="row" class="sticky-col font-medium"><%= rm.name %></th>
             <td class="count px-1 text-right"><%= text_field_tag "counts[#{rm.id}]", (qty(@today[rm.id].kg) if @today[rm.id]), inputmode: "decimal", autocomplete: "off", class: "field w-24 text-right", "aria-label": "Contagem de #{rm.name}" %></td>
             <td class="num px-2 text-right muted <%= 'is-empty' unless previous %>" data-label="Anterior"><%= previous ? "#{qty(previous.kg)} kg em #{short_date(previous.date)}" : "-" %></td>
+            <% received = @received.fetch(rm.id, 0) %>
+            <% last = @today[rm.id] || previous %>
+            <td class="num px-2 text-right <%= 'is-empty' unless received.positive? %>" data-label="Recebido"><%= received.positive? ? "#{qty(received)} kg" : "-" %></td>
+            <td class="num px-2 text-right <%= 'is-empty' unless last || received.positive? %>" data-label="Disponível"><%= last || received.positive? ? "#{qty((last&.kg || 0) + received)} kg" : "-" %></td>
             <% if @purchase_date %>
               <td class="num px-2 text-right <%= 'is-empty' unless need %>" data-label="Precisa"><%= need ? "#{qty(need.kg)} kg" : "-" %></td>
               <td class="num px-2 text-right <%= 'is-empty' unless need&.stock_kg&.positive? %>" data-label="Abate"><%= need && need.stock_kg.positive? ? "#{qty(need.stock_kg)} kg" : "-" %></td>
@@ -65,7 +71,7 @@
           </tr>
         <% end %>
         <% if @raw_materials.empty? %>
-          <tr><td colspan="6" class="muted p-6 text-center">Nenhuma matéria-prima para mostrar. Marque "Mostrar todas" para contar qualquer uma.</td></tr>
+          <tr><td colspan="8" class="muted p-6 text-center">Nenhuma matéria-prima para mostrar. Marque "Mostrar todas" para contar qualquer uma.</td></tr>
         <% end %>
       </tbody>
     </table>

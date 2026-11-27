@@ -6,6 +6,7 @@ module ApplicationHelper
   def kg_text(value) = number_with_precision(value, precision: 1, strip_insignificant_zeros: true, delimiter: ".", separator: ",")
 
   def need_text(need) = Formatting.need_text(need)
+  def receipt_difference(item, receipt) = Formatting.receipt_difference(item, receipt)
 
   def plural(count, singular, plural_form)
     "#{count} #{count == 1 ? singular : plural_form}"

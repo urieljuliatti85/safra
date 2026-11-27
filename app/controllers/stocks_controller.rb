@@ -61,7 +61,18 @@ class StocksController < ApplicationController
       matches && relevant
     end
     @total = RawMaterial.count
+    load_received
     load_ready
+  end
+
+  # Matéria-prima disponível (R5.1, D47): o último saldo contado até o dia, mais o recebido nas compras depois dele
+  # (o recebido do mesmo dia da contagem já está nela). Só o que é em kg.
+  def load_received
+    receipts = PurchaseReceipt.where(unit: "kg", date: ..@date).includes(:raw_material).to_a.group_by(&:raw_material_id)
+    @received = receipts.to_h do |raw_material_id, list|
+      last = @today[raw_material_id] || @previous[raw_material_id]
+      [ raw_material_id, list.select { |r| last.nil? || r.date > last.date }.sum(&:quantity) ]
+    end
   end
 
   # Produto pronto (R3.8, D39): os processados da próxima compra e os que já têm contagem; "Mostrar todas" e quem é

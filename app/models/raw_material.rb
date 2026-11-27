@@ -7,6 +7,7 @@ class RawMaterial < ApplicationRecord
   belongs_to :supplier, optional: true
   has_many :products, dependent: :restrict_with_error
   has_many :stock_counts, dependent: :destroy
+  has_many :purchase_receipts, dependent: :destroy
   has_many :sheet_aliases, dependent: :destroy
 
   validates :code, :name, presence: true
@@ -24,6 +25,15 @@ class RawMaterial < ApplicationRecord
   # Fator ausente gera alerta, não erro.
   def missing_factor?
     multiply_factor.blank?
+  end
+
+  # O que vem em cada caixa ou saco, na unidade do pedido: kg por embalagem, ou unidades por embalagem da fruta pedida
+  # por unidade (R3.10). Comprada por unidade ou a granel, nil.
+  def package_content(unit)
+    return nil unless %w[cx sc].include?(purchase_package)
+    return kg_per_package if unit == "kg"
+
+    units_per_package if unit == "un"
   end
 
   # Pedido nesta unidade vira compra sem fator (R3.10, D40): fruta em unidade comprada por unidade (melancia), ou
