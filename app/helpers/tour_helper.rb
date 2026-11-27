@@ -29,7 +29,7 @@ module TourHelper
       { path: production_path, target: "nav[aria-label='Setores']", title: "Lista de cada setor",
         text: "Cada setor vê só a versão enviada, na tela ou no PDF, com os aprontes em caixas." },
       { path: purchases_path, target: "[data-controller='copy']", title: "6. Compra da CEASA",
-        text: "No dia de compra a lista já vem com perdas e estoque abatidos, por fornecedor. Copie o texto para o WhatsApp " \
+        text: "No dia de compra a lista já vem com o volume total de cada matéria-prima, por fornecedor. Copie o texto para o WhatsApp " \
               "de cada um e clique em Enviar aos fornecedores." },
       { path: production_path, target: "section[aria-label='Estado do envio']", title: "7. Quando o pedido muda",
         text: "Reimporte a planilha ou edite a grade. Produção e compra mostram \"Mudou depois do envio\" item a item: " \

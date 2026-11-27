@@ -10,26 +10,15 @@ class StockTest < ActionDispatch::IntegrationTest
 
   def raw_material(code) = RawMaterial.find_by!(code: code)
 
-  test "a tela mostra a próxima compra e o que cada matéria-prima precisa" do
+  # MVP (esteira simplificada, passo 5): o Estoque é o produto pronto que sobrou; a matéria-prima não é contada na tela.
+  test "a tela mostra só o produto pronto" do
     get stock_path(date: "2026-10-12")
     assert_response :success
     assert_select "h1", "Estoque da câmara fria"
-    # Só o saldo aproveitável entra (R6.2, D49).
-    assert_select ".page-sub", /Conte só o saldo aproveitável: o que está dentro da condição de uso e não está comprometido/
-    assert_select "th", text: "Aproveitável em 12/10 (kg)"
-    assert_match "Próxima compra a partir desta contagem", response.body
-    assert_match "Ter 13/10", response.body
-    assert_select "th", text: /Precisa em 13\/10/
-    assert_select "input[aria-label='Contagem de Cenoura']"
+    assert_select ".page-sub", /produto pronto que sobrou/
+    assert_select "h2", "Produto pronto"
+    assert_select "input[aria-label='Contagem de Cenoura']", false
     assert_select "nav[aria-label='Principal'] a", text: "Estoque"
-  end
-
-  test "por padrão só aparece o que a compra precisa ou já tem contagem; mostrar todas inclui o resto" do
-    get stock_path(date: "2026-10-12", q: "abacate")
-    assert_select "input[aria-label='Contagem de Abacate']", false # abacate não entra na compra de 13/10
-    assert_match "Nenhuma matéria-prima para mostrar", response.body
-    get stock_path(date: "2026-10-12", q: "abacate", todas: "1")
-    assert_select "input[aria-label='Contagem de Abacate']"
   end
 
   test "salvar cria contagens com vírgula" do
@@ -39,7 +28,6 @@ class StockTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_match "1 contagem salva em 12/10", response.body
     assert_equal 12.5, StockCount.find_by!(raw_material: cenoura, date: "2026-10-12").kg.to_f
-    assert_select "input[aria-label='Contagem de Cenoura'][value='12,5']"
   end
 
   test "campo vazio apaga a contagem, zero guarda a câmara vazia e linha igual não conta" do
@@ -119,20 +107,12 @@ class StockTest < ActionDispatch::IntegrationTest
     assert_select "h1", /Estoque/
     assert_select "a[href^='#{purchases_path}']", count: 0
     assert_select "th", text: /Comprar|Abate do estoque|Precisa em/, count: 0
-    assert_select "input[name='counts[#{raw_material('cenoura').id}]']"
     patch stock_path, params: { date: "2026-10-12", counts: { raw_material("cenoura").id => "5" } }
     assert_redirected_to stock_path(date: "2026-10-12")
     assert_equal 5, StockCount.find_by!(raw_material: raw_material("cenoura"), date: "2026-10-12").kg
     follow_redirect!
     assert_no_match "mudou desde a versão enviada", response.body
   end
-
-  test "sem dia de compra depois da data a tela avisa e continua usável" do
-    get stock_path(date: "2026-12-01")
-    assert_response :success
-    assert_match "Não há dia de compra a partir de 01/12", response.body
-  end
-  # --- produto pronto (R3.8, D39) ---
 
   test "produto pronto da próxima compra aparece para contar, na unidade do produto" do
     get stock_path(date: "2026-10-12")

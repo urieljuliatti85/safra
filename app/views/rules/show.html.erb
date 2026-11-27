@@ -12,16 +12,6 @@
   </div>
 <% end %>
 
-<section class="panel mb-4" aria-label="Placar contra as planilhas">
-  <div class="panel-head">
-    <h2>Placar contra as planilhas importadas</h2>
-    <%= link_to "Ver item por item", conference_sheets_path, class: "meta underline" %>
-  </div>
-  <p class="p-3 num">
-    Produção: <strong><%= @scores[:production][0] %> de <%= @scores[:production][1] %></strong> itens iguais ·
-    Compras: <strong><%= @scores[:purchase][0] %> de <%= @scores[:purchase][1] %></strong> itens iguais
-  </p>
-</section>
 
 <% if @simulation && @simulation.errors.empty? %>
   <% sim = @simulation %>

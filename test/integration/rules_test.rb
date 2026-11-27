@@ -17,8 +17,7 @@ class RulesTest < ActionDispatch::IntegrationTest
     assert_select "label[for=cut_#{@cubinhos.id}]", /Cubinhos/
     assert_select "select#cut_#{@cubinhos.id} option[selected]", "1 dia antes"
     assert_select "select#raw_lead_days option[selected]", "1 dia antes"
-    assert_match "Placar contra as planilhas", response.body
-    assert_match "11 de 43", response.body # Yaksoba pelos ingredientes (D25)
+    assert_no_match "Placar contra as planilhas", response.body # comparação com as planilhas fica para depois do MVP
     assert_select "#compras li", 3
   end
 
