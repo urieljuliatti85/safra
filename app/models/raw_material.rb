@@ -7,7 +7,6 @@ class RawMaterial < ApplicationRecord
   belongs_to :supplier, optional: true
   has_many :products, dependent: :restrict_with_error
   has_many :stock_counts, dependent: :destroy
-  has_many :purchase_receipts, dependent: :destroy
   has_many :sheet_aliases, dependent: :destroy
 
   validates :code, :name, presence: true
