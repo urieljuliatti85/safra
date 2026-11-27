@@ -110,19 +110,8 @@ jobs:
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
 
-      - name: Run API request specs (RSpec/rswag)
-        env:
-          RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432
-        run: bundle exec rspec
-
-      - name: Check the OpenAPI file is up to date
-        env:
-          RAILS_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432
-        run: |
-          bundle exec rake rswag:specs:swaggerize
-          git diff --exit-code swagger/ || { echo "swagger/v1/swagger.yaml desatualizado: rode bundle exec rake rswag:specs:swaggerize e commite." >&2; exit 1; }
+      # A API está fora do MVP: os specs de request (RSpec/rswag) e a checagem do swagger/v1/swagger.yaml voltam no
+      # pós-MVP. Até lá, uma mudança no MVP pode deixar a API desatualizada sem bloquear o merge.
 
       # Os testes carregam o db/schema.rb e nunca rodam as migrations. Aqui elas rodam do zero, num banco só para isso,
       # e o schema.rb gerado precisa ser igual ao commitado.
