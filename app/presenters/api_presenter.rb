@@ -87,7 +87,7 @@ module ApiPresenter
     { date: date&.iso8601, sent_version: plan_version(sent), changes_since_sent: changes.map { |c| change(c) },
       items: needs.map do |need|
         { raw_material: need.raw_material.code, name: need.raw_material.name, supplier: need.raw_material.supplier&.name, unit: need.unit,
-          kg: number(need.kg), stock_kg: number(need.stock_kg), net_kg: number(need.net_kg), packages: need.packages,
+          kg: number(need.kg), stock_kg: number(need.stock_kg), net_kg: number(need.net_kg), packages: need.packages, loose_kg: number(need.loose_kg),
           package: need.raw_material.purchase_package, missing_factor: need.missing_factor }
       end }
   end

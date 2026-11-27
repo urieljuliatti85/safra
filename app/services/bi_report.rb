@@ -7,7 +7,7 @@ class BiReport
   DATASETS = {
     schedule: %i[delivery_date customer customer_name product product_name group quantity unit production_date],
     production: %i[production_date sector sector_name product product_name raw_material raw_material_name customer delivery_date quantity unit measure via],
-    purchases: %i[purchase_date supplier raw_material raw_material_name unit gross_kg stock_kg net_kg packages package missing_factor],
+    purchases: %i[purchase_date supplier raw_material raw_material_name unit gross_kg stock_kg net_kg packages loose_kg package missing_factor],
     losses: %i[production_date sector product product_name raw_material raw_material_name processed_kg raw_kg loss_kg loss_pct measure]
   }.freeze
 
@@ -52,7 +52,7 @@ class BiReport
       needs.map do |n|
         { purchase_date: date.iso8601, supplier: n.raw_material.supplier&.name, raw_material: n.raw_material.code,
           raw_material_name: n.raw_material.name, unit: n.unit, gross_kg: num(n.kg), stock_kg: num(n.stock_kg),
-          net_kg: num(n.net_kg), packages: n.packages, package: n.raw_material.purchase_package, missing_factor: n.missing_factor }
+          net_kg: num(n.net_kg), packages: n.packages, loose_kg: num(n.loose_kg), package: n.raw_material.purchase_package, missing_factor: n.missing_factor }
       end
     end
   end

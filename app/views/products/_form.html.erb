@@ -24,6 +24,11 @@
     <p class="muted mt-1 text-sm">Vale quando o pedido não traz medida, no lugar da referência do corte. Exemplo: cenoura ralada, 3 mm (R2.12). Num corte de medida única (palito), é a medida fixa do produto: sai sempre nela, mesmo com outra medida no pedido. Exemplo: vagem em palitos, 40 × 10 mm (R2.11).</p>
   </div>
   <div>
+    <%= form.label :rounding, "Arredondamento da compra", class: "mb-1 block font-bold" %>
+    <%= form.select :rounding, Product::ROUNDING_LABELS.invert, {}, class: "field w-full" %>
+    <p class="muted mt-1 text-sm">Caixa inteira: a parte deste produto na compra arredonda para cima. Fração: compra as caixas inteiras e o resto em kg, por exemplo 2 caixas e 5 kg (R3.9).</p>
+  </div>
+  <div>
     <%= form.label :unit, "Unidade do produto", class: "mb-1 block font-bold" %>
     <%= form.select :unit, OrderLine::UNITS, {}, class: "field w-full" %>
   </div>

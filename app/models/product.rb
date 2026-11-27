@@ -1,8 +1,11 @@
 class Product < ApplicationRecord
   GROUPS = %w[processed raw fruit].freeze
   GROUP_LABELS = { "processed" => "Processados", "fruit" => "Frutas embaladas ou descascadas", "raw" => "In natura" }.freeze
+  ROUNDING_LABELS = { "whole_box" => "Caixa inteira", "fraction" => "Fração (caixas e kg)" }.freeze
 
   acts_as_tenant :company
+  # Arredondamento da compra (R3.9, D41): caixa inteira arredonda para cima; fração compra caixas e o resto em kg.
+  enum :rounding, { whole_box: 0, fraction: 1 }, suffix: true, validate: true
   include Auditable
 
   belongs_to :raw_material

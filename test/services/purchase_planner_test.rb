@@ -1,14 +1,52 @@
 require "test_helper"
 
 class PurchasePlannerTest < ActiveSupport::TestCase
-  test "kg in natura = kg processado x fator e embalagens = ROUND(kg / kg por embalagem)" do
-    result = PurchasePlanner.new(company: company).call
-    need = result.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
+  test "kg in natura = kg processado x fator" do
+    need = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
     expected_kg = need.breakdown.sum do |b|
       b.product.raw? ? b.quantity : b.quantity * b.product.raw_material.multiply_factor
     end
     assert_in_delta expected_kg, need.kg, 0.0001
-    assert_equal [ 1, (need.net_kg / 20).round ].max, need.packages
+  end
+
+  test "caixa inteira arredonda para cima a parte de cada produto e soma (R3.9)" do
+    need = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
+    per_package = need.raw_material.kg_per_package
+    expected = need.breakdown.group_by(&:product).sum do |product, lines|
+      (lines.sum { |b| b.quantity * product.raw_material.multiply_factor } / per_package).ceil
+    end
+    assert_equal expected, need.packages
+    assert_equal 0, need.loose_kg
+    assert_in_delta need.net_kg / per_package, need.net_packages, 0.01
+  end
+
+  test "fração soma o kg exato e compra as caixas inteiras e o resto em kg (R3.9)" do
+    ActsAsTenant.with_tenant(company) { Product.where(raw_material: RawMaterial.find_by!(code: "cenoura")).update_all(rounding: :fraction) }
+    need = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
+    per_package = need.raw_material.kg_per_package
+    assert_equal (need.net_kg / per_package).floor, need.packages
+    assert_in_delta need.net_kg - need.packages * per_package, need.loose_kg, 0.001
+    assert_equal "#{need.packages} cx e #{Formatting.qty(need.loose_kg)} kg", Formatting.need_text(need)
+  end
+
+  test "caixa inteira e fração na mesma matéria-prima: as caixas de um somam com as frações do outro" do
+    need = ActsAsTenant.with_tenant(company) do
+      breakdown = PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg").breakdown
+      breakdown.map(&:product).uniq.first.update!(rounding: :fraction)
+      PurchasePlanner.new(company: company).call.need_for(Date.new(2026, 10, 13), "cenoura", "kg")
+    end
+    per_package = need.raw_material.kg_per_package
+    parts = need.breakdown.group_by(&:product).to_h { |product, lines| [ product, lines.sum { |b| b.quantity * product.raw_material.multiply_factor } ] }
+    fraction_kg = parts.select { |product, _| product.fraction_rounding? }.values.sum
+    whole = parts.reject { |product, _| product.fraction_rounding? }.values.sum { |kg| (kg / per_package).ceil }
+    assert_equal whole + (fraction_kg / per_package).floor, need.packages
+    assert_in_delta fraction_kg % per_package, need.loose_kg, 0.001
+  end
+
+  test "fração menor que uma caixa sai só em kg" do
+    need = PurchasePlanner::Need.new(raw_material: Struct.new(:purchase_package).new("cx"), unit: "kg", processed_quantity: 0, raw_quantity: 0,
+                                     kg: 5, stock_kg: 0, net_kg: 5, packages: 0, loose_kg: 5.to_d, net_packages: 0.25, missing_factor: false, breakdown: [])
+    assert_equal "5 kg", Formatting.need_text(need)
   end
 
   test "matéria-prima sem fator gera alerta, não erro" do
